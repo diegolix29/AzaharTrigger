@@ -139,9 +139,7 @@ Loader::ResultStatus NCCHContainer::LoadHeader() {
         return Loader::ResultStatus::Success;
     }
 
-#ifdef todotodo
     for (int i = 0; i < 2; i++) {
-#endif
         if (!file->IsOpen()) {
             return Loader::ResultStatus::Error;
         }
@@ -168,7 +166,6 @@ Loader::ResultStatus NCCHContainer::LoadHeader() {
 
         // Verify we are loading the correct file type...
         if (Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic) {
-#ifdef todotodo
             // We may be loading a crypto file, try again
             if (i == 0) {
                 file.reset();
@@ -177,13 +174,8 @@ Loader::ResultStatus NCCHContainer::LoadHeader() {
             } else {
                 return Loader::ResultStatus::ErrorInvalidFormat;
             }
-#else
-            return Loader::ResultStatus::ErrorInvalidFormat;
-#endif
         }
-#ifdef todotodo
     }
-#endif
 
     if (file->IsCrypto()) {
         LOG_DEBUG(Service_FS, "NCCH file has console unique crypto");
@@ -202,9 +194,7 @@ Loader::ResultStatus NCCHContainer::Load() {
     if (file->IsOpen()) {
         size_t file_size;
 
-#ifdef todotodo
         for (int i = 0; i < 2; i++) {
-#endif
             file_size = file->GetSize();
 
             // Reset read pointer in case this file has been read before.
@@ -227,7 +217,6 @@ Loader::ResultStatus NCCHContainer::Load() {
 
             // Verify we are loading the correct file type...
             if (Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic) {
-#ifdef todotodo
                 // We may be loading a crypto file, try again
                 if (i == 0) {
                     file = HW::UniqueData::OpenUniqueCryptoFile(
@@ -235,13 +224,8 @@ Loader::ResultStatus NCCHContainer::Load() {
                 } else {
                     return Loader::ResultStatus::ErrorInvalidFormat;
                 }
-#else
-            return Loader::ResultStatus::ErrorInvalidFormat;
-#endif
             }
-#ifdef todotodo
         }
-#endif
 
         if (file->IsCrypto()) {
             LOG_DEBUG(Service_FS, "NCCH file has console unique crypto");
@@ -490,24 +474,20 @@ Loader::ResultStatus NCCHContainer::Load() {
             if (file->ReadBytes(&exefs_header, sizeof(ExeFs_Header)) != sizeof(ExeFs_Header))
                 return Loader::ResultStatus::Error;
 
-#ifdef todotodo
             if (file->IsCrypto()) {
                 exefs_file = HW::UniqueData::OpenUniqueCryptoFile(
                     filepath, "rb", HW::UniqueData::UniqueCryptoFileID::NCCH);
             } else {
-                exefs_file = std::make_unique<FileUtil::IOFile>(filepath, "rb");
-            }
+	            if (is_encrypted) {
+	                CryptoPP::byte* data = reinterpret_cast<CryptoPP::byte*>(&exefs_header);
+	                CryptoPP::CTR_Mode<CryptoPP::AES>::Decryption(primary_key.data(),
+	                                                              primary_key.size(), exefs_ctr.data())
+	                    .ProcessData(data, data, sizeof(exefs_header));
+	            }
 
-#else
-            if (is_encrypted) {
-                CryptoPP::byte* data = reinterpret_cast<CryptoPP::byte*>(&exefs_header);
-                CryptoPP::CTR_Mode<CryptoPP::AES>::Decryption(primary_key.data(),
-                                                              primary_key.size(), exefs_ctr.data())
-                    .ProcessData(data, data, sizeof(exefs_header));
-            }
-
-            exefs_file = std::make_unique<FileUtil::IOFile>(filepath, "rb");
-#endif
+	            exefs_file = std::make_unique<FileUtil::IOFile>(filepath, "rb");
+			}
+			
             has_exefs = true;
         }
 
@@ -803,16 +783,12 @@ Loader::ResultStatus NCCHContainer::ReadRomFS(std::shared_ptr<RomFSReader>& romf
 
     // We reopen the file, to allow its position to be independent from file's
     std::unique_ptr<FileUtil::IOFile> romfs_file_inner;
-#ifdef todotodo
     if (file->IsCrypto()) {
         romfs_file_inner = HW::UniqueData::OpenUniqueCryptoFile(
             filepath, "rb", HW::UniqueData::UniqueCryptoFileID::NCCH);
     } else {
         romfs_file_inner = std::make_unique<FileUtil::IOFile>(filepath, "rb");
     }
-#else
-    romfs_file_inner = std::make_unique<FileUtil::IOFile>(filepath, "rb");
-#endif
 
     if (!romfs_file_inner->IsOpen())
         return Loader::ResultStatus::Error;
