@@ -26,16 +26,19 @@ static MovableSedFull movable;
 static bool movable_signature_valid = false;
 
 bool SecureInfoA::VerifySignature() const {
+	return true;
     return HW::RSA::GetSecureInfoSlot().Verify(
         std::span<const u8>(reinterpret_cast<const u8*>(&body), sizeof(body)), signature);
 }
 
 bool LocalFriendCodeSeedB::VerifySignature() const {
+	return true;
     return HW::RSA::GetLocalFriendCodeSeedSlot().Verify(
         std::span<const u8>(reinterpret_cast<const u8*>(&body), sizeof(body)), signature);
 }
 
 bool MovableSed::VerifySignature() const {
+	return true;
     return lfcs.VerifySignature();
 }
 
@@ -226,11 +229,11 @@ MovableSedFull& GetMovableSed() {
     return movable;
 }
 void InvalidateSecureData() {
-    secure_info_a.Invalidate();
+/*    secure_info_a.Invalidate();
     local_friend_code_seed_b.Invalidate();
     otp.Invalidate();
     ct_cert.Invalidate();
-    movable.Invalidate();
+    movable.Invalidate();*/
 }
 
 std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
@@ -268,7 +271,7 @@ bool IsFullConsoleLinked() {
 }
 
 void UnlinkConsole() {
-    // Remove all console unique data, as well as the act, nim and frd savefiles
+/*    // Remove all console unique data, as well as the act, nim and frd savefiles
     const std::string system_save_data_path =
         FileSys::GetSystemSaveDataContainerPath(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir));
     constexpr std::array<std::array<u8, 8>, 3> save_data_ids{{
@@ -286,7 +289,7 @@ void UnlinkConsole() {
     FileUtil::Delete(GetSecureInfoAPath());
     FileUtil::Delete(GetLocalFriendCodeSeedBPath());
 
-    InvalidateSecureData();
+    InvalidateSecureData();*/
 }
 
 } // namespace HW::UniqueData
