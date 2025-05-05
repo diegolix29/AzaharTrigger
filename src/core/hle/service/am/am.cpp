@@ -149,11 +149,9 @@ void NCCHCryptoFile::Write(const u8* buffer, std::size_t length) {
     if (is_error)
         return;
 
-#ifdef todotodo
     if (is_not_ncch) {
         file->WriteBytes(buffer, length);
     }
-#endif
 
     const int kBlockSize = 0x200; ///< Size of ExeFS blocks (in bytes)
 
@@ -167,14 +165,10 @@ void NCCHCryptoFile::Write(const u8* buffer, std::size_t length) {
 
     if (!header_parsed && header_size == sizeof(NCCH_Header)) {
         if (Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic) {
-#ifdef todotodo
             // Most likely DS contents, store without additional operations
             is_not_ncch = true;
             file->WriteBytes(&ncch_header, sizeof(ncch_header));
             file->WriteBytes(buffer, length);
-#else
-            is_error = true;
-#endif
             return;
         }
 
@@ -2827,29 +2821,29 @@ void Module::Interface::GetDeviceID(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_AM, "");
 
-#ifdef todotodo
-    const auto& otp = HW::UniqueData::GetOTP();
-    if (!otp.Valid()) {
-        IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
-        rb.Push(Result(ErrorDescription::NotFound, ErrorModule::AM, ErrorSummary::NotFound,
-                       ErrorLevel::Permanent));
-        return;
-    }
 
-    u32 deviceID = otp.GetDeviceID();
-    if (am->force_new_device_id) {
-        deviceID |= 0x80000000;
-    }
-    if (am->force_old_device_id) {
-        deviceID &= ~0x80000000;
-    }
-#else
-    const u32 deviceID = am->ct_cert.IsValid() ? am->ct_cert.GetDeviceID() : 0;
+
+    u32 deviceID = am->ct_cert.IsValid() ? am->ct_cert.GetDeviceID() : 0;
 
     if (deviceID == 0) {
         LOG_ERROR(Service_AM, "Invalid or missing CTCert");
+		
+		const auto& otp = HW::UniqueData::GetOTP();
+	    if (!otp.Valid()) {
+	        IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
+	        rb.Push(Result(ErrorDescription::NotFound, ErrorModule::AM, ErrorSummary::NotFound,
+	                       ErrorLevel::Permanent));
+	        return;
+	    }
+
+	    deviceID = otp.GetDeviceID();
+	    if (am->force_new_device_id) {
+	        deviceID |= 0x80000000;
+	    }
+	    if (am->force_old_device_id) {
+	        deviceID &= ~0x80000000;
+	    }
     }
-#endif
 
     IPC::RequestBuilder rb = rp.MakeBuilder(3, 0);
     rb.Push(ResultSuccess);
@@ -3953,18 +3947,38 @@ void Module::Interface::EndImportTicket(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx);
     const auto ticket = rp.PopObject<Kernel::ClientSession>();
 
-    IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
     auto ticket_file = GetFileBackendFromSession<TicketFile>(ticket);
     if (ticket_file.Succeeded()) {
-        rb.Push(ticket_file.Unwrap()->Commit());
-        am->am_ticket_list.insert(std::make_pair(ticket_file.Unwrap()->GetTitleID(),
-                                                 ticket_file.Unwrap()->GetTicketID()));
+        struct AsyncData {
+            Service::AM::TicketFile* ticket_file;
+
+            Result res{0};
+        };
+        std::shared_ptr<AsyncData> async_data = std::make_shared<AsyncData>();
+        async_data->ticket_file = ticket_file.Unwrap();
+
+        ctx.RunAsync(
+            [this, async_data](Kernel::HLERequestContext& ctx) {
+                async_data->res = async_data->ticket_file->Commit();
+
+                std::scoped_lock lock(am->am_lists_mutex);
+                am->am_ticket_list.insert(std::make_pair(async_data->ticket_file->GetTitleID(),
+                                                         async_data->ticket_file->GetTicketID()));
+
+                LOG_DEBUG(Service_AM, "EndImportTicket: title_id={:016X} ticket_id={:016X}",
+                          async_data->ticket_file->GetTitleID(),
+                          async_data->ticket_file->GetTicketID());
+                return 0;
+            },
+            [async_data](Kernel::HLERequestContext& ctx) {
+                IPC::RequestBuilder rb(ctx, 1, 0);
+                rb.Push(async_data->res);
+            },
+            true);
     } else {
+        IPC::RequestBuilder rb = rp.MakeBuilder(1, 0);
         rb.Push(ticket_file.Code());
     }
-
-    LOG_DEBUG(Service_AM, "title_id={:016X} ticket_id={:016X}", ticket_file.Unwrap()->GetTitleID(),
-              ticket_file.Unwrap()->GetTicketID());
 }
 #else
 void Module::Interface::EndImportTicket(Kernel::HLERequestContext& ctx) {
