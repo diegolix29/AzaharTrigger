@@ -6,7 +6,7 @@
 
 #include <array>
 #include <optional>
-#include <vector>
+#include <unordered_map>
 #include "common/common_types.h"
 #include "common/swap.h"
 
@@ -23,7 +23,7 @@ struct Seed {
 };
 
 struct SeedDB {
-    std::vector<Seed> seeds;
+    std::unordered_map<u64_le, Seed> seeds;
 
     bool Load();
     bool Save();
