@@ -7,12 +7,17 @@
 #include "common/logging/log.h"
 #include "core/file_sys/archive_systemsavedata.h"
 #include "core/file_sys/certificate.h"
+#include "core/file_sys/ncch_container.h"
 #include "core/file_sys/otp.h"
 #include "core/hw/aes/key.h"
 #include "core/hw/ecc.h"
 #include "core/hw/rsa/rsa.h"
 #include "core/hw/unique_data.h"
 #include "core/loader/loader.h"
+#include <map>
+#include <sstream>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 
 namespace HW::UniqueData {
 
@@ -236,34 +241,178 @@ void InvalidateSecureData() {
     movable.Invalidate();*/
 }
 
+static std::string binToHex(u8 bin[])
+{
+	std::string res = "";
+	
+	for(int i=0; i<32; i++)
+	{
+		std::string s = fmt::format("{:02x}", bin[i]);
+		res += s;
+	}
+	
+	return res;
+}
+
+static std::array<u8, 32> hexToBin(const std::string& hex) {
+    std::array<u8, 32> bytes;
+
+    for (unsigned int i = 0; i < hex.length(); i += 2) {
+        std::string byteString = hex.substr(i, 2);
+        bytes[i/2] = static_cast<u8>(std::strtol(byteString.c_str(), nullptr, 16));
+    }
+	
+    return bytes;
+}
+
+static bool testDigest(std::string sdigest, const std::string& filename)
+{
+	bool ret = true;
+	
+	u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+	memcpy(digest, hexToBin(sdigest).data(), 32);
+
+	std::vector<u8> key(0x10);
+    std::vector<u8> ctr(0x10);
+    memcpy(key.data(), digest, 0x10);
+    memcpy(ctr.data(), digest + 0x10, 12);
+
+    FileUtil::CryptoIOFile file(filename, "rb", key, ctr, 0);
+	
+	if (!file.IsOpen()) {
+		return false;
+	}
+
+	NCCH_Header ncch_header;
+	
+	if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
+		return false;
+	}
+
+	if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic
+	&&  Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic)
+	{
+		ret = false;
+	}
+
+	return ret;
+}
+
+static void toLower(std::string &str)
+{
+	for(int i=0; i<str.length(); i++)
+	{
+		str[i] = std::tolower(str[i]);
+	}
+}
+
+static void loadDigests(std::map<std::string, int> &digests)
+{
+    const std::string filepath = FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + "digests.txt";
+    FileUtil::CreateFullPath(filepath);
+
+    boost::iostreams::stream<boost::iostreams::file_descriptor_source> file;
+    FileUtil::OpenFStream<std::ios_base::in>(file, filepath);
+    if (!file.is_open()) {
+        return;
+    }
+
+    while (!file.eof()) {
+        std::string line;
+        std::getline(file, line);
+		
+		if(line.ends_with("\r"))
+		{
+			line.pop_back();
+		}
+		
+		toLower(line);
+
+        if (line.length() != 64 || line.starts_with("#")) {
+            continue;
+        }
+		
+		digests[line] = 1;
+	}
+}
+
+static void saveDigest(std::string digest)
+{
+	// ADD digest at the end of the file
+	LOG_ERROR(HW, "saveDigest");
+	
+    const std::string path{
+        fmt::format("{}/digests.txt", FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir))};
+		
+    if (!FileUtil::CreateFullPath(path)) {
+        LOG_ERROR(Service_FS, "Failed to create digests.txt");
+        return;
+    }
+	
+    FileUtil::IOFile file{path, "a"};
+    if (!file.IsOpen()) {
+        LOG_ERROR(Service_FS, "Failed to open digests.txt");
+        return;
+    }
+	
+	file.WriteBytes("\n", 1);
+	
+	if (file.WriteBytes(digest.c_str(), digest.length()) != digest.length()) {
+        LOG_ERROR(Service_FS, "Failed to write digest fully");
+    }
+	
+	file.WriteBytes("\n", 1);
+}
+
 std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
                                                        const char openmode[], UniqueCryptoFileID id,
                                                        int flags) {
     LoadOTP();
 
-    if (!ct_cert.IsValid() || !otp.Valid()) {
-        return std::make_unique<FileUtil::IOFile>();
+	u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+	std::map<std::string, int> digests;
+	
+	loadDigests(digests);
+	
+    if (ct_cert.IsValid() && otp.Valid()) {
+		struct {
+			ECC::PublicKey pkey;
+			u32 device_id;
+			u32 id;
+		} hash_data;
+		hash_data.pkey = ct_cert.GetPublicKeyECC();
+		hash_data.device_id = otp.GetDeviceID();
+		hash_data.id = static_cast<u32>(id);
+
+		CryptoPP::SHA256 hash;
+		hash.CalculateDigest(digest, reinterpret_cast<CryptoPP::byte*>(&hash_data), sizeof(hash_data));
+
+		std::string sdigest = binToHex(digest);
+
+		if(digests[sdigest] == 0)
+		{
+			saveDigest(sdigest);
+		}
     }
+	
+	for(auto it=digests.begin(); it!=digests.end(); it++)
+	{
+		if(testDigest(it->first, filename))
+		{
+			memcpy(digest, hexToBin(it->first).data(), 32);
+			
+			std::vector<u8> key(0x10);
+			std::vector<u8> ctr(0x10);
+			memcpy(key.data(), digest, 0x10);
+			memcpy(ctr.data(), digest + 0x10, 12);
 
-    struct {
-        ECC::PublicKey pkey;
-        u32 device_id;
-        u32 id;
-    } hash_data;
-    hash_data.pkey = ct_cert.GetPublicKeyECC();
-    hash_data.device_id = otp.GetDeviceID();
-    hash_data.id = static_cast<u32>(id);
+	//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
 
-    CryptoPP::SHA256 hash;
-    u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-    hash.CalculateDigest(digest, reinterpret_cast<CryptoPP::byte*>(&hash_data), sizeof(hash_data));
-
-    std::vector<u8> key(0x10);
-    std::vector<u8> ctr(0x10);
-    memcpy(key.data(), digest, 0x10);
-    memcpy(ctr.data(), digest + 0x10, 12);
-
-    return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
+			return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
+		}
+	}
+	
+	return std::make_unique<FileUtil::IOFile>();
 }
 
 bool IsFullConsoleLinked() {
