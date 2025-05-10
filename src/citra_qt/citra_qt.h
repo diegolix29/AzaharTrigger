@@ -245,6 +245,7 @@ private slots:
     void OnMenuSetUpSystemFiles();
     void OnMenuInstallCIA();
     void OnMenuConnectArticBase();
+    void OnMenuRemoveAzaharEncryption();
     void OnMenuBootHomeMenu(u32 region);
     void OnUpdateProgress(std::size_t written, std::size_t total);
     void OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath);

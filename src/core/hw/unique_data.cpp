@@ -267,10 +267,25 @@ static std::array<u8, 32> hexToBin(const std::string& hex) {
     return bytes;
 }
 
-static bool testDigest(std::string sdigest, const std::string& filename)
+static bool isHeaderReadable(NCCH_Header ncch_header)
 {
 	bool ret = true;
 	
+	if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic
+	&&  Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic
+	&&  memcmp("NDHT", ncch_header.signature, 4) != 0
+	&&  memcmp("dlplay", ncch_header.signature, 6) != 0
+	&&  memcmp("NARC", ncch_header.signature + 128, 4) != 0
+	&&  memcmp("DS INTERNET", ncch_header.signature, 11) != 0)
+	{
+		ret = false;
+	}
+	
+	return ret;
+}
+
+static bool testDigest(std::string sdigest, const std::string& filename)
+{
 	u8 digest[CryptoPP::SHA256::DIGESTSIZE];
 	memcpy(digest, hexToBin(sdigest).data(), 32);
 
@@ -291,13 +306,7 @@ static bool testDigest(std::string sdigest, const std::string& filename)
 		return false;
 	}
 
-	if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic
-	&&  Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic)
-	{
-		ret = false;
-	}
-
-	return ret;
+	return isHeaderReadable(ncch_header);
 }
 
 static void toLower(std::string &str)
@@ -305,36 +314,6 @@ static void toLower(std::string &str)
 	for(int i=0; i<str.length(); i++)
 	{
 		str[i] = std::tolower(str[i]);
-	}
-}
-
-static void loadDigests(std::map<std::string, int> &digests)
-{
-    const std::string filepath = FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + "digests.txt";
-    FileUtil::CreateFullPath(filepath);
-
-    boost::iostreams::stream<boost::iostreams::file_descriptor_source> file;
-    FileUtil::OpenFStream<std::ios_base::in>(file, filepath);
-    if (!file.is_open()) {
-        return;
-    }
-
-    while (!file.eof()) {
-        std::string line;
-        std::getline(file, line);
-		
-		if(line.ends_with("\r"))
-		{
-			line.pop_back();
-		}
-		
-		toLower(line);
-
-        if (line.length() != 64 || line.starts_with("#")) {
-            continue;
-        }
-		
-		digests[line] = 1;
 	}
 }
 
@@ -366,17 +345,38 @@ static void saveDigest(std::string digest)
 	file.WriteBytes("\n", 1);
 }
 
-std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
-                                                       const char openmode[], UniqueCryptoFileID id,
-                                                       int flags) {
-    LoadOTP();
+static void loadDigests(std::map<std::string, int> &digests)
+{
+    const std::string filepath = FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + "digests.txt";
+    FileUtil::CreateFullPath(filepath);
 
-	u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-	std::map<std::string, int> digests;
+    boost::iostreams::stream<boost::iostreams::file_descriptor_source> file;
+    FileUtil::OpenFStream<std::ios_base::in>(file, filepath);
 	
-	loadDigests(digests);
+    if (file.is_open())
+	{
+		while (!file.eof())
+		{
+			std::string line;
+			std::getline(file, line);
+			
+			if(line.ends_with("\r"))
+			{
+				line.pop_back();
+			}
+			
+			toLower(line);
+
+			if (line.length() == 64 && !line.starts_with("#"))
+			{
+				digests[line] = 1;
+			}
+		}
+	}
 	
-    if (ct_cert.IsValid() && otp.Valid()) {
+	LoadOTP();
+	
+	if (ct_cert.IsValid() && otp.Valid()) {
 		struct {
 			ECC::PublicKey pkey;
 			u32 device_id;
@@ -384,8 +384,9 @@ std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filena
 		} hash_data;
 		hash_data.pkey = ct_cert.GetPublicKeyECC();
 		hash_data.device_id = otp.GetDeviceID();
-		hash_data.id = static_cast<u32>(id);
+		hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
 
+		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
 		CryptoPP::SHA256 hash;
 		hash.CalculateDigest(digest, reinterpret_cast<CryptoPP::byte*>(&hash_data), sizeof(hash_data));
 
@@ -396,22 +397,44 @@ std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filena
 			saveDigest(sdigest);
 		}
     }
+}
+
+static std::string findDigest(std::string filename)
+{
+	std::string ret;
+	std::map<std::string, int> digests;
+	
+	loadDigests(digests);
 	
 	for(auto it=digests.begin(); it!=digests.end(); it++)
 	{
 		if(testDigest(it->first, filename))
 		{
-			memcpy(digest, hexToBin(it->first).data(), 32);
-			
-			std::vector<u8> key(0x10);
-			std::vector<u8> ctr(0x10);
-			memcpy(key.data(), digest, 0x10);
-			memcpy(ctr.data(), digest + 0x10, 12);
-
-	//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
-
-			return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
+			ret = it->first;
 		}
+	}
+	
+	return ret;
+}
+
+std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
+                                                       const char openmode[], UniqueCryptoFileID id,
+                                                       int flags) {
+	std::string sdigest = findDigest(filename);
+
+	if(sdigest.length() == 64)
+	{
+		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+		memcpy(digest, hexToBin(sdigest).data(), 32);
+		
+		std::vector<u8> key(0x10);
+		std::vector<u8> ctr(0x10);
+		memcpy(key.data(), digest, 0x10);
+		memcpy(ctr.data(), digest + 0x10, 12);
+
+//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+
+		return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
 	}
 	
 	return std::make_unique<FileUtil::IOFile>();
@@ -441,6 +464,107 @@ void UnlinkConsole() {
     FileUtil::Delete(GetLocalFriendCodeSeedBPath());
 
     InvalidateSecureData();*/
+}
+
+
+static bool isAppEncrypted(const std::string& path)
+{
+    FileUtil::IOFile file(path, "rb");
+	
+	if (!file.IsOpen()) {
+		return false;
+	}
+
+	NCCH_Header ncch_header;
+	
+	if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
+		return false;
+	}
+	
+	return !isHeaderReadable(ncch_header);
+}
+
+std::vector<std::string> GetAppFilepaths()
+{
+	std::vector<std::string> ret;
+	
+    FileUtil::FSTEntry data_dir;
+    std::vector<FileUtil::FSTEntry> files;
+    FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
+    FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
+	
+	for(int i=0; i<files.size(); i++)
+	{
+		std::string file = files[i].physicalName;
+		
+		if(file.ends_with(".app")
+		&& isAppEncrypted(file))
+		{
+			ret.push_back(file);
+		}
+	}
+	
+	return ret;
+}
+
+int RemoveAzaharEncryption(const std::string& path)
+{
+	int ret = 0;
+	LOG_ERROR(HW, "RemoveAzaharEncryption {}", path);
+	
+	std::string sdigest = findDigest(path);
+	
+	if(sdigest.length() == 64)
+	{
+		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+		memcpy(digest, hexToBin(sdigest).data(), 32);
+		
+		std::vector<u8> key(0x10);
+		std::vector<u8> ctr(0x10);
+		memcpy(key.data(), digest, 0x10);
+		memcpy(ctr.data(), digest + 0x10, 12);
+
+//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+
+		FileUtil::CryptoIOFile cfile(path, "rb", key, ctr, 0);
+		FileUtil::Delete(path + ".decrypting");
+		FileUtil::IOFile dfile(path + ".decrypting", "wb");
+		char* buffer = new char[1000000];
+		int tocopy = cfile.ReadBytes(buffer, 1000000);
+		int written = 0;
+		
+		while(tocopy > 0)
+		{
+			written = dfile.WriteBytes(buffer, tocopy);
+			
+			if(written != tocopy)
+			{
+				ret = 1;
+				LOG_ERROR(HW, "copy error {}", path);
+				break;
+			}
+			
+			tocopy = cfile.ReadBytes(buffer, 1000000);
+		}
+		
+		cfile.Close();
+		dfile.Close();
+		delete[] buffer;
+		
+		if(ret == 0)
+		{
+			FileUtil::Rename(path + ".decrypting", path + ".decrypted");
+			FileUtil::Rename(path, path + ".encrypted");
+			FileUtil::Rename(path + ".decrypted", path);
+		}
+	}
+	else
+	{
+		ret = 2;
+		LOG_ERROR(HW, "no digest found {}", path);
+	}
+	
+	return ret;
 }
 
 } // namespace HW::UniqueData

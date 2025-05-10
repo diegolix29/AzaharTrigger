@@ -128,6 +128,8 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #include <SDL.h>
 #endif
 
+#include "core/hw/unique_data.h"
+
 constexpr int default_mouse_timeout = 2500;
 
 /**
@@ -1013,6 +1015,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Load_File, &GMainWindow::OnMenuLoadFile);
     connect_menu(ui->action_Install_CIA, &GMainWindow::OnMenuInstallCIA);
     connect_menu(ui->action_Connect_Artic, &GMainWindow::OnMenuConnectArticBase);
+    connect_menu(ui->action_Remove_Azahar_Encryption, &GMainWindow::OnMenuRemoveAzaharEncryption);
 //    connect_menu(ui->action_Setup_System_Files, &GMainWindow::OnMenuSetUpSystemFiles);
     for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
         connect_menu(ui->menu_Boot_Home_Menu->actions().at(region),
@@ -2264,6 +2267,29 @@ void GMainWindow::OnMenuConnectArticBase() {
         UISettings::values.last_artic_base_addr = res;
         BootGame(QString::fromStdString("articbase://").append(res));
     }
+}
+
+void GMainWindow::OnMenuRemoveAzaharEncryption() {
+    const std::vector<std::string> paths = HW::UniqueData::GetAppFilepaths();
+
+    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, paths.size(), this);
+    progress.setWindowModality(Qt::WindowModal);
+
+	for(int i=0; i<paths.size(); i++)
+	{
+		progress.setValue(i);
+		
+		if (progress.wasCanceled())
+        {
+			break;
+		}
+		
+		HW::UniqueData::RemoveAzaharEncryption(paths[i]);
+	}
+	
+	progress.setValue(paths.size());
+	
+	QMessageBox::information(this, tr("AzaharPlus"), tr("Successfully removed Azahar encryption"));
 }
 
 void GMainWindow::OnMenuBootHomeMenu(u32 region) {
