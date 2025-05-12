@@ -1,3 +1,5 @@
+//FILE MODIFIED BY AzaharPlus APRIL 2025
+
 // Copyright 2014 Citra Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
@@ -12,13 +14,15 @@
 
 namespace Loader {
 
+std::string getProgramId();
+
 /// Loads an NCCH file (e.g. from a CCI, or the first NCCH in a CXI)
 class AppLoader_NCCH final : public AppLoader {
 public:
     AppLoader_NCCH(Core::System& system_, FileUtil::IOFile&& file, const std::string& filepath)
         : AppLoader(system_, std::move(file)), base_ncch(filepath), overlay_ncch(&base_ncch),
           filepath(filepath) {}
-
+	
     /**
      * Returns the type of the file
      * @param file FileUtil::IOFile open file

@@ -42,6 +42,7 @@
 #include "core/hw/rsa/rsa.h"
 #include "core/hw/unique_data.h"
 #include "core/loader/loader.h"
+#include "core/loader/ncch.h"
 #include "core/loader/smdh.h"
 #include "core/nus_download.h"
 
@@ -457,6 +458,13 @@ void AuthorizeCIAFileDecryption(CIAFile* cia_file, Kernel::HLERequestContext& ct
 CIAFile::CIAFile(Core::System& system_, Service::FS::MediaType media_type, bool from_cdn_)
     : system(system_), from_cdn(from_cdn_), decryption_authorized(true), media_type(media_type),
       decryption_state(std::make_unique<DecryptionState>()) {
+	
+	if(Loader::getProgramId() == "0004000003070C00")
+	{
+		LOG_ERROR(Service_AM, "Tactical decryption avoidance");
+		decryption_authorized = false;
+	}
+	
     // If data is being installing from CDN, provide a fake header to the container so that
     // it's not uninitialized.
     if (from_cdn) {
