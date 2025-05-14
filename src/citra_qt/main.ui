@@ -82,6 +82,7 @@
     <addaction name="action_Connect_Artic"/>
     <addaction name="separator"/>
     <addaction name="action_Remove_Azahar_Encryption"/>
+    <addaction name="action_Revert_Encryption_Removal"/>
     <addaction name="separator"/>
     <addaction name="menu_Boot_Home_Menu"/>
     <addaction name="separator"/>
@@ -247,6 +248,11 @@
   <action name="action_Remove_Azahar_Encryption">
     <property name="text">
       <string>Remove Azahar Encryption</string>
+    </property>
+  </action>
+  <action name="action_Revert_Encryption_Removal">
+    <property name="text">
+      <string>Revert Encryption Removal</string>
     </property>
   </action>
   <action name="action_Boot_Home_Menu_JPN">

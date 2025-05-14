@@ -1,3 +1,5 @@
+//FILE MODIFIED BY AzaharPlus APRIL 2025
+
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
@@ -246,6 +248,7 @@ private slots:
     void OnMenuInstallCIA();
     void OnMenuConnectArticBase();
     void OnMenuRemoveAzaharEncryption();
+    void OnMenuRevertEncryptionRemoval();
     void OnMenuBootHomeMenu(u32 region);
     void OnUpdateProgress(std::size_t written, std::size_t total);
     void OnCIAInstallReport(Service::AM::InstallStatus status, QString filepath);

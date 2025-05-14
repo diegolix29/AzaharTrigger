@@ -507,10 +507,61 @@ std::vector<std::string> GetAppFilepaths()
 	return ret;
 }
 
+int RevertEncryptionRemoval()
+{
+	int res = 0;
+	
+    FileUtil::FSTEntry data_dir;
+    std::vector<FileUtil::FSTEntry> files;
+    FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
+    FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
+	
+	for(int i=0; i<files.size(); i++)
+	{
+		std::string file = files[i].physicalName;
+		
+		if(file.ends_with(".app.encrypted"))
+		{
+			std::string shortName = file.substr(0, file.length() - std::string(".encrypted").length());
+			
+			if(FileUtil::Exists(shortName))
+			{
+				std::string sdigest = findDigest(file);
+				
+				if(sdigest.length() == 64)
+				{
+					FileUtil::Rename(shortName, shortName + ".decrypted");
+					FileUtil::Rename(file, shortName);
+					res ++;
+				}
+			}
+		}
+		else if(file.ends_with(".app.decrypted"))
+		{
+			std::string shortName = file.substr(0, file.length() - std::string(".decrypted").length());
+			
+			if(!FileUtil::Exists(shortName))
+			{
+				FileUtil::Rename(file, shortName);
+			}
+		}
+	}
+	
+	return res;
+}
+
 int RemoveAzaharEncryption(const std::string& path)
 {
 	int ret = 0;
 	LOG_ERROR(HW, "RemoveAzaharEncryption {}", path);
+	
+	if(FileUtil::Exists(path + ".decrypted"))
+	{
+		FileUtil::Rename(path, path + ".encrypted");
+		FileUtil::Rename(path + ".decrypted", path);
+		
+		return 0;
+	}
 	
 	std::string sdigest = findDigest(path);
 	
