@@ -2296,7 +2296,7 @@ void GMainWindow::OnMenuRemoveAzaharEncryption() {
     QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, paths.size(), this);
     progress.setWindowModality(Qt::WindowModal);
 
-	for(int i=0; i<paths.size(); i++)
+	for(size_t i=0; i<paths.size(); i++)
 	{
 		progress.setValue(i);
 		

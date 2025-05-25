@@ -311,7 +311,7 @@ static bool testDigest(std::string sdigest, const std::string& filename)
 
 static void toLower(std::string &str)
 {
-	for(int i=0; i<str.length(); i++)
+	for(size_t i=0; i<str.length(); i++)
 	{
 		str[i] = std::tolower(str[i]);
 	}
@@ -493,7 +493,7 @@ std::vector<std::string> GetAppFilepaths()
     FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
     FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
 	
-	for(int i=0; i<files.size(); i++)
+	for(size_t i=0; i<files.size(); i++)
 	{
 		std::string file = files[i].physicalName;
 		
@@ -516,7 +516,7 @@ int RevertEncryptionRemoval()
     FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
     FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
 	
-	for(int i=0; i<files.size(); i++)
+	for(size_t i=0; i<files.size(); i++)
 	{
 		std::string file = files[i].physicalName;
 		
