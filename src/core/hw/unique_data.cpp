@@ -313,7 +313,7 @@ static void toLower(std::string &str)
 {
 	for(size_t i=0; i<str.length(); i++)
 	{
-		str[i] = std::tolower(str[i]);
+		str[i] = (char)std::tolower(str[i]);
 	}
 }
 
@@ -581,12 +581,12 @@ int RemoveAzaharEncryption(const std::string& path)
 		FileUtil::Delete(path + ".decrypting");
 		FileUtil::IOFile dfile(path + ".decrypting", "wb");
 		char* buffer = new char[1000000];
-		int tocopy = cfile.ReadBytes(buffer, 1000000);
+		int tocopy = (int)cfile.ReadBytes(buffer, 1000000);
 		int written = 0;
 		
 		while(tocopy > 0)
 		{
-			written = dfile.WriteBytes(buffer, tocopy);
+			written = (int)dfile.WriteBytes(buffer, tocopy);
 			
 			if(written != tocopy)
 			{
@@ -595,7 +595,7 @@ int RemoveAzaharEncryption(const std::string& path)
 				break;
 			}
 			
-			tocopy = cfile.ReadBytes(buffer, 1000000);
+			tocopy = (int)cfile.ReadBytes(buffer, 1000000);
 		}
 		
 		cfile.Close();

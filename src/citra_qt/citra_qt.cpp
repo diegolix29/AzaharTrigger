@@ -2273,12 +2273,13 @@ void GMainWindow::OnMenuConnectArticBase() {
 void GMainWindow::OnMenuRevertEncryptionRemoval() {
 	game_list->SetDirectoryWatcherEnabled(false);
 	int res = HW::UniqueData::RevertEncryptionRemoval();
-	game_list->SetDirectoryWatcherEnabled(true);
 	
 	if(res == 0)
 		QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to revert"));
 	else
 		QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) successfully reverted").arg(res));
+	
+	game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnMenuRemoveAzaharEncryption() {
@@ -2293,12 +2294,12 @@ void GMainWindow::OnMenuRemoveAzaharEncryption() {
     game_list->SetDirectoryWatcherEnabled(false);
 	
 	std::map<int, int> results;
-    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, paths.size(), this);
+    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, (int)paths.size(), this);
     progress.setWindowModality(Qt::WindowModal);
 
 	for(size_t i=0; i<paths.size(); i++)
 	{
-		progress.setValue(i);
+		progress.setValue((int)i);
 		
 		if (progress.wasCanceled())
         {
@@ -2308,11 +2309,11 @@ void GMainWindow::OnMenuRemoveAzaharEncryption() {
 		results[HW::UniqueData::RemoveAzaharEncryption(paths[i])]++;
 	}
 	
-	game_list->SetDirectoryWatcherEnabled(true);
-	
-	progress.setValue(paths.size());
+	progress.setValue((int)paths.size());
 	
 	QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) succesfully decrypted\n%2 file(s) file system errors\n%3 file(s) unable to be decrypted").arg(results[0]).arg(results[1]).arg(results[2]));
+
+	game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnMenuBootHomeMenu(u32 region) {
