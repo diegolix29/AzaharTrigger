@@ -105,7 +105,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
 option(ENABLE_MICROPROFILE "Enables microprofile capabilities" OFF)
 
-option(ENABLE_SSE42 "Enable SSE4.2 optimizations on x86_64" ON)
+option(ENABLE_SSE42 "Enable SSE4.2 optimizations on x86_64" OFF)
 
 # Compile options
 CMAKE_DEPENDENT_OPTION(COMPILE_WITH_DWARF "Add DWARF debugging information" ${IS_DEBUG_BUILD} "MINGW" OFF)
