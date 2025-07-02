@@ -370,6 +370,14 @@ InstallStatus InstallCIA(const std::string& path,
                          std::function<ProgressCallback>&& update_callback = nullptr);
 
 /**
+ * Checks if the provided path is a valid CIA file
+ * that can be installed.
+ * @param path file path of the CIA file to check to install
+ */
+InstallStatus CheckCIAToInstall(const std::string& path, bool& is_compressed,
+                                bool check_encryption);
+
+/**
  * Downloads and installs title form the Nintendo Update Service.
  * @param title_id the title_id to download
  * @returns  whether the install was successful or error code
