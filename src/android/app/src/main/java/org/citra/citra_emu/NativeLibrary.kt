@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.citra.citra_emu.activities.EmulationActivity
-import org.citra.citra_emu.utils.EmulationMenuSettings
 import org.citra.citra_emu.utils.FileUtil
 import org.citra.citra_emu.utils.Log
 import java.lang.ref.WeakReference
@@ -192,6 +191,11 @@ object NativeLibrary {
 
     external fun disableTemporaryFrameLimit()
 
+    external fun playTimeManagerInit()
+    external fun playTimeManagerStart(titleId: Long)
+    external fun playTimeManagerStop()
+    external fun playTimeManagerGetPlayTime(titleId: Long): Long
+    external fun playTimeManagerGetCurrentTitleId(): Long
 
     external fun downloadTitleFromNus(title: Long): InstallStatus
 
