@@ -80,6 +80,8 @@ public:
 
     CompressFileInfo GetCompressFileInfo() override;
 
+    bool IsFileCompressed() override;
+
 private:
     /**
      * Loads .code section into memory for booting
