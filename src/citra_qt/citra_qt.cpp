@@ -3116,7 +3116,7 @@ void GMainWindow::OnCompressFile() {
 
     QString filepath = QFileDialog::getOpenFileName(
         this, tr("Load 3DS ROM File"), UISettings::values.roms_path,
-        tr("3DS ROM Files (*.cia *cci *3dsx *cxi)") + QStringLiteral(";;") + tr("All Files (*.*)"));
+        tr("3DS ROM Files (*.3ds *.cia *cci *3dsx *cxi)") + QStringLiteral(";;") + tr("All Files (*.*)"));
 
     if (filepath.isEmpty()) {
         return;

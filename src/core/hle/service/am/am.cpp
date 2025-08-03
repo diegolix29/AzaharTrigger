@@ -1167,30 +1167,6 @@ InstallStatus CheckCIAToInstall(const std::string& path, bool& is_compressed,
 
     FileSys::CIAContainer container;
     if (container.Load(in_file.get()) == Loader::ResultStatus::Success) {
-        in_file->Seek(0, SEEK_SET);
-        const FileSys::TitleMetadata& tmd = container.GetTitleMetadata();
-
-        if (check_encryption) {
-            if (tmd.HasEncryptedContent(container.GetHeader())) {
-                return InstallStatus::ErrorEncrypted;
-            }
-
-            for (size_t i = 0; i < tmd.GetContentCount(); i++) {
-                u64 offset = container.GetContentOffset(i);
-                NCCH_Header ncch;
-                const auto read = in_file->ReadAtBytes(&ncch, sizeof(ncch), offset);
-                if (read != sizeof(ncch)) {
-                    return InstallStatus::ErrorInvalid;
-                }
-                if (ncch.magic != Loader::MakeMagic('N', 'C', 'C', 'H')) {
-                    return InstallStatus::ErrorInvalid;
-                }
-                if (!ncch.no_crypto) {
-                    return InstallStatus::ErrorEncrypted;
-                }
-            }
-        }
-
         return InstallStatus::Success;
     }
 
