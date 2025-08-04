@@ -513,10 +513,9 @@ Loader::ResultStatus NCCHContainer::Load() {
                 CryptoPP::CTR_Mode<CryptoPP::AES>::Decryption(primary_key.data(),
                                                               primary_key.size(), exefs_ctr.data())
                     .ProcessData(data, data, sizeof(exefs_header));
-                
-                exefs_file = std::make_unique<FileUtil::IOFile>(filepath, "rb");
             }
-            else exefs_file = Reopen(file, filepath);
+            
+			exefs_file = Reopen(file, filepath);
 
             has_exefs = true;
         }
