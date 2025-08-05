@@ -571,25 +571,35 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
             const FileSys::TitleMetadata& tmd = container.GetTitleMetadata();
             if (i != current_content_index) {
                 current_content_index = static_cast<u16>(i);
-                current_content_file =
-                    std::make_unique<NCCHCryptoFile>(content_file_paths[i], decryption_authorized);
-                current_content_file->decryption_authorized = decryption_authorized;
+                if (Settings::values.compress_cia_installs)
+				{
+					current_content_file =
+	                    std::make_unique<NCCHCryptoFile>(content_file_paths[i], decryption_authorized);
+	                current_content_file->decryption_authorized = decryption_authorized;
+				}
+				else
+				{
+					content_files.emplace_back(content_file_paths[i], "wb");
+				}
             }
-            auto& file = *current_content_file;
 
             std::vector<u8> temp(buffer + (range_min - offset),
                                  buffer + (range_min - offset) + available_to_write);
 
             if ((tmd.GetContentTypeByIndex(i) & FileSys::TMDContentTypeFlag::Encrypted) != 0) {
-                if (!decryption_authorized) {
-                    LOG_ERROR(Service_AM, "Blocked unauthorized encrypted CIA installation.");
-                    return Result(ErrorDescription::NotAuthorized, ErrorModule::AM,
-                                  ErrorSummary::InvalidState, ErrorLevel::Permanent);
-                }
                 decryption_state->content[i].ProcessData(temp.data(), temp.data(), temp.size());
             }
 
-            file.Write(temp.data(), temp.size());
+            if (Settings::values.compress_cia_installs)
+			{
+				auto& file = *current_content_file;
+	            file.Write(temp.data(), temp.size());
+			}
+			else
+			{
+				auto& file = content_files[i];
+				file.WriteBytes(temp.data(), temp.size());
+			}
 
             // Keep tabs on how much of this content ID has been written so new range_min
             // values can be calculated.
