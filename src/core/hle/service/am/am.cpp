@@ -587,6 +587,11 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
                                  buffer + (range_min - offset) + available_to_write);
 
             if ((tmd.GetContentTypeByIndex(i) & FileSys::TMDContentTypeFlag::Encrypted) != 0) {
+                if (!decryption_authorized) {
+                    LOG_ERROR(Service_AM, "Blocked unauthorized encrypted CIA installation.");
+                    return Result(ErrorDescription::NotAuthorized, ErrorModule::AM,
+                                  ErrorSummary::InvalidState, ErrorLevel::Permanent);
+                }
                 decryption_state->content[i].ProcessData(temp.data(), temp.data(), temp.size());
             }
 
