@@ -118,17 +118,8 @@ public:
 };
 
 NCCHCryptoFile::NCCHCryptoFile(const std::string& out_file, bool encrypted_content) {
-#ifdef todotodo
-    if (encrypted_content) {
-        // A console unique crypto file is used to store the decrypted NCCH file. This is done
-        // to prevent Azahar being used as a tool to download easy shareable decrypted contents
-        // from the eshop.
-        file = HW::UniqueData::OpenUniqueCryptoFile(out_file, "wb",
-                                                    HW::UniqueData::UniqueCryptoFileID::NCCH);
-    } else {
-        file = std::make_unique<FileUtil::IOFile>(out_file, "wb");
-    }
-
+	file = std::make_unique<FileUtil::IOFile>(out_file, "wb");
+	
     if (Settings::values.compress_cia_installs) {
         std::array<u8, 4> magic = {'N', 'C', 'C', 'H'};
         file = std::make_unique<FileUtil::Z3DSWriteIOFile>(
@@ -138,9 +129,6 @@ NCCHCryptoFile::NCCHCryptoFile(const std::string& out_file, bool encrypted_conte
     if (!file->IsOpen()) {
         is_error = true;
     }
-#else
-    file = std::make_unique<FileUtil::IOFile>(out_file, "wb");
-#endif
 }
 
 void NCCHCryptoFile::Write(const u8* buffer, std::size_t length) {
@@ -579,7 +567,7 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
 
             // Since the incoming TMD has already been written, we can use GetTitleContentPath
             // to get the content paths to write to.
-#ifdef todotodo
+
             const FileSys::TitleMetadata& tmd = container.GetTitleMetadata();
             if (i != current_content_index) {
                 current_content_index = static_cast<u16>(i);
@@ -589,10 +577,6 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
             }
             auto& file = *current_content_file;
 
-#else
-            FileSys::TitleMetadata tmd = container.GetTitleMetadata();
-            auto& file = content_files[i];
-#endif
             std::vector<u8> temp(buffer + (range_min - offset),
                                  buffer + (range_min - offset) + available_to_write);
 
@@ -605,7 +589,7 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
                 decryption_state->content[i].ProcessData(temp.data(), temp.data(), temp.size());
             }
 
-            file.WriteBytes(temp.data(), temp.size());
+            file.Write(temp.data(), temp.size());
 
             // Keep tabs on how much of this content ID has been written so new range_min
             // values can be calculated.
@@ -704,25 +688,15 @@ Result CIAFile::PrepareToImportContent(const FileSys::TitleMetadata& tmd) {
     auto content_count = container.GetTitleMetadata().GetContentCount();
     content_written.resize(content_count);
 
-#ifdef todotodo
     current_content_file.reset();
     current_content_index = -1;
     content_file_paths.clear();
-#else
     content_files.clear();
-#endif
+
     for (std::size_t i = 0; i < content_count; i++) {
         auto path = GetTitleContentPath(media_type, tmd.GetTitleID(), i, is_update);
-#ifdef todotodo
+
         content_file_paths.emplace_back(path);
-#else
-        auto& file = content_files.emplace_back(path, "wb");
-        if (!file.IsOpen()) {
-            LOG_ERROR(Service_AM, "Could not open output file '{}' for content {}.", path, i);
-            // TODO: Correct error code.
-            return FileSys::ResultFileNotFound;
-        }
-#endif
     }
 
     if (container.GetTitleMetadata().HasEncryptedContent(from_cdn ? nullptr
