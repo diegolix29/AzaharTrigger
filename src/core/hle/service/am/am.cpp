@@ -445,7 +445,8 @@ CIAFile::CIAFile(Core::System& system_, Service::FS::MediaType media_type, bool 
     : system(system_), from_cdn(from_cdn_), decryption_authorized(true), media_type(media_type),
       decryption_state(std::make_unique<DecryptionState>()) {
 	
-	if(Loader::getProgramId() == "0004000003070C00")
+	if(Loader::getProgramId() == "0004000003070C00"
+	|| Loader::getProgramId() == "0004000000030800")
 	{
 		LOG_ERROR(Service_AM, "Tactical decryption avoidance");
 		decryption_authorized = false;
@@ -1050,6 +1051,8 @@ void ContentFile::Cancel(FS::MediaType media_type, u64 title_id) {
 InstallStatus InstallCIA(const std::string& path,
                          std::function<ProgressCallback>&& update_callback) {
     LOG_INFO(Service_AM, "Installing {}...", path);
+
+	Loader::resetProgramId();
 
     if (!FileUtil::Exists(path)) {
         LOG_ERROR(Service_AM, "File {} does not exist!", path);

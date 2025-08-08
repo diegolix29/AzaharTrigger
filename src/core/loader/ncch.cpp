@@ -44,6 +44,11 @@ std::string getProgramId()
 	return g_program_id;
 }
 
+void resetProgramId()
+{
+	g_program_id = "";
+}
+
 FileType AppLoader_NCCH::IdentifyType(FileUtil::IOFile* file) {
     u32 magic;
     file->Seek(0x100, SEEK_SET);
