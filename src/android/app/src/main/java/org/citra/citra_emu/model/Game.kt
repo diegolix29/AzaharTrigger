@@ -66,7 +66,7 @@ class Game(
         val allExtensions: Set<String> get() = extensions + badExtensions
 
         val extensions: Set<String> = HashSet(
-            listOf("3ds", "3dsx", "elf", "axf", "cci", "cxi", "app")
+            listOf("3ds", "3dsx", "elf", "axf", "cci", "cxi", "app", "z3dsx", "zcci", "zcxi")
         )
 
         val badExtensions: Set<String> = HashSet(
