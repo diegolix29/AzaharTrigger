@@ -85,6 +85,10 @@ public:
 
     bool IsFileCompressed() override;
 
+    std::string GetFilePath() override {
+        return filepath;
+    }
+
 private:
     /**
      * Loads .code section into memory for booting
