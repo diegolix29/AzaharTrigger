@@ -72,7 +72,7 @@ HackManager hack_manager = {
                  },
          }},
 
-//#ifdef todotodo
+#ifdef todotodo
         {HackType::ONLINE_LLE_REQUIRED,
          HackEntry{
              .mode = HackAllowMode::FORCE,
@@ -112,7 +112,7 @@ HackManager hack_manager = {
                  },
          }},
 //
-#ifdef todotodo
+//#ifdef todotodo
         {HackType::REGION_FROM_SECURE,
          HackEntry{
              .mode = HackAllowMode::FORCE,
