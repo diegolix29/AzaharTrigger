@@ -117,6 +117,7 @@
 
 #ifdef __APPLE__
 #include "common/apple_authorization.h"
+Q_IMPORT_PLUGIN(QDarwinCameraPermissionPlugin);
 #endif
 
 #ifdef USE_DISCORD_PRESENCE
