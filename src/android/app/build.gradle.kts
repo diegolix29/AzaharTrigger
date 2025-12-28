@@ -165,6 +165,18 @@ android {
 
     flavorDimensions.add("version")
 
+    productFlavors {
+        register("vanilla") {
+            isDefault = true
+            dimension = "version"
+            versionNameSuffix = "-vanilla"
+        }
+        register("googlePlay") {
+            dimension = "version"
+            versionNameSuffix = "-googleplay"
+        }
+    }
+
     externalNativeBuild {
         cmake {
             version = "3.25.0+"

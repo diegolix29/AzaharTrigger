@@ -685,6 +685,10 @@ object NativeLibrary {
 
     @Keep
     @JvmStatic
+    fun getBuildFlavor(): String = BuildConfig.FLAVOR
+
+    @Keep
+    @JvmStatic
     fun fileExists(path: String): Boolean =
         if (FileUtil.isNativePath(path)) {
             CitraApplication.documentsTree.exists(path)
@@ -719,6 +723,19 @@ object NativeLibrary {
                 Uri.parse(destinationParentPath),
                 destinationFilename
             )
+        }
+
+    @Keep
+    @JvmStatic
+    fun renameFile(path: String, destinationFilename: String): Boolean =
+        if (FileUtil.isNativePath(path)) {
+            try {
+                CitraApplication.documentsTree.renameFile(path, destinationFilename)
+            } catch (e: Exception) {
+                false
+            }
+        } else {
+            FileUtil.renameFile(path, destinationFilename)
         }
 
     @Keep
