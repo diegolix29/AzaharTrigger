@@ -35,6 +35,7 @@
 #include "citra_qt/uisettings.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
+#include "core/core.h"
 #include "core/file_sys/archive_extsavedata.h"
 #include "core/file_sys/archive_source_sd_savedata.h"
 #include "core/hle/service/am/am.h"
@@ -1055,6 +1056,13 @@ const QStringList GameList::supported_file_extensions = {
     QStringLiteral("z3dsx"), QStringLiteral("zcci"), QStringLiteral("zcxi")};
 
 void GameList::RefreshGameDirectory() {
+
+    // Do not scan directories when the system is powered on, it will be
+    // repopulated on shutdown anyways.
+    if (Core::System::GetInstance().IsPoweredOn()) {
+        return;
+    }
+
     if (!UISettings::values.game_dirs.isEmpty() && current_worker != nullptr) {
         LOG_INFO(Frontend, "Change detected in the applications directory. Reloading game list.");
         PopulateAsync(UISettings::values.game_dirs);
