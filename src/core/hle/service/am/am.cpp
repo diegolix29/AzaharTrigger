@@ -2285,7 +2285,7 @@ void Module::Interface::GetProgramInfosImpl(Kernel::HLERequestContext& ctx, bool
             result = GetTitleInfoFromList(title_id_list, media_type, title_info_out);
 #else
         ctx.RunAsync(
-            [async_data](Kernel::HLERequestContext& ctx) {
+            [this, async_data](Kernel::HLERequestContext& ctx) {
                 async_data->res = GetTitleInfoFromList(am->system, async_data->title_id_list,
                                                            async_data->media_type, async_data->out);
                 return 0;
