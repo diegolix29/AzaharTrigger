@@ -82,7 +82,6 @@
 #include "citra_qt/util/util.h"
 #include "common/arch.h"
 #include "common/common_paths.h"
-#include "common/detached_tasks.h"
 #include "common/dynamic_library/dynamic_library.h"
 #include "common/file_util.h"
 #include "common/literals.h"
@@ -4298,13 +4297,11 @@ static Qt::HighDpiScaleFactorRoundingPolicy GetHighDpiRoundingPolicy() {
 #endif
 }
 
-void LaunchQtFrontend(int argc, char* argv[]) {
+int LaunchQtFrontend(int argc, char* argv[]) {
 #ifdef __APPLE__
     // Ensure that the linker doesn't optimize qt_swizzle.mm out of existence.
     QtSwizzle::Dummy();
 #endif
-
-    Common::DetachedTasks detached_tasks;
 
 #if MICROPROFILE_ENABLED
     MicroProfileOnThreadCreate("Frontend");
@@ -4375,6 +4372,5 @@ void LaunchQtFrontend(int argc, char* argv[]) {
                      &GMainWindow::OnAppFocusStateChanged);
 
     int result = app.exec();
-    detached_tasks.WaitForAllTasks();
-    exit(result);
+    return result;
 }
