@@ -446,7 +446,10 @@ CIAFile::CIAFile(Core::System& system_, Service::FS::MediaType media_type, bool 
       decryption_state(std::make_unique<DecryptionState>()) {
 	
 	if(Loader::getProgramId() == "0004000003070C00"
-	|| Loader::getProgramId() == "0004000000030800")
+	|| Loader::getProgramId() == "0004000000030600"
+	|| Loader::getProgramId() == "0004000000030700"
+	|| Loader::getProgramId() == "0004000000030800"
+	|| Loader::getProgramId() == "0004000000030A00")
 	{
 		LOG_ERROR(Service_AM, "Tactical decryption avoidance");
 		decryption_authorized = false;
