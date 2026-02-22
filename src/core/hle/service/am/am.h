@@ -244,8 +244,11 @@ public:
         Close();
     }
 
+    void AuthorizeDecryptionFromHLE();
+
 private:
     friend void AuthorizeCIAFileDecryption(CIAFile* cia_file, Kernel::HLERequestContext& ctx);
+
     Core::System& system;
 
     // Sections (tik, tmd, contents) are being imported individually

@@ -441,6 +441,10 @@ void AuthorizeCIAFileDecryption(CIAFile* cia_file, Kernel::HLERequestContext& ct
     }
 }
 
+void CIAFile::AuthorizeDecryptionFromHLE() {
+    decryption_authorized = true;
+}
+
 CIAFile::CIAFile(Core::System& system_, Service::FS::MediaType media_type, bool from_cdn_)
     : system(system_), from_cdn(from_cdn_), decryption_authorized(true), media_type(media_type),
       decryption_state(std::make_unique<DecryptionState>()) {
@@ -870,6 +874,7 @@ bool CIAFile::Close() {
             // Only delete the content folder as there may be user save data in the title folder.
             const std::string title_content_path =
                 GetTitlePath(media_type, container.GetTitleMetadata().GetTitleID()) + "content/";
+            current_content_file.reset();
             FileUtil::DeleteDirRecursively(title_content_path);
         }
         return true;
