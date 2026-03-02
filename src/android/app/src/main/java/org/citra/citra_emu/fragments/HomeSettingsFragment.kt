@@ -35,7 +35,7 @@ import org.citra.citra_emu.adapters.HomeSettingAdapter
 import org.citra.citra_emu.databinding.DialogSoftwareKeyboardBinding
 import org.citra.citra_emu.databinding.FragmentHomeSettingsBinding
 import org.citra.citra_emu.features.settings.model.Settings
-import org.citra.citra_emu.features.settings.model.StringSetting
+import org.citra.citra_emu.features.settings.SettingKeys
 import org.citra.citra_emu.features.settings.ui.SettingsActivity
 import org.citra.citra_emu.features.settings.utils.SettingsFile
 import org.citra.citra_emu.model.Game
@@ -91,7 +91,7 @@ class HomeSettingsFragment : Fragment() {
                 {
                     val inflater = LayoutInflater.from(context)
                     val inputBinding = DialogSoftwareKeyboardBinding.inflate(inflater)
-                    var textInputValue: String = preferences.getString("last_artic_base_addr", "")!!
+                    var textInputValue: String = preferences.getString(SettingKeys.last_artic_base_addr(), "")!!
 
                     inputBinding.editTextInput.setText(textInputValue)
                     inputBinding.editTextInput.doOnTextChanged { text, _, _, _ ->
@@ -105,7 +105,7 @@ class HomeSettingsFragment : Fragment() {
                             .setPositiveButton(android.R.string.ok) { _, _ ->
                                 if (textInputValue.isNotEmpty()) {
                                     preferences.edit()
-                                        .putString("last_artic_base_addr", textInputValue)
+                                        .putString(SettingKeys.last_artic_base_addr(), textInputValue)
                                         .apply()
                                     val menu = Game(
                                         title = getString(R.string.artic_base),
