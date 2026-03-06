@@ -2966,13 +2966,17 @@ void Module::Interface::GetDeviceID(Kernel::HLERequestContext& ctx) {
 	        return;
 	    }
 
-	    deviceID = otp.GetDeviceID();
-	    if (am->force_new_device_id) {
-	        deviceID |= 0x80000000;
-	    }
-	    if (am->force_old_device_id) {
-	        deviceID &= ~0x80000000;
-	    }
+        deviceID = otp.GetDeviceID();
+        if (am->force_new_device_id || am->force_old_device_id) {
+            if (am->force_new_device_id) {
+                deviceID |= 0x80000000;
+            }
+            if (am->force_old_device_id) {
+                deviceID &= ~0x80000000;
+            }
+        } else if (Settings::values.toggle_unique_data_console_type) {
+            deviceID ^= 0x80000000;
+        }
     }
 
     IPC::RequestBuilder rb = rp.MakeBuilder(3, 0);
