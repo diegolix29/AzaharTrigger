@@ -232,6 +232,7 @@ object NativeLibrary {
     external fun playTimeManagerGetPlayTime(titleId: Long): Long
     external fun playTimeManagerGetCurrentTitleId(): Long
 
+    external fun uninstallTitle(titleId: Long): Boolean
     external fun downloadTitleFromNus(title: Long): InstallStatus
 
     private var coreErrorAlertResult = false
