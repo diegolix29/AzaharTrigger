@@ -259,6 +259,8 @@ object NativeLibrary {
     }
     external fun downloadTitleFromNus(title: Long): InstallStatus
 
+    external fun nativeFileExists(path: String): Boolean
+
     private var coreErrorAlertResult = false
     private val coreErrorAlertLock = Object()
 
