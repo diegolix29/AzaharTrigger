@@ -22,6 +22,7 @@ class Game(
     val description: String = "",
     val path: String = "",
     val titleId: Long = 0L,
+    val mediaType: MediaType = MediaType.GAME_CARD,
     val company: String = "",
     val regions: String = "",
     val isInstalled: Boolean = false,
@@ -60,8 +61,21 @@ class Game(
         result = 31 * result + regions.hashCode()
         result = 31 * result + path.hashCode()
         result = 31 * result + titleId.hashCode()
+        result = 31 * result + mediaType.hashCode()
         result = 31 * result + company.hashCode()
         return result
+    }
+
+    enum class MediaType(val value: Int) {
+        NAND(0),
+        SDMC(1),
+        GAME_CARD(2);
+
+        companion object {
+            fun fromInt(value: Int): MediaType? {
+                return MediaType.entries.find { it.value == value }
+            }
+        }
     }
 
     companion object {
