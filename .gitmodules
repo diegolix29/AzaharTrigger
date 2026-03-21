@@ -93,7 +93,7 @@
 	url = https://github.com/merryhime/oaknut.git
 [submodule "compatibility-list"]
 	path = dist/compatibility_list
-	url = https://github.com/azahar-emu/compatibility-list
+	url = https://github.com/AzaharPlus/compatibility-list
 [submodule "spirv-tools"]
 	path = externals/spirv-tools
 	url = https://github.com/KhronosGroup/SPIRV-Tools
