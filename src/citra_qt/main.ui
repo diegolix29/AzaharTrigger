@@ -53,6 +53,18 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menu_Download_System_Files">
+     <property name="title">
+      <string>Download System Files</string>
+     </property>
+     <addaction name="action_Download_System_Files_JPN"/>
+     <addaction name="action_Download_System_Files_USA"/>
+     <addaction name="action_Download_System_Files_EUR"/>
+     <addaction name="action_Download_System_Files_AUS"/>
+     <addaction name="action_Download_System_Files_CHN"/>
+     <addaction name="action_Download_System_Files_KOR"/>
+     <addaction name="action_Download_System_Files_TWN"/>
+    </widget>
     <widget class="QMenu" name="menu_Boot_Home_Menu">
      <property name="title">
       <string>Boot Home Menu</string>
@@ -84,6 +96,7 @@
     <addaction name="action_Remove_Azahar_Encryption"/>
     <addaction name="action_Revert_Encryption_Removal"/>
     <addaction name="separator"/>
+    <addaction name="menu_Download_System_Files"/>
     <addaction name="menu_Boot_Home_Menu"/>
     <addaction name="separator"/>
     <addaction name="menu_recent_files"/>
@@ -257,6 +270,41 @@
     <property name="text">
       <string>Revert Encryption Removal</string>
     </property>
+  </action>
+  <action name="action_Download_System_Files_JPN">
+   <property name="text">
+    <string>JPN</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_USA">
+   <property name="text">
+    <string>USA</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_EUR">
+   <property name="text">
+    <string>EUR</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_AUS">
+   <property name="text">
+    <string>AUS</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_CHN">
+   <property name="text">
+    <string>CHN</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_KOR">
+   <property name="text">
+    <string>KOR</string>
+   </property>
+  </action>
+  <action name="action_Download_System_Files_TWN">
+   <property name="text">
+    <string>TWN</string>
+   </property>
   </action>
   <action name="action_Boot_Home_Menu_JPN">
    <property name="text">

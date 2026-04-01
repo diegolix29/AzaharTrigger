@@ -1054,6 +1054,10 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Revert_Encryption_Removal, &GMainWindow::OnMenuRevertEncryptionRemoval);
 //    connect_menu(ui->action_Setup_System_Files, &GMainWindow::OnMenuSetUpSystemFiles);
     for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+        connect_menu(ui->menu_Download_System_Files->actions().at(region),
+                     [this, region] { OnDownloadSystemFilesMenu(region); });
+    }
+	for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
         connect_menu(ui->menu_Boot_Home_Menu->actions().at(region),
                      [this, region] { OnMenuBootHomeMenu(region); });
     }
@@ -2382,6 +2386,47 @@ void GMainWindow::OnMenuRemoveAzaharEncryption() {
 	QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) succesfully decrypted\n%2 file(s) file system errors\n%3 file(s) unable to be decrypted").arg(results[0]).arg(results[1]).arg(results[2]));
 
 	game_list->SetDirectoryWatcherEnabled(true);
+}
+
+void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
+	game_list->SetDirectoryWatcherEnabled(false);
+	
+    const auto mode = Core::SystemTitleSet::New3ds;
+    const std::vector<u64> titles = Core::GetSystemTitleIds(mode, region);
+
+    QProgressDialog progress(tr("Downloading system files..."), tr("Cancel"), 0,
+                             static_cast<int>(titles.size()), this);
+    progress.setWindowModality(Qt::WindowModal);
+
+    QFutureWatcher<void> future_watcher;
+    QObject::connect(&future_watcher, &QFutureWatcher<void>::finished, &progress,
+                     &QProgressDialog::reset);
+    QObject::connect(&progress, &QProgressDialog::canceled, &future_watcher,
+                     &QFutureWatcher<void>::cancel);
+    QObject::connect(&future_watcher, &QFutureWatcher<void>::progressValueChanged, &progress,
+                     &QProgressDialog::setValue);
+
+    auto failed = false;
+    const auto download_title = [&future_watcher, &failed](const u64& title_id) {
+        if (Service::AM::InstallFromNus(title_id) != Service::AM::InstallStatus::Success) {
+            failed = true;
+            future_watcher.cancel();
+        }
+    };
+
+    future_watcher.setFuture(QtConcurrent::map(titles, download_title));
+    progress.exec();
+    future_watcher.waitForFinished();
+
+    if (failed) {
+        QMessageBox::critical(this, tr("AzaharPlus"), tr("Downloading system files failed."));
+    } else if (!future_watcher.isCanceled()) {
+        QMessageBox::information(this, tr("AzaharPlus"), tr("Successfully downloaded system files."));
+    }
+	
+	game_list->SetDirectoryWatcherEnabled(true);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+	UpdateBootHomeMenuState();
 }
 
 void GMainWindow::OnMenuBootHomeMenu(u32 region) {
