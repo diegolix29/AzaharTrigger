@@ -1,4 +1,4 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2014 Citra Emulator Project / PPSSPP Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <array>
 #include <deque>
-#include <tuple>
 #include <boost/serialization/deque.hpp>
 #include <boost/serialization/split_member.hpp>
 #include "common/common_types.h"
@@ -53,35 +52,33 @@ struct ThreadQueueList {
         return T();
     }
 
-    std::pair<Priority, T> pop_first() {
+    T pop_first() {
         Queue* cur = first;
         while (cur != nullptr) {
             if (!cur->data.empty()) {
                 auto tmp = std::move(cur->data.front());
                 cur->data.pop_front();
-                Priority prio = static_cast<Priority>(ToIndex(cur));
-                return {prio, tmp};
+                return tmp;
             }
             cur = cur->next_nonempty;
         }
 
-        return {Priority(), T()};
+        return T();
     }
 
-    std::pair<Priority, T> pop_first_better(Priority priority) {
+    T pop_first_better(Priority priority) {
         Queue* cur = first;
         Queue* stop = &queues[priority];
         while (cur < stop) {
             if (!cur->data.empty()) {
                 auto tmp = std::move(cur->data.front());
                 cur->data.pop_front();
-                Priority prio = static_cast<Priority>(ToIndex(cur));
-                return {prio, tmp};
+                return tmp;
             }
             cur = cur->next_nonempty;
         }
 
-        return {Priority(), T()};
+        return T();
     }
 
     void push_front(Priority priority, const T& thread_id) {
