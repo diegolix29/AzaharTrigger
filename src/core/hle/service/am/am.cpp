@@ -538,7 +538,6 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
     // has been written since we might get a written buffer which contains multiple .app
     // contents or only part of a larger .app's contents.
     const u64 offset_max = offset + length;
-    bool success = true;
     for (std::size_t i = 0; i < content_written.size(); i++) {
         if (content_written[i] < container.GetContentSize(i)) {
             // The size, minimum unwritten offset, and maximum unwritten offset of this content
@@ -557,9 +556,12 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
 
             // Since the incoming TMD has already been written, we can use GetTitleContentPath
             // to get the content paths to write to.
-
             const FileSys::TitleMetadata& tmd = container.GetTitleMetadata();
             if (i != current_content_index) {
+                // A previous content file was being installed, save it first
+                if (current_content_install_result.type == InstallResult::Type::APP) {
+                    install_results.push_back(current_content_install_result);
+                }
                 current_content_index = static_cast<u16>(i);
                 if (Settings::values.compress_cia_installs)
 				{
@@ -571,6 +573,10 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
 				{
 					content_files.emplace_back(content_file_paths[i], "wb");
 				}
+
+                current_content_install_result.type = InstallResult::Type::APP;
+                current_content_install_result.install_full_path = content_file_paths[i];
+                current_content_install_result.result = ResultSuccess;
             }
 
             std::vector<u8> temp(buffer + (range_min - offset),
@@ -579,8 +585,11 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
             if ((tmd.GetContentTypeByIndex(i) & FileSys::TMDContentTypeFlag::Encrypted) != 0) {
                 if (!decryption_authorized) {
                     LOG_ERROR(Service_AM, "Blocked unauthorized encrypted CIA installation.");
-                    return Result(ErrorDescription::NotAuthorized, ErrorModule::AM,
-                                  ErrorSummary::InvalidState, ErrorLevel::Permanent);
+                    current_content_install_result.result =
+                        Result(ErrorDescription::NotAuthorized, ErrorModule::AM,
+                               ErrorSummary::InvalidState, ErrorLevel::Permanent);
+                    install_results.push_back(current_content_install_result);
+                    return current_content_install_result.result;
                 }
                 decryption_state->content[i].ProcessData(temp.data(), temp.data(), temp.size());
             }
@@ -589,6 +598,14 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
 			{
 				auto& file = *current_content_file;
 	            file.Write(temp.data(), temp.size());
+	            if (file.IsError()) {
+	                // This can never happen in real HW
+	                current_content_install_result.result =
+	                    Result(ErrCodes::InvalidImportState, ErrorModule::AM,
+	                           ErrorSummary::InvalidState, ErrorLevel::Permanent);
+	                install_results.push_back(current_content_install_result);
+	                return current_content_install_result.result;
+	            }
 			}
 			else
 			{
@@ -604,7 +621,7 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
         }
     }
 
-    return success ? length : 0;
+    return length;
 }
 
 ResultVal<std::size_t> CIAFile::Write(u64 offset, std::size_t length, bool flush,
@@ -703,7 +720,6 @@ Result CIAFile::PrepareToImportContent(const FileSys::TitleMetadata& tmd) {
 
     for (std::size_t i = 0; i < content_count; i++) {
         auto path = GetTitleContentPath(media_type, tmd.GetTitleID(), i, is_update);
-
         content_file_paths.emplace_back(path);
     }
 
