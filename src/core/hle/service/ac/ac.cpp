@@ -1,5 +1,3 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
-
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
@@ -123,26 +121,10 @@ void Module::Interface::GetStatus(Kernel::HLERequestContext& ctx) {
 
 void Module::Interface::GetWifiStatus(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp(ctx);
-/* todotodo
-*/
-//--
-    bool can_reach_internet = false;
 
-    std::shared_ptr<SOC::SOC_U> socu_module = SOC::GetService(ac->system);
-    if (socu_module) {
-        can_reach_internet = socu_module->GetDefaultInterfaceInfo().has_value();
-    }
-//--
     IPC::RequestBuilder rb = rp.MakeBuilder(2, 0);
     rb.Push(ResultSuccess);
-#ifdef todotodo
     rb.Push<u32>(static_cast<u32>(WifiStatus::STATUS_CONNECTED_SLOT1));
-#else
-    rb.Push<u32>(static_cast<u32>(can_reach_internet ? (Settings::values.is_new_3ds
-                                                            ? WifiStatus::STATUS_CONNECTED_N3DS
-                                                            : WifiStatus::STATUS_CONNECTED_O3DS)
-                                                     : WifiStatus::STATUS_DISCONNECTED));
-#endif
 }
 
 void Module::Interface::GetInfraPriority(Kernel::HLERequestContext& ctx) {

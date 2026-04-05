@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- FILE MODIFIED BY AzaharPlus APRIL 2025 -->
 <ui version="4.0">
  <class>ConfigureDebug</class>
  <widget class="QWidget" name="ConfigureDebug">
