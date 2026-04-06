@@ -51,7 +51,7 @@ void FmtLogMessage(Class log_class, Level log_level, const char* filename, unsig
 #endif
 
 #define LOG_DEBUG(log_class, ...)                                                                  \
-    Common::Log::FmtLogMessage(Common::Log::Class::log_class, Common::Log::Level::Error,           \
+    Common::Log::FmtLogMessage(Common::Log::Class::log_class, Common::Log::Level::Debug,           \
                                Common::Log::TrimSourcePath(__FILE__), __LINE__, __func__,          \
                                __VA_ARGS__)
 #define LOG_INFO(log_class, ...)                                                                   \
