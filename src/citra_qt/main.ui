@@ -97,6 +97,7 @@
     <addaction name="action_Revert_Encryption_Removal"/>
     <addaction name="separator"/>
     <addaction name="menu_Download_System_Files"/>
+    <addaction name="action_Setup_System_Files"/>
     <addaction name="menu_Boot_Home_Menu"/>
     <addaction name="separator"/>
     <addaction name="menu_recent_files"/>
@@ -305,6 +306,11 @@
    <property name="text">
     <string>TWN</string>
    </property>
+  </action>
+  <action name="action_Setup_System_Files">
+    <property name="text">
+      <string>Set Up System Files...</string>
+    </property>
   </action>
   <action name="action_Boot_Home_Menu_JPN">
    <property name="text">
