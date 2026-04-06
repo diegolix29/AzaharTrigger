@@ -171,7 +171,7 @@
 
     <!-- System files strings -->
     <string name="setup_system_files">System Files</string>
-    <string name="system_files">System Files</string>
+    <string name="system_files_download">Download System Files</string>
     <string name="setup_system_files_description">Perform system file operations such as installing system files or booting the Home Menu</string>
     <string name="system_files_description">Download system files to get Mii files, boot the HOME menu, and more</string>
     <string name="setup_tool_connect">Connect to Artic Setup Tool</string>
