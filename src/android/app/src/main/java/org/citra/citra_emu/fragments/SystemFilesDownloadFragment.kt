@@ -32,8 +32,7 @@ import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.HomeNavigationDirections
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
-import org.citra.citra_emu.activities.EmulationActivity
-import org.citra.citra_emu.databinding.FragmentSystemFilesBinding
+import org.citra.citra_emu.databinding.FragmentSystemFilesDownloadBinding
 import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.utils.SystemSaveGame
@@ -41,8 +40,8 @@ import org.citra.citra_emu.viewmodel.GamesViewModel
 import org.citra.citra_emu.viewmodel.HomeViewModel
 import org.citra.citra_emu.viewmodel.SystemFilesViewModel
 
-class SystemFilesFragment : Fragment() {
-    private var _binding: FragmentSystemFilesBinding? = null
+class SystemFilesDownloadFragment : Fragment() {
+    private var _binding: FragmentSystemFilesDownloadBinding? = null
     private val binding get() = _binding!!
 
     private val homeViewModel: HomeViewModel by activityViewModels()
@@ -86,7 +85,7 @@ class SystemFilesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentSystemFilesBinding.inflate(layoutInflater)
+        _binding = FragmentSystemFilesDownloadBinding.inflate(layoutInflater)
         return binding.root
     }
 

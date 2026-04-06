@@ -72,7 +72,7 @@
 
     <fragment
         android:id="@+id/systemFilesFragment"
-        android:name="org.citra.citra_emu.fragments.SystemFilesFragment"
+        android:name="org.citra.citra_emu.fragments.SystemFilesDownloadFragment"
         android:label="SystemFilesFragment" />
 
     <fragment
