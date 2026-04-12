@@ -2408,7 +2408,7 @@ void GMainWindow::OnMenuRemoveAzaharEncryption() {
 void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
 	game_list->SetDirectoryWatcherEnabled(false);
 	
-    const auto mode = Core::SystemTitleSet::New3ds;
+    const auto mode = Core::SystemTitleSet::OldAndNew;
     const std::vector<u64> titles = Core::GetSystemTitleIds(mode, region);
 
     QProgressDialog progress(tr("Downloading system files..."), tr("Cancel"), 0,
