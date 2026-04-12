@@ -20,7 +20,9 @@
 #include "core/hle/service/fs/archive.h"
 #include "core/hw/aes/arithmetic128.h"
 #include "core/hw/aes/key.h"
+#ifdef ENABLE_BUILTIN_KEYBLOB
 #include "core/hw/default_keys.h"
+#endif // ENABLE_BUILTIN_KEYBLOB
 #include "core/hw/rsa/rsa.h"
 #include "core/loader/loader.h"
 
@@ -135,8 +137,8 @@ std::array<std::optional<AESKey>, NumDlpNfcKeyYs> dlp_nfc_key_y_slots;
 std::array<NfcSecret, NumNfcSecrets> nfc_secrets;
 AESIV nfc_iv;
 
-AESKey otp_key;
-AESIV otp_iv;
+AESKey otp_key{};
+AESIV otp_iv{};
 
 // gets xor'd with the mac address to produce the final iv
 AESIV dlp_checksum_mod_iv;
@@ -480,6 +482,7 @@ std::istringstream GetKeysStream() {
     if (file.is_open()) {
         return std::istringstream(std::string(std::istreambuf_iterator<char>(file), {}));
     } else {
+#ifdef ENABLE_BUILTIN_KEYBLOB
         // The key data is encrypted in the source to prevent easy access to it for unintended
         // purposes.
         /*
@@ -605,6 +608,9 @@ rootPublicXY=004e3bb74d5d959e68ce900434fe9e4a3f094a33771fa7c0e4b023264d98014ca1f
         CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption(kiv.data(), kiv.size(), kiv.data())
             .ProcessData(reinterpret_cast<u8*>(s.data()), default_keys_enc, s.size());
         return std::istringstream(s);
+#else
+        return std::istringstream("");
+#endif // ENABLE_BUILTIN_KEYBLOB
     }
 }
 
