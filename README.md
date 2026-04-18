@@ -1,11 +1,12 @@
-<b>AzaharPlus</b> is a fork of the Azahar 3DS emulator with extra features.
+<b>AzaharTrigger</b> is a fork of the Azahar Plus 3DS emulator with extra features.
 
 Each version is the same as the corresponding version of Azahar exept for this:
 - Compatibility with all game files. If a file works with any Citra fork, it works with AzaharPlus.
 - Ability to download system files from official servers. No need for an actual 3DS.
 - Compatibility with older CPUs (no SSE4.2 required)
 - Compatibility with Android 9
-
+- Added back local multiplayer, from Kleidis and rebased by diegolix29
+  
 The Azahar logo is the property of PabloMK7 and angyartanddraw
 ---
 
