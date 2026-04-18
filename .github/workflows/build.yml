@@ -5,11 +5,10 @@ on:
     branches: [ "*" ]
     tags: [ "*" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "*" ]
 
 jobs:
   source:
-    if: ${{ !github.head_ref }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
