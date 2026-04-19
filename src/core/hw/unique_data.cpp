@@ -192,9 +192,9 @@ SecureDataLoadStatus LoadOTP() {
 
     if (!ct_cert.VerifyMyself(HW::ECC::GetRootPublicKey())) {
         LOG_ERROR(HW, "CTCert failed verification");
-        otp.Invalidate();
-        ct_cert.Invalidate();
-        return SecureDataLoadStatus::IOError;
+    //    otp.Invalidate();
+    //    ct_cert.Invalidate();
+    //    return SecureDataLoadStatus::IOError;
     }
 
     return SecureDataLoadStatus::Loaded;

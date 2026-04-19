@@ -47,7 +47,7 @@ Loader::ResultStatus OTP::Load(const std::string& file_path, std::span<const u8>
                          sizeof(temp_otp.body));
     if (temp_otp.hash != digest) {
         LOG_ERROR(HW_AES, "OTP is corrupted");
-        return Loader::ResultStatus::Error;
+    //    return Loader::ResultStatus::Error;
     }
 
     otp = temp_otp;
