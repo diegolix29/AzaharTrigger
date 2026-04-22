@@ -279,7 +279,7 @@
     <string name="render3d">Stereoskopiskt 3D-läge</string>
     <string name="render3d_description">Välj stereoskopiskt 3D-läge för 3D-rendering. Sida-vid-sida-lägen är vanligast i modern användning. Anaglyf- och interlaced-lägen gäller alltid för alla anslutna skärmar.</string>
     <string name="factor3d">Djup</string>
-    <string name="factor3d_description">Anger värdet för 3D-reglaget. Detta bör ställas in på högre än 0% när stereoskopisk 3D är aktiverat.\nObservera: Djupvärden över 100% är inte möjliga på verklig hårdvara och kan orsaka grafiska problem.</string>
+    <string name="factor3d_description" formatted="false">Anger värdet för 3D-reglaget. Detta bör ställas in på högre än 0% när stereoskopisk 3D är aktiverat.\nObservera: Djupvärden över 100% är inte möjliga på verklig hårdvara och kan orsaka grafiska problem.</string>
     <string name="disable_right_eye_render">Inaktivera rendering av höger öga</string>
     <string name="disable_right_eye_render_description">Förbättrar prestandan avsevärt i vissa applikationer, men kan orsaka flimmer i andra.</string>
     <string name="swap_eyes_3d">Byt ögon</string>

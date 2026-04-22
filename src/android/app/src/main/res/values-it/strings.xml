@@ -279,7 +279,7 @@
     <string name="render3d">Modalità 3D stereoscopico</string>
     <string name="render3d_description">Scegli la modalità 3D stereoscopica per il rendering 3D. Le modalità \"Affiancato\" sono le più comuni nell\'uso moderno. Le modalità \"Anaglifo\" e \"Interlacciato\" si applicheranno sempre a tutti i display collegati.</string>
     <string name="factor3d">Profondità</string>
-    <string name="factor3d_description">Specifica il valore del regolatore di profondità 3D. Questo valore deve essere impostato su un valore superiore allo 0% quando è abilitato il 3D stereoscopico.\nNota: Valori di profondità superiori al 100% non sono possibili su un dispositivo reale e possono causare problemi grafici</string>
+    <string name="factor3d_description" formatted="false">Specifica il valore del regolatore di profondità 3D. Questo valore deve essere impostato su un valore superiore allo 0% quando è abilitato il 3D stereoscopico.\nNota: Valori di profondità superiori al 100% non sono possibili su un dispositivo reale e possono causare problemi grafici</string>
     <string name="disable_right_eye_render">Disattiva rendering occhio destro</string>
     <string name="disable_right_eye_render_description">Migliora notevolmente le prestazioni in alcune applicazioni, ma può causare flickering in altre.</string>
     <string name="swap_eyes_3d">Inverti occhi</string>

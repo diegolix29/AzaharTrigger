@@ -279,7 +279,7 @@
     <string name="render3d">Tryb stereoskopowy 3D</string>
     <string name="render3d_description">Wybierz tryb stereoskopowego 3D dla renderowania 3D.Tryb ekranów obok siebie jest obecnie najczęściej stosowany. Tryby obrazu Anaglyph i Interlaced będą zawsze stosowane do wyświetlania obrazu na wszystkich podłączonych monitorach.</string>
     <string name="factor3d">Zasięg</string>
-    <string name="factor3d_description">Określa wartość suwaka 3D. Powinien być ustawiony na wartość wyższą niż 0%, gdy włączony jest tryb stereoskopowy 3D.\nUwaga: Wartość przekraczająca 100% nie jest możliwa na rzeczywistym sprzęcie i może powodować problemy graficzne.</string>
+    <string name="factor3d_description" formatted="false">Określa wartość suwaka 3D. Powinien być ustawiony na wartość wyższą niż 0%, gdy włączony jest tryb stereoskopowy 3D.\nUwaga: Wartość przekraczająca 100% nie jest możliwa na rzeczywistym sprzęcie i może powodować problemy graficzne.</string>
     <string name="disable_right_eye_render">Wyłącz renderowanie prawego oka</string>
     <string name="disable_right_eye_render_description">Znacznie poprawia wydajność w niektórych aplikacjach, ale może powodować migotanie w innych.</string>
     <string name="swap_eyes_3d">Zamiana Oczu</string>

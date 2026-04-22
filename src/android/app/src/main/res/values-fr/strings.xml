@@ -279,7 +279,7 @@
     <string name="render3d">Mode 3D stéréoscopique</string>
     <string name="render3d_description">Choisissez le mode de 3D stéréoscopique pour l\'affichage 3D. Les modes Côte à Côte sont les plus courants en utilisation moderne. Les modes Anaglyphe et Entrelacé seront toujours appliqués à tout les écrans connectés.</string>
     <string name="factor3d">Profondeur</string>
-    <string name="factor3d_description">Spécifie la valeur du curseur 3D. Cette valeur doit être supérieure à 0 % lorsque la 3D stéréoscopique est activée. Remarque : les valeurs de profondeur supérieures à 100 % ne sont pas possibles sur du matériel réel et peuvent entraîner des problèmes graphiques.</string>
+    <string name="factor3d_description" formatted="false">Spécifie la valeur du curseur 3D. Cette valeur doit être supérieure à 0 % lorsque la 3D stéréoscopique est activée. Remarque : les valeurs de profondeur supérieures à 100 % ne sont pas possibles sur du matériel réel et peuvent entraîner des problèmes graphiques.</string>
     <string name="disable_right_eye_render">Désactiver le rendu de l\'œil droit</string>
     <string name="disable_right_eye_render_description">Améliore considérablement les performances dans certaines applications, mais peut provoquer des scintillements dans d\'autres.</string>
     <string name="swap_eyes_3d">Intervertir les yeux</string>

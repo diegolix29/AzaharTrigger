@@ -239,7 +239,7 @@
     <string name="stereoscopy">Stereoskopi</string>
     <string name="render3d">Stereoskopik 3B Modu</string>
     <string name="factor3d">Derinlik</string>
-    <string name="factor3d_description">3D kaydıracının değerini belirtir. Stereoskopik 3D etkinleştirildiğinde bu değer %0\'dan daha yüksek bir değere ayarlanmalıdır.\nNot: %100\'ün üzerindeki derinlik değerleri gerçek donanımda mümkün değildir ve grafik sorunlarına neden olabilir</string>
+    <string name="factor3d_description" formatted="false">3D kaydircinin degerini belirtir. Stereoskopik 3D etkinlestirildiginde bu deger %0\'dan daha yüksek bir degere ayarlanmalidir.\nNot: %100\'ün üzerindeki derinlik degerleri gerçek donanimda mümkün degildir ve grafik sorunlarina neden olabilir</string>
     <string name="disable_right_eye_render">Sağ Göz İşlemesini Devre Dışı Bırak</string>
     <string name="disable_right_eye_render_description">Bazı uygulamalarda performansı büyük ölçüde artırır, ancak diğerlerinde titremeye neden olabilir.</string>
     <string name="cardboard_vr">Karton VR</string>

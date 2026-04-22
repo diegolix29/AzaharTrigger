@@ -280,7 +280,7 @@ Se esperan fallos gráficos temporales cuando ésta esté activado.</string>
     <string name="render3d">Modo 3D Estereoscópico</string>
     <string name="render3d_description">Seleccione el modo 3D estereoscópico para renderizado 3D. Los modos lado a lado son los más comunes en la actualidad. Los modos Anaglifo y Entrelazado siempre se aplican a todas las pantallas conectadas.</string>
     <string name="factor3d">Profundidad</string>
-    <string name="factor3d_description">Especifica el valor del regulador 3D. Debería estar puesto a más allá del 0% cuando el Modo 3D Estereoscópico está activado.\nNota: Los valores de profundidad superiores al 100 % no son posibles en hardware real y pueden causar problemas gráficos.</string>
+    <string name="factor3d_description" formatted="false">Especifica el valor del regulador 3D. Debería estar puesto a más allá del 0% cuando el Modo 3D Estereoscópico está activado.\nNota: Los valores de profundidad superiores al 100 % no son posibles en hardware real y pueden causar problemas gráficos.</string>
     <string name="disable_right_eye_render">Desactivar Renderizado de Ojo Derecho</string>
     <string name="disable_right_eye_render_description">Mejora significativamente el rendimiento en algunas aplicaciones, pero puede causar parpadeo en otros.</string>
     <string name="swap_eyes_3d">Intercambiar Ojos</string>

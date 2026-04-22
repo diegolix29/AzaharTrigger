@@ -280,7 +280,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="render3d">Mode 3D Estereoscòpic</string>
     <string name="render3d_description">Seleccione el mode 3D estereoscòpic per a renderitzat 3D. Els modes costat a costat són els més comuns en l\'actualitat. Els modes Anaglifo i Entrellaçat sempre s\'apliquen a totes les pantalles connectades.</string>
     <string name="factor3d">Profunditat</string>
-    <string name="factor3d_description">Especifica el valor del regulador 3D. Hauria d\'estar posat a més enllà del 0% quan el Mode 3D Estereoscòpic està activat.\nNota: Els valors de profunditat superiors al 100% no són possibles en hardware real i poden causar problemes gràfics.</string>
+    <string name="factor3d_description" formatted="false">Especifica el valor del regulador 3D. Hauria d\'estar posat a més enllà del 0% quan el Mode 3D Estereoscòpic està activat.\nNota: Els valors de profunditat superiors al 100% no són possibles en hardware real i poden causar problemes gràfics.</string>
     <string name="disable_right_eye_render">Desactivar Renderitzat d\'Ull Dret</string>
     <string name="disable_right_eye_render_description">Millora enormement el rendiment en algunes aplicacions, però pot provocar parpellejos en unes altres.</string>
     <string name="swap_eyes_3d">Intercanviar Ulls</string>

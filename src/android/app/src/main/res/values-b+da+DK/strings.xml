@@ -268,7 +268,7 @@
     <string name="render3d">Stereoskopisk 3D-tilstand</string>
     <string name="render3d_description">Vælg den stereoskopiske 3D-tilstand til 3D-gengivelse. Side om side-tilstande er mest almindelige i moderne brug. Anaglyf- og interlaced-tilstande vil altid gælde for alle tilsluttede skærme.</string>
     <string name="factor3d">Dybde</string>
-    <string name="factor3d_description">Angiver værdien af ​​3D-skyderen. Denne bør sættes højere end 0 %, når stereoskopisk 3D-tilstand er aktiveret.\nBemærk: Dybdeværdier over 100 % er ikke muligt på rigtig hardware og kan forårsage grafiske problemer</string>
+    <string name="factor3d_description" formatted="false">Specificerer værdien af 3D-justeringen. Den bør indstilles til over 0%, når stereoskopisk 3D er aktiveret.\nBemærk: Dybdeværdier over 100% er ikke mulige på rigtig hardware og kan forårsage grafiske problemer.</string>
     <string name="disable_right_eye_render">Deaktiver rendering af højre øje</string>
     <string name="disable_right_eye_render_description">Forbedrer ydeevnen betydeligt i nogle applikationer, men kan forårsage flimren i andre.</string>
     <string name="swap_eyes_3d">Skift øjne</string>

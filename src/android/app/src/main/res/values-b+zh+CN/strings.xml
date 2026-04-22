@@ -254,7 +254,7 @@
     <string name="stereoscopy">画面立体</string>
     <string name="render3d">立体 3D 模式</string>
     <string name="factor3d">画面深度</string>
-    <string name="factor3d_description">指定 3D 滑块按钮的值。启用立体 3D 模式时，应将其设置为高于 0% 的值。\n注意：实机硬件上不可能出现超过 100% 的深度值，并且可能会导致图形问题</string>
+    <string name="factor3d_description" formatted="false">指定 3D 滑块按钮的值。启用立体 3D 模式时，应将其设置为高于 0% 的值。\n注意：实机硬件上不可能出现超过 100% 的深度值，并且可能会导致图形问题</string>
     <string name="disable_right_eye_render">禁用右眼渲染</string>
     <string name="disable_right_eye_render_description">极大地提高某些应用的性能，但可能会导致其他应用出现闪烁。</string>
     <string name="cardboard_vr">Cardboard VR</string>
