@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus OCTOBER 2025
+// FILE MODIFIED BY AzaharPlus OCTOBER 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -34,7 +34,7 @@ std::pair<u8, u8> FindMinMax(const std::span<const u8>& data) {
     u8 final_min, final_max;
     final_min = 0xFF;
     final_max = 0;
-	
+
 #if defined(CITRA_HAS_SSE42) || defined(CITRA_HAS_NEON)
     u8 simd_min = 0xFF;
     u8 simd_max = 0;

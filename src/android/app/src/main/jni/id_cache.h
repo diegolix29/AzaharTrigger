@@ -34,7 +34,6 @@ jmethodID GetRequestMicPermission();
 jmethodID GetAddNetPlayMessage();
 jmethodID ClearChat();
 
-
 jclass GetCheatClass();
 jfieldID GetCheatPointer();
 jmethodID GetCheatConstructor();

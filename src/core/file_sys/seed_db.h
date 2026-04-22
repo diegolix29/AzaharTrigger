@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright 2018 Citra Emulator Project
 // Licensed under GPLv2 or any later version

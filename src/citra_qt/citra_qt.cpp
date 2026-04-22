@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -2360,54 +2360,58 @@ void GMainWindow::OnMenuConnectArticBase() {
 }
 
 void GMainWindow::OnMenuRevertEncryptionRemoval() {
-	game_list->SetDirectoryWatcherEnabled(false);
-	int res = HW::UniqueData::RevertEncryptionRemoval();
-	
-	if(res == 0)
-		QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to revert"));
-	else
-		QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) successfully reverted").arg(res));
-	
-	game_list->SetDirectoryWatcherEnabled(true);
+    game_list->SetDirectoryWatcherEnabled(false);
+    int res = HW::UniqueData::RevertEncryptionRemoval();
+
+    if (res == 0)
+        QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to revert"));
+    else
+        QMessageBox::information(this, tr("AzaharPlus"),
+                                 tr("%1 file(s) successfully reverted").arg(res));
+
+    game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnMenuRemoveAzaharEncryption() {
     const std::vector<std::string> paths = HW::UniqueData::GetAppFilepaths();
-	
-	if(paths.size() == 0)
-	{
-		QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to decrypt"));
-		return;
-	}
-	
+
+    if (paths.size() == 0) {
+        QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to decrypt"));
+        return;
+    }
+
     game_list->SetDirectoryWatcherEnabled(false);
-	
-	std::map<int, int> results;
-    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, (int)paths.size(), this);
+
+    std::map<int, int> results;
+    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, (int)paths.size(),
+                             this);
     progress.setWindowModality(Qt::WindowModal);
 
-	for(size_t i=0; i<paths.size(); i++)
-	{
-		progress.setValue((int)i);
-		
-		if (progress.wasCanceled())
-        {
-			break;
-		}
-		
-		results[HW::UniqueData::RemoveAzaharEncryption(paths[i])]++;
-	}
-	
-	progress.setValue((int)paths.size());
-	
-	QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) succesfully decrypted\n%2 file(s) file system errors\n%3 file(s) unable to be decrypted").arg(results[0]).arg(results[1]).arg(results[2]));
+    for (size_t i = 0; i < paths.size(); i++) {
+        progress.setValue((int)i);
 
-	game_list->SetDirectoryWatcherEnabled(true);
+        if (progress.wasCanceled()) {
+            break;
+        }
+
+        results[HW::UniqueData::RemoveAzaharEncryption(paths[i])]++;
+    }
+
+    progress.setValue((int)paths.size());
+
+    QMessageBox::information(this, tr("AzaharPlus"),
+                             tr("%1 file(s) succesfully decrypted\n%2 file(s) file system "
+                                "errors\n%3 file(s) unable to be decrypted")
+                                 .arg(results[0])
+                                 .arg(results[1])
+                                 .arg(results[2]));
+
+    game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
-	game_list->SetDirectoryWatcherEnabled(false);
-	
+    game_list->SetDirectoryWatcherEnabled(false);
+
     const auto mode = Core::SystemTitleSet::OldAndNew;
     const std::vector<u64> titles = Core::GetSystemTitleIds(mode, region);
 
@@ -2438,12 +2442,13 @@ void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
     if (failed) {
         QMessageBox::critical(this, tr("AzaharPlus"), tr("Downloading system files failed."));
     } else if (!future_watcher.isCanceled()) {
-        QMessageBox::information(this, tr("AzaharPlus"), tr("Successfully downloaded system files."));
+        QMessageBox::information(this, tr("AzaharPlus"),
+                                 tr("Successfully downloaded system files."));
     }
-	
-	game_list->SetDirectoryWatcherEnabled(true);
+
+    game_list->SetDirectoryWatcherEnabled(true);
     game_list->PopulateAsync(UISettings::values.game_dirs);
-	UpdateBootHomeMenuState();
+    UpdateBootHomeMenuState();
 }
 
 void GMainWindow::OnMenuBootHomeMenu(u32 region) {
