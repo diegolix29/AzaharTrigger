@@ -50,7 +50,6 @@ class SystemFilesDownloadFragment : Fragment() {
 
     private lateinit var regionValues: IntArray
 
-    private val systemTypeDropdown = DropdownItem(R.array.systemFileTypeValues)
     private val systemRegionDropdown = DropdownItem(R.array.systemFileRegionValues)
 
     private val SYS_TYPE = "SysType"
@@ -110,7 +109,6 @@ class SystemFilesDownloadFragment : Fragment() {
 
         // TODO: Remove workaround for text filtering issue in material components when fixed
         // https://github.com/material-components/material-components-android/issues/1464
-        binding.dropdownSystemType.isSaveEnabled = false
         binding.dropdownSystemRegion.isSaveEnabled = false
         binding.dropdownSystemRegionStart.isSaveEnabled = false
 
@@ -128,11 +126,6 @@ class SystemFilesDownloadFragment : Fragment() {
         reloadUi()
         if (savedInstanceState != null) {
             setDropdownSelection(
-                binding.dropdownSystemType,
-                systemTypeDropdown,
-                savedInstanceState.getInt(SYS_TYPE)
-            )
-            setDropdownSelection(
                 binding.dropdownSystemRegion,
                 systemRegionDropdown,
                 savedInstanceState.getInt(REGION)
@@ -145,7 +138,6 @@ class SystemFilesDownloadFragment : Fragment() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putInt(SYS_TYPE, systemTypeDropdown.position)
         outState.putInt(REGION, systemRegionDropdown.position)
         outState.putString(REGION_START, binding.dropdownSystemRegionStart.text.toString())
     }
@@ -179,7 +171,6 @@ class SystemFilesDownloadFragment : Fragment() {
 
         if (!NativeLibrary.areKeysAvailable()) {
             binding.apply {
-                systemType.isEnabled = false
                 systemRegion.isEnabled = false
                 buttonDownloadHomeMenu.isEnabled = false
                 textKeysMissing.visibility = View.VISIBLE
@@ -194,7 +185,7 @@ class SystemFilesDownloadFragment : Fragment() {
 
         binding.buttonDownloadHomeMenu.setOnClickListener {
             val titleIds = NativeLibrary.getSystemTitleIds(
-                systemTypeDropdown.getValue(resources),
+                6,  // old + new
                 systemRegionDropdown.getValue(resources)
             )
 
@@ -243,18 +234,12 @@ class SystemFilesDownloadFragment : Fragment() {
     }
 
     private fun populateDownloadOptions() {
-        populateDropdown(binding.dropdownSystemType, R.array.systemFileTypes, systemTypeDropdown)
         populateDropdown(
             binding.dropdownSystemRegion,
             R.array.systemFileRegions,
             systemRegionDropdown
         )
 
-        setDropdownSelection(
-            binding.dropdownSystemType,
-            systemTypeDropdown,
-            systemTypeDropdown.position
-        )
         setDropdownSelection(
             binding.dropdownSystemRegion,
             systemRegionDropdown,
