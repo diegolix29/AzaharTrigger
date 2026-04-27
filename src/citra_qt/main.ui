@@ -82,6 +82,14 @@
       <string>Recent Files</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menu_ZipPass">
+     <property name="title">
+      <string>ZipPass</string>
+     </property>
+     <addaction name="action_Export_ZipPass"/>
+     <addaction name="action_Import_ZipPass"/>
+     <addaction name="action_Clear_StreetPass_Config"/>
+    </widget>
     <widget class="QMenu" name="menu_Amiibo">
      <property name="title">
       <string>Amiibo</string>
@@ -102,6 +110,7 @@
     <addaction name="separator"/>
     <addaction name="menu_recent_files"/>
     <addaction name="separator"/>
+    <addaction name="menu_ZipPass"/>
     <addaction name="menu_Amiibo"/>
     <addaction name="separator"/>
     <addaction name="action_Open_Citra_Folder"/>
@@ -733,6 +742,21 @@
    </property>
    <property name="text">
     <string>Restart</string>
+   </property>
+  </action>
+  <action name="action_Export_ZipPass">
+   <property name="text">
+    <string>Export ZipPass Data</string>
+   </property>
+  </action>
+  <action name="action_Import_ZipPass">
+   <property name="text">
+    <string>Import ZipPass Data</string>
+   </property>
+  </action>
+  <action name="action_Clear_StreetPass_Config">
+   <property name="text">
+    <string>Clear StreetPass Configuration</string>
    </property>
   </action>
   <action name="action_Load_Amiibo">

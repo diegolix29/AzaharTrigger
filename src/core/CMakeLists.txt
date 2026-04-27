@@ -499,6 +499,8 @@ add_library(citra_core STATIC
     tracer/citrace.h
     tracer/recorder.cpp
     tracer/recorder.h
+    zip_pass.cpp
+    zip_pass.h
 )
 
 if (ENABLE_BUILTIN_KEYBLOB)
@@ -510,6 +512,7 @@ create_target_directory_groups(citra_core)
 target_link_libraries(citra_core PUBLIC citra_common PRIVATE audio_core network video_core)
 target_link_libraries(citra_core PRIVATE Boost::boost Boost::serialization Boost::iostreams httplib)
 target_link_libraries(citra_core PUBLIC dds-ktx PRIVATE cryptopp fmt lodepng open_source_archives)
+target_link_libraries(citra_core PRIVATE libzip::zip)
 
 if (ENABLE_WEB_SERVICE)
     target_link_libraries(citra_core PRIVATE web_service)
