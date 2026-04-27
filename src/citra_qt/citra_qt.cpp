@@ -135,6 +135,7 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
 
 #include "core/hw/unique_data.h"
+#include "core/zip_pass.h"
 
 constexpr int default_mouse_timeout = 2500;
 
@@ -1078,6 +1079,9 @@ void GMainWindow::ConnectMenuEvents() {
                      [this, region] { OnMenuBootHomeMenu(region); });
     }
     connect_menu(ui->action_Exit, &QMainWindow::close, QAction::QuitRole);
+    connect_menu(ui->action_Export_ZipPass, &GMainWindow::OnExportZipPass);
+    connect_menu(ui->action_Import_ZipPass, &GMainWindow::OnImportZipPass);
+    connect_menu(ui->action_Clear_StreetPass_Config, &GMainWindow::OnClearStreetPassConfig);
     connect_menu(ui->action_Load_Amiibo, &GMainWindow::OnLoadAmiibo);
     connect_menu(ui->action_Remove_Amiibo, &GMainWindow::OnRemoveAmiibo);
 
@@ -1178,6 +1182,10 @@ void GMainWindow::UpdateMenuState() {
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
     }
+
+    ui->action_Export_ZipPass->setEnabled(!emulation_running);
+    ui->action_Import_ZipPass->setEnabled(!emulation_running);
+    ui->action_Clear_StreetPass_Config->setEnabled(!emulation_running);
 
     ui->action_Capture_Screenshot->setEnabled(emulation_running);
     ui->action_Advance_Frame->setEnabled(emulation_running && is_paused);
@@ -3003,6 +3011,61 @@ void GMainWindow::OnConfigure() {
         Settings::values.input_profiles = old_input_profiles;
         Settings::values.touch_from_button_maps = old_touch_from_button_maps;
         Settings::LoadProfile(old_input_profile_index);
+    }
+}
+
+void GMainWindow::OnExportZipPass() {
+    QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export ZipPass Data"), out_path,
+                                                    tr("ZipPass (*.pass.zip)"));
+    if (fileName.length() == 0)
+        return;
+
+    int ret = Core::exportZipPass(fileName.toStdString());
+
+    if (ret < 0) {
+        QMessageBox::critical(this, tr("Export ZipPass Data"), tr("Failure"));
+    } else if (ret == 0) {
+        QMessageBox::warning(this, tr("Export ZipPass Data"), tr("Nothing to export"));
+    } else {
+        QMessageBox::information(this, tr("Export ZipPass Data"), tr("Success"));
+    }
+}
+
+void GMainWindow::OnClearStreetPassConfig() {
+    Core::clearStreetPassConfig();
+
+    QMessageBox::information(this, tr("Clear StreetPass Configuration"), tr("Success"));
+}
+
+void GMainWindow::OnImportZipPass() {
+    QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
+    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Import ZipPass Data"), out_path,
+                                                          tr("ZipPass (*.pass.zip)"));
+    int ret = 0;
+    int err = 0;
+
+    if (fileNames.size() == 0)
+        return;
+
+    for (const QString& fileName : fileNames) {
+        int res = Core::importZipPass(fileName.toStdString());
+
+        if (res > 0)
+            ret++;
+        if (res < 0)
+            err++;
+    }
+
+    if (err > 0 && ret == 0)
+        ret = -1;
+
+    if (ret < 0) {
+        QMessageBox::critical(this, tr("Import ZipPass Data"), tr("Failure"));
+    } else if (ret == 0) {
+        QMessageBox::warning(this, tr("Import ZipPass Data"), tr("Nothing to import"));
+    } else {
+        QMessageBox::information(this, tr("Import ZipPass Data"), tr("Success"));
     }
 }
 

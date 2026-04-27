@@ -108,7 +108,7 @@
 	url = https://github.com/libretro/libretro-common.git
 [submodule "externals/libzip"]
 	path = externals/libzip
-	url = https://github.com/nih-at/libzip.git
+	url = https://github.com/diegolix29/libzip.git
 [submodule "externals/zlib"]
 	path = externals/zlib
 	url = https://github.com/madler/zlib.git

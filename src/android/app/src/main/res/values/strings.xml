@@ -13,10 +13,14 @@
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Settings</string>
+    <string name="grid_menu_core_export_zippass">Export ZipPass Data</string>
+    <string name="grid_menu_core_import_zippass">Import ZipPass Data</string>
     <string name="home_options">Options</string>
     <string name="home_search">Search</string>
     <string name="home_games">Applications</string>
     <string name="settings_description">Configure emulator settings</string>
+    <string name="export_zippass_description">Export StreetPass data as a zip file</string>
+    <string name="import_zippass_description">Import StreetPass data as a zip file</string>
     <string name="install_game_content">Install CIA file</string>
     <string name="install_game_content_description">Install applications, updates or DLC</string>
     <string name="share_log">Share Log</string>
@@ -31,8 +35,10 @@
     <string name="select_games_folder">Select Applications Folder</string>
     <string name="select_games_folder_description">Allows Azahar to populate the application list</string>
     <string name="about">About</string>
+    <string name="clear_streetpass_config">Clear StreetPass Configuration</string>
     <string name="citra_description">An open-source 3DS emulator</string>
     <string name="about_description">Build version, credits, and more</string>
+    <string name="clear_streetpass_config_description">In case something went wrong with ZipPass</string>
     <string name="games_dir_selected">Application directory selected</string>
     <string name="select_citra_user_folder_home_description">Changes the files that Azahar uses to load applications</string>
     <string name="theme_and_color_description">Modify the look of the app</string>
@@ -596,6 +602,14 @@
     <string name="system_archive_not_found">System Archive Not Found</string>
     <string name="system_archive_not_found_message">%s is missing. Please dump your system archives.\nContinuing emulation may result in crashes and bugs.</string>
     <string name="cia_file_not_found">Installation Failed. CIA file not found.</string>
+    <string name="zippass_file_not_found">Import Failed. ZipPass file not found.</string>
+    <string name="zippass_import_successful">Import successful.</string>
+    <string name="zippass_import_failed">Import failed.</string>
+    <string name="zippass_import_nothing">Nothing to import.</string>
+    <string name="zippass_export_successful">Export successful.</string>
+    <string name="zippass_export_failed">Export failed.</string>
+    <string name="zippass_export_nothing">Nothing to export.</string>
+    <string name="zippass_clear_success">Clear successful.</string>
     <string name="system_archive_general">A system archive</string>
     <string name="save_load_error">Save/Load Error</string>
     <string name="fatal_error">Fatal Error</string>
