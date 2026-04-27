@@ -5,22 +5,26 @@
 package org.citra.citra_emu.ui.main
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.WindowManager
 import android.view.animation.PathInterpolator
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -60,6 +64,7 @@ import org.citra.citra_emu.utils.CitraDirectoryHelper
 import org.citra.citra_emu.utils.CitraDirectoryUtils
 import org.citra.citra_emu.utils.DirectoryInitialization
 import org.citra.citra_emu.utils.FileBrowserHelper
+import org.citra.citra_emu.utils.FileUtil
 import org.citra.citra_emu.utils.InsetsHelper
 import org.citra.citra_emu.utils.RefreshRateUtil
 import org.citra.citra_emu.utils.PermissionsHandler
@@ -409,6 +414,110 @@ class MainActivity : AppCompatActivity(), ThemeProvider {
 
     val openCitraDirectory = createOpenCitraDirectoryLauncher(permissionsLost = false)
     val openCitraDirectoryLostPermission = createOpenCitraDirectoryLauncher(permissionsLost = true)
+
+    class OpenZipContract : ActivityResultContract<Boolean?, Intent?>() {
+        override fun createIntent(context: Context, input: Boolean?): Intent {
+            return Intent(Intent.ACTION_OPEN_DOCUMENT)
+                .setType("application/zip")
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, input)
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Intent? = intent
+    }
+
+    class SaveZipContract : ActivityResultContract<String, Intent?>() {
+        override fun createIntent(context: Context, input: String): Intent {
+            return Intent(Intent.ACTION_CREATE_DOCUMENT)
+                .setType("application/zip")
+                .putExtra(Intent.EXTRA_TITLE, input)
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Intent? = intent
+    }
+
+    val zipPassExporter = registerForActivityResult(
+        SaveZipContract()
+    ) { result: Intent? ->
+        if (result == null) {
+            return@registerForActivityResult
+        }
+
+        val uri = result.data ?: return@registerForActivityResult
+
+        Log.e("ZipPass", "Export file $uri")
+
+        FileUtil.deleteDocument(uri.toString())
+        var nativePath = NativeLibrary.getNativePath(uri)
+
+        if(!nativePath.endsWith(".pass.zip")){
+            if(nativePath.endsWith(".zip")){
+                nativePath = "${nativePath.dropLast(4)}.pass.zip"
+            } else if(nativePath.endsWith(".pass")){
+                nativePath = "$nativePath.zip"
+            } else {
+                nativePath = "$nativePath.pass.zip"
+            }
+        }
+
+        runCatching {
+            NativeLibrary.deleteDocument(nativePath)
+        }
+
+        val ret = NativeLibrary.exportZipPass(nativePath)
+
+        if(ret < 0){
+            Toast.makeText(applicationContext, R.string.zippass_export_failed, Toast.LENGTH_LONG)
+                .show()
+        }else if(ret == 0){
+            Toast.makeText(applicationContext, R.string.zippass_export_nothing, Toast.LENGTH_LONG)
+                .show()
+        }else{
+            Toast.makeText(applicationContext, R.string.zippass_export_successful, Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+
+    val zipPassImporter = registerForActivityResult(
+        OpenZipContract()
+    ) { result: Intent? ->
+        if (result == null) {
+            return@registerForActivityResult
+        }
+
+        val selectedFiles =
+            FileBrowserHelper.getSelectedFiles(result, applicationContext, listOf(".pass.zip"))
+        if (selectedFiles == null) {
+            Toast.makeText(applicationContext, R.string.zippass_file_not_found, Toast.LENGTH_LONG)
+                .show()
+            return@registerForActivityResult
+        }
+
+        var ret = 0;
+        var err = 0
+
+        for(file in selectedFiles){
+            Log.e("ZipPass", "import file $file")
+
+            val nativePath = NativeLibrary.getNativePath(file.toUri())
+            val res = NativeLibrary.importZipPass(nativePath)
+
+            if(res > 0) ret++
+            if(res < 0) err++
+        }
+
+        if(err > 0 && ret == 0) ret = -1
+
+        if(ret < 0){
+            Toast.makeText(applicationContext, R.string.zippass_import_failed, Toast.LENGTH_LONG)
+                .show()
+        }else if(ret == 0){
+            Toast.makeText(applicationContext, R.string.zippass_import_nothing, Toast.LENGTH_LONG)
+                .show()
+        }else{
+            Toast.makeText(applicationContext, R.string.zippass_import_successful, Toast.LENGTH_LONG)
+                .show()
+        }
+    }
 
     val ciaFileInstaller = registerForActivityResult(
         OpenFileResultContract()
