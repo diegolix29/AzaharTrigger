@@ -47,6 +47,7 @@
 #include "core/loader/loader.h"
 #include "core/savestate.h"
 #include "core/system_titles.h"
+#include "core/zip_pass.h"
 #include "jni/android_common/android_common.h"
 #include "jni/applets/mii_selector.h"
 #include "jni/applets/swkbd.h"
@@ -743,6 +744,20 @@ jobject Java_org_citra_citra_1emu_NativeLibrary_downloadTitleFromNus([[maybe_unu
         return IDCache::GetJavaCiaInstallStatus(status);
     }
     return IDCache::GetJavaCiaInstallStatus(Service::AM::InstallStatus::Success);
+}
+
+jint Java_org_citra_citra_1emu_NativeLibrary_importZipPass(JNIEnv* env, jobject thiz,
+                                                           jstring path) {
+    return Core::importZipPass(GetJString(env, path));
+}
+
+jint Java_org_citra_citra_1emu_NativeLibrary_exportZipPass(JNIEnv* env, jobject thiz,
+                                                           jstring path) {
+    return Core::exportZipPass(GetJString(env, path));
+}
+
+jint Java_org_citra_citra_1emu_NativeLibrary_clearStreetPassConfig(JNIEnv* env, jobject thiz) {
+    return Core::clearStreetPassConfig();
 }
 
 [[maybe_unused]] static bool CheckKgslPresent() {
