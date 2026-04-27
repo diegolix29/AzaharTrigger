@@ -260,6 +260,9 @@ object NativeLibrary {
         return uninstallTitle(titleId, mediaType.value)
     }
     external fun downloadTitleFromNus(title: Long): InstallStatus
+    external fun importZipPass(path: String): Int
+    external fun exportZipPass(path: String): Int
+    external fun clearStreetPassConfig(): Int
 
     external fun nativeFileExists(path: String): Boolean
 
