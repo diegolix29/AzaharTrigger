@@ -9,10 +9,12 @@
 #include <QFutureWatcher>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
+#include <QTimer>
 #include "citra_qt/multiplayer/validation.h"
 #include "common/announce_multiplayer_room.h"
 #include "network/announce_multiplayer_session.h"
 #include "network/room_member.h"
+#include "network/lan_melon.h"
 
 namespace Ui {
 class Lobby;
@@ -73,6 +75,12 @@ private slots:
      */
     void OnJoinRoom(const QModelIndex&);
 
+    // melonDS LAN slots
+    void OnMelonHostRoom();
+    void OnMelonJoinRoom();
+    void OnMelonDiscoveryUpdate();
+    void OnMelonJoinDiscovery(const QModelIndex&);
+
 signals:
     void StateChanged(const Network::RoomMember::State&);
 
@@ -100,6 +108,11 @@ private:
     std::weak_ptr<Network::AnnounceMultiplayerSession> announce_multiplayer_session;
     QFutureWatcher<void>* watcher;
     Validation validation;
+
+    // melonDS LAN members
+    std::unique_ptr<Network::MelonLANAdapter> melon_lan_adapter;
+    QStandardItemModel* melon_model{};
+    QTimer* melon_discovery_timer{};
 };
 
 /**

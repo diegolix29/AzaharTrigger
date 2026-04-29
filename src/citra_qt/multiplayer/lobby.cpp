@@ -70,6 +70,48 @@ Lobby::Lobby(Core::System& system_, QWidget* parent, QStandardItemModel* list,
     connect(ui->room_list, &QTreeView::doubleClicked, this, &Lobby::OnJoinRoom);
     connect(ui->room_list, &QTreeView::clicked, this, &Lobby::OnExpandRoom);
 
+    // melonDS LAN setup
+    melon_lan_adapter = std::make_unique<Network::MelonLANAdapter>();
+    if (melon_lan_adapter->Init()) {
+        melon_model = new QStandardItemModel(ui->melon_room_list);
+        melon_model->insertColumns(0, 4);
+        melon_model->setHeaderData(0, Qt::Horizontal, tr("Session Name"), Qt::DisplayRole);
+        melon_model->setHeaderData(1, Qt::Horizontal, tr("IP Address"), Qt::DisplayRole);
+        melon_model->setHeaderData(2, Qt::Horizontal, tr("Players"), Qt::DisplayRole);
+        melon_model->setHeaderData(3, Qt::Horizontal, tr("Status"), Qt::DisplayRole);
+        ui->melon_room_list->setModel(melon_model);
+        ui->melon_room_list->header()->setSectionResizeMode(QHeaderView::Interactive);
+        ui->melon_room_list->header()->stretchLastSection();
+        ui->melon_room_list->setAlternatingRowColors(true);
+        ui->melon_room_list->setSelectionMode(QHeaderView::SingleSelection);
+        ui->melon_room_list->setSelectionBehavior(QHeaderView::SelectRows);
+        ui->melon_room_list->setEditTriggers(QHeaderView::NoEditTriggers);
+
+        ui->melon_nickname->setValidator(validation.GetNickname());
+        ui->melon_nickname->setText(ui->nickname->text());
+
+        melon_discovery_timer = new QTimer(this);
+        connect(melon_discovery_timer, &QTimer::timeout, this, &Lobby::OnMelonDiscoveryUpdate);
+
+        connect(ui->melon_host, &QPushButton::clicked, this, &Lobby::OnMelonHostRoom);
+        connect(ui->melon_join, &QPushButton::clicked, this, &Lobby::OnMelonJoinRoom);
+        connect(ui->melon_room_list, &QTreeView::doubleClicked, this, &Lobby::OnMelonJoinDiscovery);
+
+        // Start discovery when melonDS LAN tab is selected
+        connect(ui->tab_widget, &QTabWidget::currentChanged, this, [this](int index) {
+            if (index == 1) { // melonDS LAN tab
+                if (melon_lan_adapter->StartDiscovery()) {
+                    melon_discovery_timer->start(1000); // Update every second
+                    ui->melon_status->setText(tr("LAN Discovery Status: Scanning..."));
+                }
+            } else {
+                melon_discovery_timer->stop();
+                melon_lan_adapter->StopDiscovery();
+                ui->melon_status->setText(tr("LAN Discovery Status: Stopped"));
+            }
+        });
+    }
+
     // Actions
     connect(&room_list_watcher, &QFutureWatcher<AnnounceMultiplayerRoom::RoomList>::finished, this,
             &Lobby::OnRefreshLobby);
@@ -386,4 +428,108 @@ void LobbyFilterProxyModel::SetFilterFull(bool filter) {
 void LobbyFilterProxyModel::SetFilterSearch(const QString& filter) {
     filter_search = filter;
     invalidate();
+}
+
+// melonDS LAN slot implementations
+void Lobby::OnMelonHostRoom() {
+    if (!melon_lan_adapter) {
+        return;
+    }
+
+    if (!ui->melon_nickname->hasAcceptableInput()) {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
+        return;
+    }
+
+    const std::string nickname = ui->melon_nickname->text().toStdString();
+    int max_players = 16; // Default max players for melonDS LAN
+
+    bool ok;
+    int players = QInputDialog::getInt(this, tr("Max Players"), tr("Max Players:"), 16, 1, 16, 1, &ok);
+    if (ok) {
+        max_players = players;
+    }
+
+    if (melon_lan_adapter->StartHost(nickname, max_players)) {
+        ui->melon_status->setText(tr("LAN Status: Hosting as %1").arg(QString::fromStdString(nickname)));
+    } else {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+    }
+}
+
+void Lobby::OnMelonJoinRoom() {
+    if (!melon_lan_adapter) {
+        return;
+    }
+
+    if (!ui->melon_nickname->hasAcceptableInput()) {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
+        return;
+    }
+
+    const std::string nickname = ui->melon_nickname->text().toStdString();
+
+    bool ok;
+    QString ip = QInputDialog::getText(this, tr("Join LAN Room"), tr("Host IP Address:"),
+                                        QLineEdit::Normal, QString(), &ok);
+    if (!ok || ip.isEmpty()) {
+        return;
+    }
+
+    if (melon_lan_adapter->StartClient(nickname, ip.toStdString())) {
+        ui->melon_status->setText(tr("LAN Status: Connected to %1").arg(ip));
+    } else {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+    }
+}
+
+void Lobby::OnMelonDiscoveryUpdate() {
+    if (!melon_lan_adapter || !melon_model) {
+        return;
+    }
+
+    melon_lan_adapter->Process();
+
+    auto discovery_list = melon_lan_adapter->GetDiscoveryList();
+    melon_model->clear();
+    melon_model->insertColumns(0, 4);
+    melon_model->setHeaderData(0, Qt::Horizontal, tr("Session Name"), Qt::DisplayRole);
+    melon_model->setHeaderData(1, Qt::Horizontal, tr("IP Address"), Qt::DisplayRole);
+    melon_model->setHeaderData(2, Qt::Horizontal, tr("Players"), Qt::DisplayRole);
+    melon_model->setHeaderData(3, Qt::Horizontal, tr("Status"), Qt::DisplayRole);
+
+    for (const auto& [addr, data] : discovery_list) {
+        QList<QStandardItem*> row;
+        row.append(new QStandardItem(QString::fromUtf8(data.SessionName)));
+        row.append(new QStandardItem(QString::fromStdString(
+            std::to_string((addr >> 24) & 0xFF) + "." +
+            std::to_string((addr >> 16) & 0xFF) + "." +
+            std::to_string((addr >> 8) & 0xFF) + "." +
+            std::to_string(addr & 0xFF))));
+        row.append(new QStandardItem(tr("%1/%2").arg(data.NumPlayers).arg(data.MaxPlayers)));
+        row.append(new QStandardItem(data.Status == 0 ? tr("Idle") : tr("Playing")));
+        melon_model->appendRow(row);
+    }
+
+    ui->melon_status->setText(tr("LAN Discovery Status: Found %1 session(s)").arg(discovery_list.size()));
+}
+
+void Lobby::OnMelonJoinDiscovery(const QModelIndex& index) {
+    if (!melon_lan_adapter || !melon_model) {
+        return;
+    }
+
+    if (!ui->melon_nickname->hasAcceptableInput()) {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
+        return;
+    }
+
+    const std::string nickname = ui->melon_nickname->text().toStdString();
+    QString ip = melon_model->item(index.row(), 1)->text();
+
+    if (melon_lan_adapter->StartClient(nickname, ip.toStdString())) {
+        ui->melon_status->setText(tr("LAN Status: Connected to %1").arg(ip));
+    } else {
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+    }
 }

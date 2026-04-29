@@ -4,6 +4,8 @@ add_library(network STATIC
     artic_base/artic_base_client.cpp
     artic_base/artic_base_client.h
     artic_base/artic_base_common.h
+    lan_melon.cpp
+    lan_melon.h
     network.cpp
     network.h
     network_settings.cpp

@@ -15,9 +15,13 @@
 
 AndroidMultiplayer::AndroidMultiplayer(Core::System& system_,
                                        std::shared_ptr<Network::AnnounceMultiplayerSession> session)
-    : system{system_}, announce_multiplayer_session(session) {}
+    : system{system_}, announce_multiplayer_session(session), melon_lan_adapter(nullptr) {}
 
-AndroidMultiplayer::~AndroidMultiplayer() = default;
+AndroidMultiplayer::~AndroidMultiplayer() {
+    if (melon_lan_adapter) {
+        melon_lan_adapter->Shutdown();
+    }
+}
 
 void AndroidMultiplayer::AddNetPlayMessage(jint type, jstring msg) {
     IDCache::GetEnvForThread()->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
@@ -366,4 +370,120 @@ std::vector<std::string> AndroidMultiplayer::NetPlayGetBanList() {
         }
     }
     return ban_list;
+}
+
+// melonDS LAN compatibility implementations
+
+bool AndroidMultiplayer::MelonLANInit() {
+    if (!melon_lan_adapter) {
+        melon_lan_adapter = std::make_unique<Network::MelonLANAdapter>();
+    }
+    return melon_lan_adapter->Init();
+}
+
+void AndroidMultiplayer::MelonLANShutdown() {
+    if (melon_lan_adapter) {
+        melon_lan_adapter->Shutdown();
+        melon_lan_adapter.reset();
+    }
+}
+
+bool AndroidMultiplayer::MelonLANStartDiscovery() {
+    if (!melon_lan_adapter) {
+        return false;
+    }
+    return melon_lan_adapter->StartDiscovery();
+}
+
+void AndroidMultiplayer::MelonLANStopDiscovery() {
+    if (melon_lan_adapter) {
+        melon_lan_adapter->StopDiscovery();
+    }
+}
+
+std::vector<std::string> AndroidMultiplayer::MelonLANGetDiscoveryList() {
+    if (!melon_lan_adapter) {
+        return {};
+    }
+
+    auto discovery_list = melon_lan_adapter->GetDiscoveryList();
+    std::vector<std::string> result;
+
+    for (const auto& [addr, data] : discovery_list) {
+        // Format: "IP|RoomName|GameName|NumPlayers|MaxPlayers|HasPassword|InGame"
+        char ip_str[INET_ADDRSTRLEN];
+        struct in_addr in_addr;
+        in_addr.s_addr = htonl(addr);
+        inet_ntop(AF_INET, &in_addr, ip_str, INET_ADDRSTRLEN);
+
+        std::string entry = std::string(ip_str) + "|" + data.Room.RoomName + "|" +
+                            data.Room.GameName + "|" +
+                            std::to_string(data.Room.NumPlayers) + "|" +
+                            std::to_string(data.Room.MaxPlayers) + "|" +
+                            std::to_string(data.Room.HasPassword) + "|" +
+                            std::to_string(data.Room.InGame);
+        result.push_back(entry);
+    }
+
+    return result;
+}
+
+bool AndroidMultiplayer::MelonLANStartHost(const std::string& player_name, int max_players) {
+    if (!melon_lan_adapter) {
+        return false;
+    }
+    return melon_lan_adapter->StartHost(player_name, max_players);
+}
+
+bool AndroidMultiplayer::MelonLANStartClient(const std::string& player_name,
+                                              const std::string& host_address) {
+    if (!melon_lan_adapter) {
+        return false;
+    }
+    return melon_lan_adapter->StartClient(player_name, host_address);
+}
+
+void AndroidMultiplayer::MelonLANEndSession() {
+    if (melon_lan_adapter) {
+        melon_lan_adapter->EndSession();
+    }
+}
+
+std::vector<std::string> AndroidMultiplayer::MelonLANGetPlayerList() {
+    if (!melon_lan_adapter) {
+        return {};
+    }
+
+    auto players = melon_lan_adapter->GetPlayerList();
+    std::vector<std::string> result;
+
+    for (const auto& player : players) {
+        // Format: "ID|Name|Status|Address|Ping"
+        std::string entry =
+            std::to_string(player.ID) + "|" + player.Name + "|" + std::to_string(player.Status) +
+            "|" + std::to_string(player.Address) + "|" + std::to_string(player.Ping);
+        result.push_back(entry);
+    }
+
+    return result;
+}
+
+void AndroidMultiplayer::MelonLANProcess() {
+    if (melon_lan_adapter) {
+        melon_lan_adapter->Process();
+    }
+}
+
+bool AndroidMultiplayer::MelonLANIsActive() {
+    if (!melon_lan_adapter) {
+        return false;
+    }
+    return melon_lan_adapter->IsActive();
+}
+
+bool AndroidMultiplayer::MelonLANIsHost() {
+    if (!melon_lan_adapter) {
+        return false;
+    }
+    return melon_lan_adapter->IsHost();
 }

@@ -1100,6 +1100,68 @@ JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_netPlayUnb
     multiplayer->NetPlayUnbanUser(GetJString(env, username));
 }
 
+// melonDS LAN compatibility JNI functions
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANInit(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return multiplayer->MelonLANInit();
+}
+
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANShutdown(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    multiplayer->MelonLANShutdown();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANStartDiscovery(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return multiplayer->MelonLANStartDiscovery();
+}
+
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANStopDiscovery(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    multiplayer->MelonLANStopDiscovery();
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANGetDiscoveryList(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return ToJStringArray(env, multiplayer->MelonLANGetDiscoveryList());
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANStartHost(
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring player_name, jint max_players) {
+    return multiplayer->MelonLANStartHost(GetJString(env, player_name), max_players);
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANStartClient(
+    JNIEnv* env, [[maybe_unused]] jobject obj, jstring player_name, jstring host_address) {
+    return multiplayer->MelonLANStartClient(GetJString(env, player_name),
+                                            GetJString(env, host_address));
+}
+
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANEndSession(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    multiplayer->MelonLANEndSession();
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANGetPlayerList(
+    JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return ToJStringArray(env, multiplayer->MelonLANGetPlayerList());
+}
+
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANProcess(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    multiplayer->MelonLANProcess();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANIsActive(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return multiplayer->MelonLANIsActive();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANIsHost(
+    [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
+    return multiplayer->MelonLANIsHost();
+}
+
 JNIEXPORT jobject JNICALL Java_org_citra_citra_1emu_utils_CiaInstallWorker_installCIA(
     JNIEnv* env, jobject jobj, jstring jpath) {
     std::string path = GetJString(env, jpath);
