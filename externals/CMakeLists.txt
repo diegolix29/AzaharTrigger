@@ -531,24 +531,15 @@ else()
     message(STATUS "Disabling SIMD for xxHash")
 endif()
 
-# ZLIB
-if(USE_SYSTEM_ZLIB)
-    find_package(ZLIB 1.1.2 REQUIRED)
-    add_library(zlib INTERFACE)
-    target_link_libraries(zlib INTERFACE ZLIB::ZLIB)
-else()
-    set(SKIP_INSTALL_ALL ON CACHE BOOL "" FORCE)
-    add_subdirectory(zlib EXCLUDE_FROM_ALL)
-    target_include_directories(zlibstatic INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/externals/zlib>
-        $<INSTALL_INTERFACE:include>)
-    # Make ZLIB available for libzip by setting variables before adding libzip
-    set(ZLIB_FOUND TRUE)
-    set(ZLIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/externals/zlib")
-    set(ZLIB_LIBRARIES zlibstatic)
-    set(ZLIB_LIBRARY zlibstatic)
-    set(ZLIB_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/externals/zlib")
-    set(ZLIB_VERSION_STRING "1.2.13")
-endif()
+# zlib
+add_subdirectory(zlib)
+
+# Set ZLIB variables for libzip
+set(ZLIB_LIBRARY zlibstatic)
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_FOUND TRUE)
+
+# Disable libzip installation to avoid export issues
+set(LIBZIP_DO_INSTALL OFF)
 
 add_subdirectory(libzip)

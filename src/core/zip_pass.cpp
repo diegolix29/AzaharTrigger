@@ -139,7 +139,7 @@ int importZipPass(std::string path)
 			continue;
 		}
 		
-		std::string path = inboxPath + DIR_SEP + filename;
+		std::string filePath = inboxPath + DIR_SEP + filename;
 		std::string boxInfoPath = inboxPath + DIR_SEP + "BoxInfo_____";
 		
 		if (!FileUtil::Exists(boxInfoPath))
@@ -150,7 +150,7 @@ int importZipPass(std::string path)
 		
 		struct Service::CECD::Module::CecBoxInfoHeader boxInfo;
 		FileUtil::IOFile bfile(boxInfoPath, "rb+");
-		int nRead = bfile.ReadBytes(&boxInfo, sizeof(Service::CECD::Module::CecBoxInfoHeader));
+		bfile.ReadBytes(&boxInfo, sizeof(Service::CECD::Module::CecBoxInfoHeader));
 		
 		if(boxInfo.message_num >= boxInfo.max_message_num
 			|| st.size > boxInfo.max_message_size)
@@ -176,9 +176,9 @@ int importZipPass(std::string path)
 		std::string sTitleId = "";
 		unsigned char* bTitleId = (unsigned char*)&messHead->title_id;
 	
-		for(int i=3; i>=0; i--)
+		for(int j=3; j>=0; j--)
 		{
-			std::string s = fmt::format("{:02x}", bTitleId[i]);
+			std::string s = fmt::format("{:02x}", bTitleId[j]);
 			sTitleId += s;
 		}
 	
@@ -196,14 +196,14 @@ int importZipPass(std::string path)
 			continue;
 		}
 		
-		FileUtil::IOFile dfile(path, "wb");
+		FileUtil::IOFile dfile(filePath, "wb");
 	
 		int written = (int)dfile.WriteBytes(buff, st.size);
 		LOG_ERROR(HW, "WriteBytes n {}", written);
 
 		dfile.Close();
 		
-		if(written != st.size)
+		if(static_cast<size_t>(written) != st.size)
 		{
 			LOG_ERROR(HW, "written != st.size {} / {}", written, st.size);
 			
