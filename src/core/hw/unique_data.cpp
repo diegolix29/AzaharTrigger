@@ -20,10 +20,6 @@
 #include "core/hw/rsa/rsa.h"
 #include "core/hw/unique_data.h"
 #include "core/loader/loader.h"
-#include <map>
-#include <sstream>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 #include "core/system_titles.h"
 
 namespace HW::UniqueData {
@@ -323,22 +319,21 @@ std::string GetMovablePath() {
 
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
-	
-	const auto current_region = Settings::values.region_value.GetValue();
+
+    const auto current_region = Settings::values.region_value.GetValue();
     for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
         const auto path = Core::GetHomeMenuNcchPath(region);
-		
-		if(!path.empty() && FileUtil::Exists(path))
-		{
-			secure_info_a.body.region = region;
-			
-			if(current_region == static_cast<int>(region))
-			{
-				break;
-			}
-		} else continue;
+
+        if (!path.empty() && FileUtil::Exists(path)) {
+            secure_info_a.body.region = region;
+
+            if (current_region == static_cast<int>(region)) {
+                break;
+            }
+        } else
+            continue;
     }
-	
+
     return secure_info_a;
 }
 

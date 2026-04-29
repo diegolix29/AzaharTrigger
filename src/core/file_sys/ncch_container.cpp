@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -516,8 +516,8 @@ Loader::ResultStatus NCCHContainer::Load() {
                                                               primary_key.size(), exefs_ctr.data())
                     .ProcessData(data, data, sizeof(exefs_header));
             }
-            
-			exefs_file = Reopen(file, filepath);
+
+            exefs_file = Reopen(file, filepath);
 
             has_exefs = true;
         }
