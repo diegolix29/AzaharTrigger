@@ -531,4 +531,15 @@ else()
     message(STATUS "Disabling SIMD for xxHash")
 endif()
 
+# zlib
+add_subdirectory(zlib)
+
+# Set ZLIB variables for libzip
+set(ZLIB_LIBRARY zlibstatic)
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_FOUND TRUE)
+
+# Disable libzip installation to avoid export issues
+set(LIBZIP_DO_INSTALL OFF)
+
 add_subdirectory(libzip)
