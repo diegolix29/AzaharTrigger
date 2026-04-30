@@ -46,7 +46,7 @@ int exportZipPass(std::string path) {
                                                       const std::string& directory,
                                                       const std::string& v_name) -> bool {
                 std::string real_name = directory + DIR_SEP + v_name;
-#ifdef ANDROID
+#if defined(ANDROID) && !defined(HAVE_LIBRETRO_VFS)
                 real_name = AndroidStorage::TranslateFilePath(real_name);
 #endif
                 if (v_name[0] == '_' && v_name.length() == 12) {
