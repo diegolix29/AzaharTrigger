@@ -539,8 +539,15 @@ set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_FOUND TRUE)
 
-# Disable libzip installation and export to avoid export issues
-set(LIBZIP_DO_INSTALL OFF)
-set(LIBZIP_DISABLE_EXPORT ON)
-
-add_subdirectory(libzip)
+# Use bundled libzip for Android and Windows to avoid submodule issues
+if(ANDROID OR WIN32)
+    # Disable libzip installation and export to avoid export issues
+    set(LIBZIP_DO_INSTALL OFF)
+    set(LIBZIP_DISABLE_EXPORT ON)
+    add_subdirectory(libzip-bundled)
+else()
+    # Use submodule for other platforms
+    set(LIBZIP_DO_INSTALL OFF)
+    set(LIBZIP_DISABLE_EXPORT ON)
+    add_subdirectory(libzip)
+endif()
