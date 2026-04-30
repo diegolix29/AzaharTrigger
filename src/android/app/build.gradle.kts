@@ -81,7 +81,7 @@ android {
                 arguments(
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
-                    "-DLIBZIP_DISABLE_EXPORT=ON", // Fix libzip export error
+                    "-DLIBZIP_DISABLE_EXPORT=ON", // Fix libzip export error for Android builds
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON" // Support Android 15 16KiB page sizes
                 )
