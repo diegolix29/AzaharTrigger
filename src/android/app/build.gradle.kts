@@ -63,7 +63,7 @@ android {
     defaultConfig {
         // The application ID refers to Lime3DS to allow for
         // the Play Store listing, which was originally set up for Lime3DS, to still be used.
-        // applicationId = "org.azahar_emu.azahar_trigger"
+        // applicationId = "org.azahar_emu.azahar"
         applicationId = "io.github.lime3ds.android"
 
         minSdk = 28
@@ -81,8 +81,8 @@ android {
                 arguments(
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
-                    "-DLIBZIP_DISABLE_EXPORT=ON", // Fix libzip export error for Android builds
                     "-DCMAKE_CXX_SCAN_FOR_MODULES=OFF", // Disable C++20 modules for old Ninja version
+                    "-DALSOFT_ENABLE_MODULES=OFF", // Disable C++20 modules in openal-soft
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON" // Support Android 15 16KiB page sizes
                 )

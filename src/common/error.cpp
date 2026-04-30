@@ -34,8 +34,7 @@ std::string NativeErrorToString(int e) {
     return ret;
 #else
     char err_str[255];
-#if defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600)) ||   \
-    (defined(ANDROID) && !defined(HAVE_LIBRETRO))
+#if defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
     // Thread safe (GNU-specific)
     const char* str = strerror_r(e, err_str, sizeof(err_str));
     return std::string(str);
