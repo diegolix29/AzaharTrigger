@@ -242,6 +242,14 @@ else()
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/externals/zstd/lib/common>
     )
 
+    # Get the actual file path for libzip
+    get_target_property(ZSTD_STATIC_FILE_PATH libzstd_static LOCATION)
+    if(NOT ZSTD_STATIC_FILE_PATH)
+        # Fallback: try to construct the path manually
+        set(ZSTD_STATIC_FILE_PATH "${CMAKE_BINARY_DIR}/externals/zstd/libzstd_static${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif()
+    message(STATUS "ZSTD_STATIC_FILE_PATH: ${ZSTD_STATIC_FILE_PATH}")
+
     add_library(zstd_seekable STATIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/zstd/contrib/seekable_format/zstdseek_compress.c>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/zstd/contrib/seekable_format/zstdseek_decompress.c>

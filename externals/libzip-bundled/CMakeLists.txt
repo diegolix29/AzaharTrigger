@@ -243,6 +243,7 @@ if(ENABLE_LZMA)
 endif(ENABLE_LZMA)
 
 if(ENABLE_ZSTD)
+  # Try to find zstd using find_package first
   find_package(zstd 1.4.0)
   if(zstd_FOUND)
     set(HAVE_LIBZSTD 1)
@@ -251,9 +252,14 @@ if(ENABLE_ZSTD)
     else()
       set(zstd_TARGET zstd::libzstd_static)
     endif()
+  elseif(TARGET libzstd_static)
+    # Fallback: use the libzstd_static target directly
+    set(HAVE_LIBZSTD 1)
+    set(zstd_TARGET libzstd_static)
+    set(zstd_FOUND TRUE)
   else()
     message(WARNING "-- zstd library not found; zstandard support disabled")
-  endif(zstd_FOUND)
+  endif()
 endif(ENABLE_ZSTD)
 
 if (COMMONCRYPTO_FOUND)
