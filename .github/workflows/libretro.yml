@@ -74,23 +74,21 @@ jobs:
       TARGET: x86_64
       BUILD_DIR: build/windows-x86_64
       EXTRA_CORE_ARGS: -DENABLE_LTO=OFF -G Ninja
-      CMAKE: x86_64-w64-mingw32.static-cmake
-      IMAGE: git.libretro.com:5050/libretro-infrastructure/libretro-build-mxe-win-cross-cores:mingw12
       EXTRA_PATH: bin/Release
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Build in cross-container
+      - name: Install MinGW cross-compiler
         run: |
-          docker pull $IMAGE
-          docker run --rm --user root \
-              -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-              -w "${GITHUB_WORKSPACE}" \
-              $IMAGE \
-              bash -lc "\
-                  ${CMAKE} $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR && \
-                  ${CMAKE} --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)"
+          sudo apt update
+          sudo apt install -y mingw-w64 g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 ninja-build
+      - name: Build with MinGW
+        run: |
+          cmake $CORE_ARGS $EXTRA_CORE_ARGS \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchain_mingw64.cmake \
+            . -B $BUILD_DIR
+          cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
