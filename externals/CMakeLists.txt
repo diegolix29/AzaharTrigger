@@ -345,6 +345,21 @@ if (NOT OPENSSL_FOUND)
         DEFINITION OPENSSL_LIBS)
 endif()
 
+# zlib
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "")
+set(ZLIB_BUILD_STATIC ON CACHE BOOL "")
+add_subdirectory(zlib EXCLUDE_FROM_ALL)
+
+# Signal to libzip that we're using bundled zlib
+set(USE_BUNDLED_ZLIB TRUE CACHE BOOL "" FORCE)
+# Disable export since we're using bundled zlib
+set(LIBZIP_DISABLE_EXPORT TRUE CACHE BOOL "" FORCE)
+# Disable installation since we're using bundled libzip
+set(LIBZIP_DO_INSTALL OFF CACHE BOOL "" FORCE)
+
+# libzip
+add_subdirectory(libzip EXCLUDE_FROM_ALL)
+
 # httplib
 add_library(httplib INTERFACE)
 if(USE_SYSTEM_CPP_HTTPLIB)
