@@ -47,7 +47,6 @@ jobs:
             -DENABLE_QT=0 \
             -DENABLE_SDL2=0 \
             -DLIBZIP_DISABLE_EXPORT=ON \
-            -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
             -DANDROID_ARM_NEON=true \
             -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON \
             . -B $BUILD_DIR
