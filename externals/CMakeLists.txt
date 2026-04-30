@@ -539,6 +539,12 @@ set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_FOUND TRUE)
 
+# Set zstd variables for libzip (both regular and bundled)
+set(zstd_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/externals/zstd/lib)
+set(zstd_STATIC_LIBRARY libzstd_static)
+set(_zstd_LIBRARY libzstd_static)
+set(zstd_VERSION "1.5.5")
+
 # Use bundled libzip for Android and Windows to avoid submodule issues
 if(ANDROID OR WIN32)
     # Disable libzip installation and export to avoid export issues

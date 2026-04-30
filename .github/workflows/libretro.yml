@@ -86,7 +86,7 @@ jobs:
       - name: Build with MinGW
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS \
-            -DCMAKE_TOOLCHAIN_FILE=cmake/Toolchain_mingw64.cmake \
+            -DCMAKE_TOOLCHAIN_FILE=CMakeModules/Toolchain_mingw64.cmake \
             . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
       - name: Upload
