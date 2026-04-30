@@ -41,11 +41,13 @@ jobs:
           export NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/$ANDROID_NDK_VERSION
           ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake $CORE_ARGS -DANDROID_PLATFORM=android-$API_LEVEL -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI . -B $BUILD_DIR
           ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OS }}-${{ env.TARGET }}
-          path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro_android.so
+          path: ./*.zip
   linux:
     runs-on: ubuntu-22.04
     env:
@@ -62,41 +64,44 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OS }}-${{ env.TARGET }}
-          path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro.so
-  # Temporarily disabled due to Docker registry timeout issues
-  # windows:
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     OS: windows
-  #     TARGET: x86_64
-  #     BUILD_DIR: build/windows-x86_64
-  #     EXTRA_CORE_ARGS: -DENABLE_LTO=OFF -G Ninja
-  #     CMAKE: x86_64-w64-mingw32.static-cmake
-  #     IMAGE: git.libretro.com:5050/libretro-infrastructure/libretro-build-mxe-win-cross-cores:mingw12
-  #     EXTRA_PATH: bin/Release
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         submodules: recursive
-  #     - name: Build in cross-container
-  #       run: |
-  #         docker pull $IMAGE
-  #         docker run --rm --user root \
-  #             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
-  #             -w "${GITHUB_WORKSPACE}" \
-  #             $IMAGE \
-  #             bash -lc "\
-  #                 ${CMAKE} $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR && \
-  #                 ${CMAKE} --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)"
-  #     - name: Upload
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{ env.OS }}-${{ env.TARGET }}
-  #         path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro.dll
+          path: ./*.zip
+  windows:
+    runs-on: ubuntu-latest
+    env:
+      OS: windows
+      TARGET: x86_64
+      BUILD_DIR: build/windows-x86_64
+      EXTRA_CORE_ARGS: -DENABLE_LTO=OFF -G Ninja
+      CMAKE: x86_64-w64-mingw32.static-cmake
+      IMAGE: reallibretroretroarch/libretro-build-mxe-win-cross-cores:mingw12
+      EXTRA_PATH: bin/Release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Build in cross-container
+        run: |
+          docker pull $IMAGE
+          docker run --rm --user root \
+              -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+              -w "${GITHUB_WORKSPACE}" \
+              $IMAGE \
+              bash -lc "\
+                  ${CMAKE} $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR && \
+                  ${CMAKE} --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)"
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.OS }}-${{ env.TARGET }}
+          path: ./*.zip
   macos:
     runs-on: macos-26
     strategy:
@@ -118,11 +123,13 @@ jobs:
         run: |
           cmake $CORE_ARGS -DCMAKE_OSX_ARCHITECTURES=$TARGET . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OS }}-${{ env.TARGET }}
-          path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro.dylib
+          path: ./*.zip
   ios:
     runs-on: macos-26
     env:
@@ -139,11 +146,13 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OS }}-${{ env.TARGET }}
-          path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro.dylib
+          path: ./*.zip
   tvos:
     runs-on: macos-26
     env:
@@ -160,8 +169,10 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Pack
+        run: ./.ci/libretro-pack.sh
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.OS }}-${{ env.TARGET }}
-          path: ${{ env.BUILD_DIR }}/${{ env.EXTRA_PATH }}/azahar_libretro.dylib
+          path: ./*.zip
