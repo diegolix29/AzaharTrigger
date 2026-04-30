@@ -539,12 +539,8 @@ set(ZLIB_LIBRARY zlibstatic)
 set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_FOUND TRUE)
 
-# Add zlib to export set to fix libzip export error
-if(TARGET zlibstatic)
-  set_target_properties(zlibstatic PROPERTIES EXPORT_NAME zlib)
-endif()
-
-# Disable libzip installation to avoid export issues
+# Disable libzip installation and export to avoid export issues
 set(LIBZIP_DO_INSTALL OFF)
+set(LIBZIP_DISABLE_EXPORT ON)
 
 add_subdirectory(libzip)
