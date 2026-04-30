@@ -34,18 +34,8 @@ std::string NativeErrorToString(int e) {
     return ret;
 #else
     char err_str[255];
-#if defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
-    // Thread safe (GNU-specific)
-    const char* str = strerror_r(e, err_str, sizeof(err_str));
-    return std::string(str);
-#else
-    // Thread safe (XSI-compliant)
-    int second_err = strerror_r(e, err_str, sizeof(err_str));
-    if (second_err != 0) {
-        return "(strerror_r failed to format error)";
-    }
+    strerror_r(e, err_str, sizeof(err_str));
     return std::string(err_str);
-#endif // GLIBC etc.
 #endif // _WIN32
 }
 
