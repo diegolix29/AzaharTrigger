@@ -17,8 +17,8 @@ jobs:
     env:
       OS: android
       TARGET: arm64-v8a
-      API_LEVEL: 21
-      ANDROID_NDK_VERSION: 26.2.11394342
+      API_LEVEL: 28
+      ANDROID_NDK_VERSION: 27.1.12297006
       ANDROID_ABI: arm64-v8a
       BUILD_DIR: build/android-arm64-v8a
       EXTRA_PATH: bin/Release
@@ -39,7 +39,18 @@ jobs:
       - name: Build
         run: |
           export NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/$ANDROID_NDK_VERSION
-          ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake $CORE_ARGS -DANDROID_PLATFORM=android-$API_LEVEL -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI . -B $BUILD_DIR
+          ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake $CORE_ARGS \
+            -DANDROID_PLATFORM=android-$API_LEVEL \
+            -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake \
+            -DANDROID_STL=c++_static \
+            -DANDROID_ABI=$ANDROID_ABI \
+            -DENABLE_QT=0 \
+            -DENABLE_SDL2=0 \
+            -DLIBZIP_DISABLE_EXPORT=ON \
+            -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
+            -DANDROID_ARM_NEON=true \
+            -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON \
+            . -B $BUILD_DIR
           ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
       - name: Make script executable
         run: chmod +x ./.ci/libretro-pack.sh
