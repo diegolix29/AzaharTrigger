@@ -38,6 +38,10 @@ std::string NativeErrorToString(int e) {
     // Thread safe (GNU-specific)
     const char* str = strerror_r(e, err_str, sizeof(err_str));
     return std::string(str);
+#elif defined(ANDROID)
+    // Android uses GNU-specific strerror_r that returns char*
+    const char* str = strerror_r(e, err_str, sizeof(err_str));
+    return std::string(str);
 #else
     // Thread safe (XSI-compliant)
     int second_err = strerror_r(e, err_str, sizeof(err_str));
