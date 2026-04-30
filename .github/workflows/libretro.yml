@@ -41,6 +41,8 @@ jobs:
           export NDK_ROOT=${ANDROID_SDK_ROOT}/ndk/$ANDROID_NDK_VERSION
           ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake $CORE_ARGS -DANDROID_PLATFORM=android-$API_LEVEL -DCMAKE_TOOLCHAIN_FILE=$NDK_ROOT/build/cmake/android.toolchain.cmake -DANDROID_STL=c++_static -DANDROID_ABI=$ANDROID_ABI . -B $BUILD_DIR
           ${ANDROID_SDK_ROOT}/cmake/3.30.3/bin/cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
@@ -64,6 +66,8 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
@@ -95,6 +99,8 @@ jobs:
               bash -lc "\
                   ${CMAKE} $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR && \
                   ${CMAKE} --build $BUILD_DIR --target azahar_libretro --config Release -j $(nproc)"
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
@@ -123,6 +129,8 @@ jobs:
         run: |
           cmake $CORE_ARGS -DCMAKE_OSX_ARCHITECTURES=$TARGET . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
@@ -146,6 +154,8 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
@@ -169,6 +179,8 @@ jobs:
         run: |
           cmake $CORE_ARGS $EXTRA_CORE_ARGS . -B $BUILD_DIR
           cmake --build $BUILD_DIR --target azahar_libretro --config Release
+      - name: Make script executable
+        run: chmod +x ./.ci/libretro-pack.sh
       - name: Pack
         run: ./.ci/libretro-pack.sh
       - name: Upload
