@@ -9,5 +9,9 @@ if [ "$GITHUB_REF_TYPE" = "tag" ]; then
     REV_NAME="azahar-libretro-$OS-$TARGET-$GITHUB_REF_NAME"
 fi
 
-# Create .zip
-zip -j -9 $REV_NAME.zip $BUILD_DIR/$EXTRA_PATH/azahar_libretro.*
+# Handle different filename patterns for different platforms
+if [ "$OS" = "android" ]; then
+    zip -j -9 $REV_NAME.zip $BUILD_DIR/$EXTRA_PATH/azahar_libretro_android.so
+else
+    zip -j -9 $REV_NAME.zip $BUILD_DIR/$EXTRA_PATH/azahar_libretro.*
+fi
