@@ -2909,6 +2909,7 @@ void Module::Interface::GetTicketList(Kernel::HLERequestContext& ctx) {
 
     u32 tickets_written = 0;
     std::scoped_lock lock(am->am_lists_mutex);
+#ifdef todotodo
     auto it = am->am_ticket_list.begin();
     std::advance(it, std::min(static_cast<size_t>(ticket_index), am->am_ticket_list.size()));
 
@@ -2916,6 +2917,15 @@ void Module::Interface::GetTicketList(Kernel::HLERequestContext& ctx) {
          it++, tickets_written++) {
         ticket_tids_out.Write(&it->first, tickets_written * sizeof(u64), sizeof(u64));
     }
+#else
+    for (const auto& title_list : am->am_title_list) {
+        const auto tickets_to_write =
+            std::min(static_cast<u32>(title_list.size()), ticket_list_count - tickets_written);
+        ticket_tids_out.Write(title_list.data(), tickets_written * sizeof(u64),
+                              tickets_to_write * sizeof(u64));
+        tickets_written += tickets_to_write;
+    }
+#endif
 
     IPC::RequestBuilder rb = rp.MakeBuilder(2, 2);
     rb.Push(ResultSuccess);
