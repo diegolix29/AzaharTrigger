@@ -344,6 +344,11 @@ SecureInfoA& GetSecureInfoA() {
 		} else continue;
     }
 	
+	if(!Settings::values.enable_required_online_lle_modules.GetValue())
+	{
+		secure_info_a.Invalidate();
+	}
+	
     return secure_info_a;
 }
 
