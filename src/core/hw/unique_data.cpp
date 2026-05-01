@@ -325,7 +325,7 @@ SecureInfoA& GetSecureInfoA() {
 
     const auto current_region = Settings::values.region_value.GetValue();
     for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-		if(region == 3) continue;
+		if(region == 3 && current_region != 3) continue;
         const auto path = Core::GetHomeMenuNcchPath(region);
 
         if (!path.empty() && FileUtil::Exists(path)) {
