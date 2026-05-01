@@ -453,7 +453,7 @@ void Lobby::OnMelonHostRoom() {
     if (melon_lan_adapter->StartHost(nickname, max_players)) {
         ui->melon_status->setText(tr("LAN Status: Hosting as %1").arg(QString::fromStdString(nickname)));
     } else {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
     }
 }
 
@@ -479,7 +479,7 @@ void Lobby::OnMelonJoinRoom() {
     if (melon_lan_adapter->StartClient(nickname, ip.toStdString())) {
         ui->melon_status->setText(tr("LAN Status: Connected to %1").arg(ip));
     } else {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
     }
 }
 
@@ -530,6 +530,6 @@ void Lobby::OnMelonJoinDiscovery(const QModelIndex& index) {
     if (melon_lan_adapter->StartClient(nickname, ip.toStdString())) {
         ui->melon_status->setText(tr("LAN Status: Connected to %1").arg(ip));
     } else {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::COULD_NOT_CONNECT);
+        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
     }
 }

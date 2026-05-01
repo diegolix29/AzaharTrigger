@@ -29,7 +29,9 @@ if (ENABLE_WEB_SERVICE)
     target_link_libraries(network PRIVATE web_service)
 endif()
 
-target_link_libraries(network PRIVATE citra_common enet Boost::serialization httplib)
+target_link_libraries(network PRIVATE citra_common Boost::serialization httplib)
+target_link_libraries(network PUBLIC enet)
+target_include_directories(network BEFORE PRIVATE ${CMAKE_SOURCE_DIR}/externals/enet/include)
 
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)

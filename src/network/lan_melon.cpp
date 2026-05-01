@@ -388,17 +388,11 @@ void MelonLANAdapter::ProcessDiscovery() {
         beacon.Version = kMelonProtocolVersion;
         beacon.Tick = tick;
         
-        // Fill RoomInfo
-        std::snprintf(beacon.Room.RoomName, 64, "%s's game", my_player.Name);
-        std::snprintf(beacon.Room.GameName, 64, "Nintendo DS");
-        std::memset(beacon.Room.RoomCode, 0, 9);
-        std::memset(beacon.Room.Description, 0, 128);
-        std::memset(beacon.Room.Password, 0, 33);
-        beacon.Room.NumPlayers = static_cast<u8>(num_players);
-        beacon.Room.MaxPlayers = static_cast<u8>(max_players);
-        beacon.Room.HasPassword = 0;
-        beacon.Room.InGame = 0;
-        beacon.Room.HostID = my_player.ID;
+        // Fill discovery data
+        std::snprintf(beacon.SessionName, 64, "%s's game", my_player.Name);
+        beacon.NumPlayers = static_cast<u8>(num_players);
+        beacon.MaxPlayers = static_cast<u8>(max_players);
+        beacon.Status = 0; // idle
 
         sockaddr_in_t saddr;
         std::memset(&saddr, 0, sizeof(saddr));
@@ -409,7 +403,7 @@ void MelonLANAdapter::ProcessDiscovery() {
         int sent = sendto(discovery_socket, (const char*)&beacon, sizeof(beacon), 0,
                           (const sockaddr_t*)&saddr, sizeof(saddr));
         LOG_INFO(Network, "Broadcasting discovery beacon: '{}' ({}/{} players), sent {} bytes", 
-                 beacon.Room.RoomName, beacon.Room.NumPlayers, beacon.Room.MaxPlayers, sent);
+                 beacon.SessionName, beacon.NumPlayers, beacon.MaxPlayers, sent);
     } else {
         std::lock_guard<std::mutex> lock(discovery_mutex);
 
@@ -446,20 +440,20 @@ void MelonLANAdapter::ProcessDiscovery() {
                          beacon.Version, kMelonProtocolVersion);
                 continue;
             }
-            if (beacon.Room.MaxPlayers > 16) {
-                LOG_ERROR(Network, "Invalid max players: {}", beacon.Room.MaxPlayers);
+            if (beacon.MaxPlayers > 16) {
+                LOG_ERROR(Network, "Invalid max players: {}", beacon.MaxPlayers);
                 continue;
             }
-            if (beacon.Room.NumPlayers > beacon.Room.MaxPlayers) {
-                LOG_ERROR(Network, "Invalid player count: {}/{}", beacon.Room.NumPlayers, beacon.Room.MaxPlayers);
+            if (beacon.NumPlayers > beacon.MaxPlayers) {
+                LOG_ERROR(Network, "Invalid player count: {}/{}", beacon.NumPlayers, beacon.MaxPlayers);
                 continue;
             }
 
             u32 key = ntohl(raddr.sin_addr.s_addr);
-            beacon.Room.RoomName[63] = '\0';
-            beacon.Room.GameName[63] = '\0';
-            LOG_INFO(Network, "Found host: '{}' ({}) {}/{} players, from {:08X}", 
-                     beacon.Room.RoomName, beacon.Room.GameName, beacon.Room.NumPlayers, beacon.Room.MaxPlayers, key);
+            beacon.SessionName[63] = '\0';
+            LOG_INFO(Network, "Found host: '{}' with {} players", 
+                     beacon.SessionName, beacon.NumPlayers);
+            LOG_INFO(Network, "Host address: {:08X}", key);
 
             auto it = discovery_list.find(key);
             if (it != discovery_list.end()) {

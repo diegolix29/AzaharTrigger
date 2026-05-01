@@ -263,7 +263,6 @@ if(USE_SYSTEM_ENET)
     target_link_libraries(enet INTERFACE libenet::libenet)
 else()
     add_subdirectory(enet)
-    target_include_directories(enet INTERFACE ./enet/include)
 endif()
 
 # Cubeb

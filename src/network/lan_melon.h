@@ -29,7 +29,7 @@ using sockaddr_in_t = struct sockaddr_in;
 #define closesocket close
 #endif
 
-#include <enet/enet.h>
+#include "enet/enet.h"
 #include "common/common_types.h"
 
 namespace Network {
@@ -76,7 +76,10 @@ struct MelonDiscoveryData {
     u32 Magic;
     u32 Version;
     u32 Tick;
-    MelonRoomInfo Room;
+    char SessionName[64];
+    u8 NumPlayers;
+    u8 MaxPlayers;
+    u8 Status; // 0=idle 1=playing
 };
 
 enum MelonLANCommand : u8 {

@@ -29,181 +29,190 @@
        </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Nickname</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="nickname">
-           <property name="placeholderText">
-            <string>Nickname</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Filters</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="search">
-           <property name="placeholderText">
-            <string>Search</string>
-           </property>
-           <property name="clearButtonEnabled">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="games_owned">
-           <property name="text">
-            <string>Applications I Own</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="hide_empty">
-           <property name="text">
-            <string>Hide Empty Rooms</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="hide_full">
-           <property name="text">
-            <string>Hide Full Rooms</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="refresh_list">
-           <property name="text">
-            <string>Refresh Lobby</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QTreeView" name="room_list"/>
-     </item>
-     <item>
-      <widget class="QWidget" name="widget" native="true"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="melon_tab">
-    <attribute name="title">
-     <string>DS LAN (melonDS)</string>
-    </attribute>
-    <layout class="QVBoxLayout" name="verticalLayout_3">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Nickname</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="melon_nickname">
-           <property name="placeholderText">
-            <string>Nickname</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="melon_host">
-           <property name="text">
-            <string>Host LAN Room</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="melon_join">
-           <property name="text">
-            <string>Join LAN Room</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Nickname</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="nickname">
+             <property name="placeholderText">
+              <string>Nickname</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Filters</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="search">
+             <property name="placeholderText">
+              <string>Search</string>
+             </property>
+             <property name="clearButtonEnabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="games_owned">
+             <property name="text">
+              <string>Applications I Own</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="hide_empty">
+             <property name="text">
+              <string>Hide Empty Rooms</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="hide_full">
+             <property name="text">
+              <string>Hide Full Rooms</string>
+             </property>
+            </widget>
+           </item>
+           <!-- <item>
+            <widget class="QCheckBox" name="include_lan_rooms">
+             <property name="text">
+              <string>Include DS LAN Rooms</string>
+             </property>
+            </widget>
+           </item> -->
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="refresh_list">
+             <property name="text">
+              <string>Refresh Lobby</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QTreeView" name="room_list"/>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget" native="true"/>
+       </item>
       </layout>
-     </item>
-     <item>
-      <widget class="QTreeView" name="melon_room_list"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="melon_status">
-       <property name="text">
-        <string>LAN Discovery Status: Not Started</string>
+     </widget>
+     <widget class="QWidget" name="melon_tab">
+      <attribute name="title">
+       <string>DS LAN (melonDS)</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>3</number>
        </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Nickname</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="melon_nickname">
+             <property name="placeholderText">
+              <string>Nickname</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="melon_host">
+             <property name="text">
+              <string>Host LAN Room</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="melon_join">
+             <property name="text">
+              <string>Join LAN Room</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QTreeView" name="melon_room_list"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="melon_status">
+         <property name="text">
+          <string>LAN Discovery Status: Not Started</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
