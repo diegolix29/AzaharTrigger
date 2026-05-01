@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 #include <common/common_types.h>
-#include <network/network.h>
 #include <network/lan_melon.h>
+#include <network/network.h>
 
 namespace Core {
 class System;

@@ -68,6 +68,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/delete_system_files" />
 
+            <Button
+                android:id="@+id/button_generate_console_data"
+                style="@style/Widget.Material3.Button.UnelevatedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/generate_console_data" />
+
             <View
                 android:id="@+id/divider2"
                 android:layout_width="match_parent"

@@ -1114,7 +1114,6 @@ JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_netPlayUnb
     JNIEnv* env, [[maybe_unused]] jobject obj, jstring username) {
     multiplayer->NetPlayUnbanUser(GetJString(env, username));
 }
-
 // melonDS LAN compatibility JNI functions
 JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANInit(
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
@@ -1136,7 +1135,8 @@ JNIEXPORT void JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANSt
     multiplayer->MelonLANStopDiscovery();
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANGetDiscoveryList(
+JNIEXPORT jobjectArray JNICALL
+Java_org_citra_citra_1emu_utils_NetPlayManager_melonLANGetDiscoveryList(
     JNIEnv* env, [[maybe_unused]] jobject obj) {
     return ToJStringArray(env, multiplayer->MelonLANGetDiscoveryList());
 }
@@ -1176,7 +1176,6 @@ JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_utils_NetPlayManager_melonL
     [[maybe_unused]] JNIEnv* env, [[maybe_unused]] jobject obj) {
     return multiplayer->MelonLANIsHost();
 }
-
 JNIEXPORT jobject JNICALL Java_org_citra_citra_1emu_utils_CiaInstallWorker_installCIA(
     JNIEnv* env, jobject jobj, jstring jpath) {
     std::string path = GetJString(env, jpath);
@@ -1248,6 +1247,26 @@ jboolean Java_org_citra_citra_1emu_NativeLibrary_isFullConsoleLinked(JNIEnv* env
 
 void Java_org_citra_citra_1emu_NativeLibrary_unlinkConsole(JNIEnv* env, jobject obj) {
     HW::UniqueData::UnlinkConsole();
+}
+
+// Generate synthetic OTP / SecureInfo_A / LocalFriendCodeSeed_B so that the
+// emulator can behave as a "linked" console without requiring a real hardware
+// dump.  Returns null on success or a non-empty error string on failure.
+jstring Java_org_citra_citra_1emu_NativeLibrary_generateSyntheticConsoleData(
+    JNIEnv* env, [[maybe_unused]] jobject obj, jint region, jstring serial_j) {
+
+    const char* serial_c = env->GetStringUTFChars(serial_j, nullptr);
+    std::string serial(serial_c ? serial_c : "");
+    env->ReleaseStringUTFChars(serial_j, serial_c);
+
+    std::string error;
+    const bool ok =
+        HW::UniqueData::GenerateSyntheticConsoleData(static_cast<u8>(region), serial, error);
+
+    if (ok) {
+        return env->NewStringUTF(""); // empty = success
+    }
+    return env->NewStringUTF(error.c_str());
 }
 
 void Java_org_citra_citra_1emu_NativeLibrary_setTemporaryFrameLimit(JNIEnv* env, jobject obj,

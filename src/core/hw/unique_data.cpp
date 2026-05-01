@@ -8,6 +8,9 @@
 #include <sstream>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
+#include <cryptopp/osrng.h>
 #include <cryptopp/sha.h>
 #include "common/common_paths.h"
 #include "common/logging/log.h"
@@ -549,30 +552,186 @@ std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filena
 }
 
 bool IsFullConsoleLinked() {
-    // Bypass console linking check to allow LLE modules to load
-    return true;
+    // A console is considered "linked" when at least SecureInfo_A and
+    // LocalFriendCodeSeed_B exist on disk with valid (non-zero) data.
+    // We try loading them on first call; subsequent calls use in-memory state.
+    if (otp.Valid() && secure_info_a.IsValid() && local_friend_code_seed_b.IsValid()) {
+        return true;
+    }
+    if (!FileUtil::Exists(GetSecureInfoAPath()) ||
+        !FileUtil::Exists(GetLocalFriendCodeSeedBPath())) {
+        return false;
+    }
+    const auto sia_status = LoadSecureInfoA();
+    const auto lfcs_status = LoadLocalFriendCodeSeedB();
+    const bool sia_ok = (static_cast<int>(sia_status) >= 0 ||
+                         sia_status == SecureDataLoadStatus::CannotValidateSignature);
+    const bool lfcs_ok = (static_cast<int>(lfcs_status) >= 0 ||
+                          lfcs_status == SecureDataLoadStatus::CannotValidateSignature);
+    return sia_ok && lfcs_ok;
 }
 
 void UnlinkConsole() {
-    /*    // Remove all console unique data, as well as the act, nim and frd savefiles
-        const std::string system_save_data_path =
-            FileSys::GetSystemSaveDataContainerPath(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir));
-        constexpr std::array<std::array<u8, 8>, 3> save_data_ids{{
-            {0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x01, 0x00},
-            {0x00, 0x00, 0x00, 0x00, 0x32, 0x00, 0x01, 0x00},
-            {0x00, 0x00, 0x00, 0x00, 0x38, 0x00, 0x01, 0x00},
-        }};
+    FileUtil::Delete(GetOTPPath());
+    FileUtil::Delete(GetSecureInfoAPath());
+    FileUtil::Delete(GetLocalFriendCodeSeedBPath());
 
-        for (auto& id : save_data_ids) {
-            const std::string final_path = FileSys::GetSystemSaveDataPath(system_save_data_path,
-       id); FileUtil::DeleteDirRecursively(final_path, 2);
+    secure_info_a.Invalidate();
+    local_friend_code_seed_b.Invalidate();
+    otp.Invalidate();
+    ct_cert.Invalidate();
+    movable.Invalidate();
+
+    LOG_INFO(HW, "Console unlinked: identity files deleted.");
+}
+
+// ?????????????????????????????????????????????????????????????????????????????
+// Synthetic console identity generation
+// ?????????????????????????????????????????????????????????????????????????????
+bool GenerateSyntheticConsoleData(u8 region, const std::string& serial_override,
+                                  std::string& out_error) {
+    using namespace HW::AES;
+
+    // 1. Ensure AES keys are available
+    InitKeys();
+    const auto [otp_key, otp_iv] = GetOTPKeyIV();
+
+    auto is_zero = [](const auto& arr) {
+        return std::all_of(arr.begin(), arr.end(), [](auto x) { return x == 0; });
+    };
+    if (is_zero(otp_key) || is_zero(otp_iv)) {
+        out_error = "otpKey / otpIV not found.\n"
+                    "Add them to keys.txt:\n"
+                    "  otpKey=<32 hex chars>\n"
+                    "  otpIV=<32 hex chars>\n"
+                    "or place boot9.bin in the sysdata directory.";
+        return false;
+    }
+
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // 2. Build OTP body
+    FileSys::OTP::OTPBin otp_bin{};
+    otp_bin.body.magic = FileSys::OTP::otp_magic;
+
+    // Random retail device-ID: high nibble 0x2 = O3DS retail
+    {
+        u32 dev_id = 0;
+        rng.GenerateBlock(reinterpret_cast<u8*>(&dev_id), 4);
+        otp_bin.body.device_id = (dev_id & 0x0FFFFFFF) | 0x20000000;
+    }
+    rng.GenerateBlock(otp_bin.body.fallback_movable_keyY.data(),
+                      otp_bin.body.fallback_movable_keyY.size());
+    otp_bin.body.otp_version = 5;
+    otp_bin.body.system_type = 0; // retail
+    otp_bin.body.manufacture_date = {0x20, 0x19, 0x01, 0x01, 0x00, 0x00};
+
+    // Generate ECC key pair for CTCert
+    {
+        auto [priv, pub] = HW::ECC::GenerateKeyPair();
+        otp_bin.body.ctcert.expiry_date = 0x77359400; // ~2099
+        std::memcpy(otp_bin.body.ctcert.priv_key.data(), priv.x.data(),
+                    std::min(priv.x.size(), otp_bin.body.ctcert.priv_key.size()));
+        // Signature field: store public key X half so LoadOTP can derive CTCert
+        std::memcpy(otp_bin.body.ctcert.signature.data(), pub.xy.data(),
+                    std::min(pub.xy.size(), otp_bin.body.ctcert.signature.size()));
+    }
+    rng.GenerateBlock(otp_bin.body.random_key_seed_bytes.data(),
+                      otp_bin.body.random_key_seed_bytes.size());
+
+    // Hash body
+    {
+        CryptoPP::SHA256 sha;
+        sha.CalculateDigest(otp_bin.hash.data(), reinterpret_cast<const u8*>(&otp_bin.body),
+                            sizeof(otp_bin.body));
+    }
+
+    // Encrypt
+    FileSys::OTP::OTPBin enc_otp = otp_bin;
+    {
+        CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption enc;
+        enc.SetKeyWithIV(otp_key.data(), otp_key.size(), otp_iv.data());
+        enc.ProcessData(reinterpret_cast<u8*>(&enc_otp), reinterpret_cast<const u8*>(&otp_bin),
+                        sizeof(enc_otp));
+    }
+
+    const std::string otp_path = GetOTPPath();
+    FileUtil::CreateFullPath(otp_path);
+    {
+        FileUtil::IOFile f(otp_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&enc_otp, sizeof(enc_otp)) != sizeof(enc_otp)) {
+            out_error = "Failed to write otp.bin to: " + otp_path;
+            return false;
         }
+    }
 
-        FileUtil::Delete(GetOTPPath());
-        FileUtil::Delete(GetSecureInfoAPath());
-        FileUtil::Delete(GetLocalFriendCodeSeedBPath());
+    // 3. Build SecureInfo_A
+    SecureInfoA sia{};
+    sia.body.region = region;
+    sia.body.unknown = 0x00;
+    {
+        std::string serial = serial_override;
+        if (serial.empty()) {
+            std::array<u8, 5> rb{};
+            rng.GenerateBlock(rb.data(), rb.size());
+            serial =
+                fmt::format("AZH{:02X}{:02X}{:02X}{:02X}{:02X}", rb[0], rb[1], rb[2], rb[3], rb[4]);
+        }
+        serial.resize(15, '\0');
+        std::memcpy(sia.body.serial_number.data(), serial.data(), 15);
+    }
 
-        InvalidateSecureData();*/
+    const std::string sia_path = GetSecureInfoAPath();
+    FileUtil::CreateFullPath(sia_path);
+    {
+        FileUtil::IOFile f(sia_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&sia, sizeof(sia)) != sizeof(sia)) {
+            out_error = "Failed to write SecureInfo_A to: " + sia_path;
+            return false;
+        }
+    }
+
+    // 4. Build LocalFriendCodeSeed_B
+    LocalFriendCodeSeedB lfcs{};
+    lfcs.body.unknown = 0;
+    rng.GenerateBlock(reinterpret_cast<u8*>(&lfcs.body.friend_code_seed),
+                      sizeof(lfcs.body.friend_code_seed));
+    if (lfcs.body.friend_code_seed == 0) {
+        lfcs.body.friend_code_seed = 0xDEADBEEFCAFEBABEULL;
+    }
+
+    const std::string lfcs_path = GetLocalFriendCodeSeedBPath();
+    FileUtil::CreateFullPath(lfcs_path);
+    {
+        FileUtil::IOFile f(lfcs_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&lfcs, sizeof(lfcs)) != sizeof(lfcs)) {
+            out_error = "Failed to write LocalFriendCodeSeed_B to: " + lfcs_path;
+            return false;
+        }
+    }
+
+    // 5. Reload in-memory state
+    secure_info_a.Invalidate();
+    local_friend_code_seed_b.Invalidate();
+    otp.Invalidate();
+    ct_cert.Invalidate();
+
+    const auto otp_status = LoadOTP();
+    if (otp_status != SecureDataLoadStatus::Loaded) {
+        out_error = fmt::format("otp.bin written but reloading failed (status {}).\n"
+                                "Verify otpKey/otpIV are correct and try again.",
+                                static_cast<int>(otp_status));
+        return false;
+    }
+    LoadSecureInfoA();
+    LoadLocalFriendCodeSeedB();
+
+    LOG_INFO(HW, "Synthetic console generated: deviceID=0x{:08X} region={} serial={}",
+             otp_bin.body.device_id, region,
+             std::string(reinterpret_cast<const char*>(sia.body.serial_number.data()), 15));
+
+    out_error.clear();
+    return true;
 }
 
 static bool isAppEncrypted(const std::string& path) {

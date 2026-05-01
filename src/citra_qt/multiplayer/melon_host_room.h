@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include <memory>
 #include <QDialog>
 #include <QTimer>
-#include <memory>
 #include "network/lan_melon.h"
 
 class QStandardItemModel;
@@ -32,7 +32,7 @@ private:
     void UpdateRoomStatus();
     void UpdatePlayerList();
     void SetHostedState(bool hosted);
-    
+
     std::unique_ptr<Ui::MelonHostRoom> ui;
     std::unique_ptr<Network::MelonLANAdapter> melon_lan_adapter;
     QTimer* update_timer;

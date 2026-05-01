@@ -31,7 +31,8 @@ endif()
 
 target_link_libraries(network PRIVATE citra_common Boost::serialization httplib)
 target_link_libraries(network PUBLIC enet)
-target_include_directories(network BEFORE PRIVATE ${CMAKE_SOURCE_DIR}/externals/enet/include)
+target_include_directories(network PUBLIC ${CMAKE_SOURCE_DIR}/externals/enet/include)
+add_dependencies(network enet)
 
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)

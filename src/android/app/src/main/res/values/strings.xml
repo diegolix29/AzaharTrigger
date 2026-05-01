@@ -185,6 +185,12 @@
     <string name="setup_system_files_detect">Fetching current system files status, please wait...</string>
     <string name="delete_system_files">Unlink Console Unique Data</string>
     <string name="delete_system_files_description"><![CDATA[This action will unlink your real console from Azahar, with the following consequences:<br><ul><li>Your OTP, SecureInfo and LocalFriendCodeSeed will be removed from Azahar.</li><li>Your friend list will reset and you will be logged out of your NNID/PNID account.</li><li>System files and eshop titles obtained through Azahar will become inaccessible until the same console is linked again using the setup tool (save data will not be lost).</li></ul><br>Continue?]]></string>
+    <string name="generate_console_data">Generate Synthetic Console Data</string>
+    <string name="generate_console_data_title">Generate Console Identity</string>
+    <string name="generate_console_data_description"><![CDATA[This will generate synthetic OTP, SecureInfo_A and LocalFriendCodeSeed_B files that allow Azahar to function as a "linked" console.<br><br><b>Requirements:</b> <tt>otpKey</tt> and <tt>otpIV</tt> must be present in <tt>sysdata/keys.txt</tt> or <tt>boot9.bin</tt> must be in the sysdata directory.<br><br><b>Note:</b> These files are synthetic and will NOT authenticate with Nintendo\'s online servers. They unlock LLE modules and local internet tunneling only.<br><br>Select region:]]></string>
+    <string name="generate_console_data_serial_hint">Serial number (optional, auto-generated if blank)</string>
+    <string name="generate_console_data_success">Console data generated successfully.\nLLE modules and internet access are now enabled.</string>
+    <string name="generate_console_data_running">Generating console identity files…</string>
     <string name="download_system_files">Download System Files</string>
     <string name="setup_system_files_o3ds">Old 3DS Setup</string>
     <string name="setup_system_files_n3ds">New 3DS Setup</string>

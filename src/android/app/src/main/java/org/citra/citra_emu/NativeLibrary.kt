@@ -245,6 +245,21 @@ object NativeLibrary {
 
     external fun unlinkConsole()
 
+    /**
+     * Generates synthetic OTP, SecureInfo_A, and LocalFriendCodeSeed_B files so
+     * the emulator behaves as a "linked" console without requiring hardware dumps.
+     *
+     * Requires `otpKey` and `otpIV` to be present in keys.txt (or boot9.bin in
+     * the sysdata directory) before calling.
+     *
+     * @param region  One of the Region constants (JPN=0, USA=1, EUR=2, AUS=3,
+     *                CHN=4, KOR=5, TWN=6)
+     * @param serial  Custom serial number string (max 15 chars). Pass empty
+     *                string to auto-generate.
+     * @return        Empty string on success, or a human-readable error message.
+     */
+    external fun generateSyntheticConsoleData(region: Int, serial: String): String
+
     external fun setTemporaryFrameLimit(speed: Double)
 
     external fun disableTemporaryFrameLimit()

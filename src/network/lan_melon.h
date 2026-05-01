@@ -8,9 +8,9 @@
 #include <map>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <string>
 #include <vector>
+#include <queue>
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -19,18 +19,18 @@ using socket_t = SOCKET;
 using sockaddr_t = SOCKADDR;
 using sockaddr_in_t = SOCKADDR_IN;
 #else
-#include <unistd.h>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <unistd.h>
 using socket_t = int;
 using sockaddr_t = struct sockaddr;
 using sockaddr_in_t = struct sockaddr_in;
 #define closesocket close
 #endif
 
-#include "enet/enet.h"
 #include "common/common_types.h"
+#include "enet/enet.h"
 
 namespace Network {
 
@@ -51,24 +51,24 @@ enum MelonPlayerStatus : u8 {
 };
 
 struct MelonPlayer {
-    int ID;                     // 4 bytes to match melonDS
+    int ID; // 4 bytes to match melonDS
     char Name[32];
-    MelonPlayerStatus Status;   // Keep as enum but will be 4 bytes
+    MelonPlayerStatus Status; // Keep as enum but will be 4 bytes
     u32 Address;
-    bool IsLocalPlayer;         // Add missing field
+    bool IsLocalPlayer; // Add missing field
     u32 Ping;
 };
 
 struct MelonRoomInfo {
-    char RoomCode[9];       // 8-char room code + NUL
-    char RoomName[64];      // Human-readable room name
-    char GameName[64];      // Game being played
-    char Description[128];  // Room description
-    char Password[33];       // Room password (32 + NUL), empty if no password
+    char RoomCode[9];      // 8-char room code + NUL
+    char RoomName[64];     // Human-readable room name
+    char GameName[64];     // Game being played
+    char Description[128]; // Room description
+    char Password[33];     // Room password (32 + NUL), empty if no password
     u8 NumPlayers;
     u8 MaxPlayers;
-    u8 HasPassword;         // 1 if password protected
-    u8 InGame;              // 1 if game is running
+    u8 HasPassword; // 1 if password protected
+    u8 InGame;      // 1 if game is running
     u32 HostID;
 };
 
@@ -96,9 +96,9 @@ enum MelonLANChannel : u8 {
 };
 
 struct MelonPacketHeader {
-    u32 Magic;     // Overwritten with timestamp when received
+    u32 Magic; // Overwritten with timestamp when received
     u8 SenderID;
-    u32 Type;      // Lower 16 bits: type, upper 16 bits: aid
+    u32 Type; // Lower 16 bits: type, upper 16 bits: aid
     u32 Length;
     u64 Timestamp;
 };
@@ -123,8 +123,12 @@ public:
 
     // Player management
     std::vector<MelonPlayer> GetPlayerList();
-    int GetNumPlayers() const { return num_players; }
-    int GetMaxPlayers() const { return max_players; }
+    int GetNumPlayers() const {
+        return num_players;
+    }
+    int GetMaxPlayers() const {
+        return max_players;
+    }
 
     // Processing
     void Process();
@@ -141,8 +145,12 @@ public:
     void Begin(int inst);
     void End(int inst);
 
-    bool IsActive() const { return active; }
-    bool IsHost() const { return is_host; }
+    bool IsActive() const {
+        return active;
+    }
+    bool IsHost() const {
+        return is_host;
+    }
 
 private:
     void ProcessDiscovery();

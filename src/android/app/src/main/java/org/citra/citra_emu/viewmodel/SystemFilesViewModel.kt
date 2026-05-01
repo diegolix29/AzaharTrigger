@@ -23,6 +23,14 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.min
 
+/** Represents the state of the synthetic console-data generation operation. */
+sealed class GenerateConsoleResult {
+    object Idle : GenerateConsoleResult()
+    object Running : GenerateConsoleResult()
+    object Success : GenerateConsoleResult()
+    data class Failure(val message: String) : GenerateConsoleResult()
+}
+
 class SystemFilesViewModel : ViewModel() {
     private var job: Job
     private val coroutineContext: CoroutineContext
@@ -39,6 +47,11 @@ class SystemFilesViewModel : ViewModel() {
 
     val shouldRefresh get() = _shouldRefresh.asStateFlow()
     private val _shouldRefresh = MutableStateFlow(false)
+
+    /** Emits the current state of the generate-console-data operation. */
+    val generateConsoleState get() = _generateConsoleState.asStateFlow()
+    private val _generateConsoleState =
+        MutableStateFlow<GenerateConsoleResult>(GenerateConsoleResult.Idle)
 
     private var cancelled = false
 
@@ -110,6 +123,35 @@ class SystemFilesViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * Generates synthetic OTP, SecureInfo_A, and LocalFriendCodeSeed_B on a
+     * background thread and emits the result via [generateConsoleState].
+     *
+     * @param region  0=JPN 1=USA 2=EUR 3=AUS 4=CHN 5=KOR 6=TWN
+     * @param serial  Custom serial string (empty = auto-generate).
+     */
+    fun generateConsoleData(region: Int, serial: String) {
+        if (_generateConsoleState.value == GenerateConsoleResult.Running) return
+        _generateConsoleState.value = GenerateConsoleResult.Running
+
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.debug("Generating synthetic console data: region=$region serial='$serial'")
+            val error = NativeLibrary.generateSyntheticConsoleData(region, serial)
+            _generateConsoleState.value = if (error.isEmpty()) {
+                Log.debug("Synthetic console data generation succeeded.")
+                setShouldRefresh(true)
+                GenerateConsoleResult.Success
+            } else {
+                Log.error("Synthetic console data generation failed: $error")
+                GenerateConsoleResult.Failure(error)
+            }
+        }
+    }
+
+    fun resetGenerateConsoleState() {
+        _generateConsoleState.value = GenerateConsoleResult.Idle
     }
 
     private fun tryDownloadTitle(title: Long): InstallStatus {

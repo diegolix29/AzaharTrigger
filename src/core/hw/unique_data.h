@@ -176,6 +176,20 @@ std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filena
 bool IsFullConsoleLinked();
 void UnlinkConsole();
 
+// ?? Synthetic console identity generation ?????????????????????????????????
+// Builds SecureInfo_A, LocalFriendCodeSeed_B, and a synthetic OTP from
+// nothing but the AES keys the user has already provided (otpKey/otpIV must
+// be present in keys.txt / aes_keys.txt / boot9.bin).
+//
+// Returns true if all three files were written successfully and in-memory
+// structures are now valid.  Returns false with an explanatory message in
+// `out_error` otherwise.
+//
+// region: one of HW::UniqueData::Region::{JPN,USA,EUR,AUS,CHN,KOR,TWN}
+// serial_override: empty = auto-generate from random bytes
+bool GenerateSyntheticConsoleData(u8 region, const std::string& serial_override,
+                                  std::string& out_error);
+
 std::vector<std::string> GetAppFilepaths();
 int RemoveAzaharEncryption(const std::string& path);
 int RevertEncryptionRemoval();

@@ -10,10 +10,10 @@
 #include "citra_qt/game_list_p.h"
 #include "citra_qt/multiplayer/lobby.h"
 #include "citra_qt/multiplayer/lobby_p.h"
-#include "citra_qt/multiplayer/message.h"
-#include "citra_qt/multiplayer/validation.h"
 #include "citra_qt/multiplayer/melon_host_room.h"
 #include "citra_qt/multiplayer/melon_join_room.h"
+#include "citra_qt/multiplayer/message.h"
+#include "citra_qt/multiplayer/validation.h"
 #include "citra_qt/uisettings.h"
 #include "common/logging/log.h"
 #include "core/hle/service/cfg/cfg.h"
@@ -440,7 +440,7 @@ void Lobby::OnMelonHostRoom() {
         // Set the nickname from the lobby
         melon_host_dialog->findChild<QLineEdit*>("nickname")->setText(ui->melon_nickname->text());
     }
-    
+
     melon_host_dialog->show();
     melon_host_dialog->raise();
     melon_host_dialog->activateWindow();
@@ -452,7 +452,7 @@ void Lobby::OnMelonJoinRoom() {
         // Set the nickname from the lobby
         melon_join_dialog->findChild<QLineEdit*>("nickname")->setText(ui->melon_nickname->text());
     }
-    
+
     melon_join_dialog->show();
     melon_join_dialog->raise();
     melon_join_dialog->activateWindow();
@@ -477,16 +477,15 @@ void Lobby::OnMelonDiscoveryUpdate() {
         QList<QStandardItem*> row;
         row.append(new QStandardItem(QString::fromUtf8(data.SessionName)));
         row.append(new QStandardItem(QString::fromStdString(
-            std::to_string((addr >> 24) & 0xFF) + "." +
-            std::to_string((addr >> 16) & 0xFF) + "." +
-            std::to_string((addr >> 8) & 0xFF) + "." +
-            std::to_string(addr & 0xFF))));
+            std::to_string((addr >> 24) & 0xFF) + "." + std::to_string((addr >> 16) & 0xFF) + "." +
+            std::to_string((addr >> 8) & 0xFF) + "." + std::to_string(addr & 0xFF))));
         row.append(new QStandardItem(tr("%1/%2").arg(data.NumPlayers).arg(data.MaxPlayers)));
         row.append(new QStandardItem(data.Status == 0 ? tr("Idle") : tr("Playing")));
         melon_model->appendRow(row);
     }
 
-    ui->melon_status->setText(tr("LAN Discovery Status: Found %1 session(s)").arg(discovery_list.size()));
+    ui->melon_status->setText(
+        tr("LAN Discovery Status: Found %1 session(s)").arg(discovery_list.size()));
 }
 
 void Lobby::OnMelonJoinDiscovery(const QModelIndex& index) {

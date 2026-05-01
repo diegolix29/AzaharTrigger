@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RadioButton
@@ -22,6 +23,9 @@ import androidx.core.text.HtmlCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -42,8 +46,10 @@ import org.citra.citra_emu.features.settings.model.Settings
 import org.citra.citra_emu.features.settings.SettingKeys
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.utils.SystemSaveGame
+import org.citra.citra_emu.viewmodel.GenerateConsoleResult
 import org.citra.citra_emu.viewmodel.GamesViewModel
 import org.citra.citra_emu.viewmodel.HomeViewModel
+import org.citra.citra_emu.viewmodel.SystemFilesViewModel
 
 class SystemFilesFragment : Fragment() {
     private var _binding: FragmentSystemFilesBinding? = null
@@ -51,12 +57,16 @@ class SystemFilesFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by activityViewModels()
     private val gamesViewModel: GamesViewModel by activityViewModels()
+    private val systemFilesViewModel: SystemFilesViewModel by activityViewModels()
 
     private val REGION_START = "RegionStart"
 
     private val homeMenuMap: MutableMap<String, String> = mutableMapOf()
     private var setupStateCached: BooleanArray? = null
     private lateinit var regionValues: IntArray
+
+    // Tracks the generate-console-data progress dialog so we can dismiss it
+    private var generateProgressDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +96,50 @@ class SystemFilesFragment : Fragment() {
         if (savedInstanceState != null) {
             binding.dropdownSystemRegionStart
                 .setText(savedInstanceState.getString(REGION_START), false)
+        }
+
+        // Observe generateConsoleState from ViewModel
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                systemFilesViewModel.generateConsoleState.collect { state ->
+                    when (state) {
+                        is GenerateConsoleResult.Idle -> {
+                            // Nothing to do
+                        }
+                        is GenerateConsoleResult.Running -> {
+                            generateProgressDialog = showProgressDialog(
+                                getText(R.string.generate_console_data_title),
+                                getString(R.string.generate_console_data_running)
+                            )
+                        }
+                        is GenerateConsoleResult.Success -> {
+                            generateProgressDialog?.dismiss()
+                            generateProgressDialog = null
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.generate_console_data_title)
+                                .setMessage(R.string.generate_console_data_success)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    systemFilesViewModel.resetGenerateConsoleState()
+                                    // Refresh unlink button state
+                                    binding.buttonUnlinkConsoleData.isEnabled =
+                                        NativeLibrary.isFullConsoleLinked()
+                                }
+                                .show()
+                        }
+                        is GenerateConsoleResult.Failure -> {
+                            generateProgressDialog?.dismiss()
+                            generateProgressDialog = null
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.generate_console_data_title)
+                                .setMessage(state.message)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    systemFilesViewModel.resetGenerateConsoleState()
+                                }
+                                .show()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -173,6 +227,11 @@ class SystemFilesFragment : Fragment() {
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
+        }
+
+        // ── Generate Synthetic Console Data ───────────────────────────────────
+        binding.buttonGenerateConsoleData.setOnClickListener {
+            showGenerateConsoleDialog()
         }
 
         binding.buttonSetUpSystemFiles.setOnClickListener {
@@ -350,5 +409,74 @@ class SystemFilesFragment : Fragment() {
             )
             binding.dropdownSystemRegionStart.setText(availableMenus.keys.first(), false)
         }
+    }
+
+    /**
+     * Shows the dialog that lets the user pick a region, optionally enter a
+     * serial number, and triggers synthetic console-data generation.
+     */
+    private fun showGenerateConsoleDialog() {
+        val ctx = requireContext()
+
+        // Region names match HW::UniqueData::Region enum order (JPN=0 … TWN=6)
+        val regionNames = arrayOf("Japan (JPN)", "USA", "Europe (EUR)",
+                                  "Australia (AUS)", "China (CHN)",
+                                  "Korea (KOR)", "Taiwan (TWN)")
+        var selectedRegion = 1 // default USA
+
+        val container = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 24, 48, 8)
+        }
+
+        // Region radio group
+        val regionGroup = RadioGroup(ctx).apply {
+            orientation = RadioGroup.VERTICAL
+        }
+        regionNames.forEachIndexed { i, name ->
+            regionGroup.addView(RadioButton(ctx).apply {
+                text = name
+                id = i
+                isChecked = (i == selectedRegion)
+            })
+        }
+        regionGroup.setOnCheckedChangeListener { _, checkedId ->
+            selectedRegion = checkedId
+        }
+
+        // Serial number input
+        val serialLabel = MaterialTextView(ctx).apply {
+            text = getString(R.string.generate_console_data_serial_hint)
+            textSize = 12f
+            setPadding(0, 16, 0, 4)
+        }
+        val serialInput = EditText(ctx).apply {
+            hint = getString(R.string.generate_console_data_serial_hint)
+            maxLines = 1
+            filters = arrayOf(android.text.InputFilter.LengthFilter(15))
+        }
+
+        container.addView(HtmlCompat.fromHtml(
+            getString(R.string.generate_console_data_description),
+            HtmlCompat.FROM_HTML_MODE_COMPACT
+        ).let { html ->
+            MaterialTextView(ctx).apply {
+                text = html
+                movementMethod = android.text.method.LinkMovementMethod.getInstance()
+            }
+        })
+        container.addView(regionGroup)
+        container.addView(serialLabel)
+        container.addView(serialInput)
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.generate_console_data_title)
+            .setView(container)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val serial = serialInput.text.toString().trim()
+                systemFilesViewModel.generateConsoleData(selectedRegion, serial)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

@@ -13,8 +13,8 @@
 #include "citra_qt/multiplayer/validation.h"
 #include "common/announce_multiplayer_room.h"
 #include "network/announce_multiplayer_session.h"
-#include "network/room_member.h"
 #include "network/lan_melon.h"
+#include "network/room_member.h"
 
 class MelonHostRoom;
 class MelonJoinRoom;

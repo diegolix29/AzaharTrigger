@@ -2,31 +2,31 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "lan_melon.h"
 #include "common/logging/log.h"
+#include "lan_melon.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <unistd.h>
 #include <netinet/in.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #define closesocket close
 #endif
 
 #ifndef INVALID_SOCKET
-#define INVALID_SOCKET (socket_t)-1
+#define INVALID_SOCKET (socket_t) - 1
 #endif
 
 namespace Network {
 
 MelonLANAdapter::MelonLANAdapter()
     : inited(false), active(false), is_host(false), enet_host(nullptr),
-      discovery_socket(INVALID_SOCKET), discovery_last_tick(0), num_players(0),
-      max_players(0), host_address(0), connected_bitmask(0), mp_recv_timeout(100),
-      last_host_id(-1), last_host_peer(nullptr), frame_count(0) {
+      discovery_socket(INVALID_SOCKET), discovery_last_tick(0), num_players(0), max_players(0),
+      host_address(0), connected_bitmask(0), mp_recv_timeout(100), last_host_id(-1),
+      last_host_peer(nullptr), frame_count(0) {
     std::memset(remote_peers, 0, sizeof(remote_peers));
     std::memset(players, 0, sizeof(players));
     std::memset(&my_player, 0, sizeof(my_player));
@@ -106,8 +106,8 @@ bool MelonLANAdapter::StartDiscovery() {
     LOG_INFO(Network, "Enabled broadcast on discovery socket");
 
     discovery_last_tick = static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                std::chrono::steady_clock::now().time_since_epoch())
-                                                .count());
+                                               std::chrono::steady_clock::now().time_since_epoch())
+                                               .count());
     discovery_list.clear();
 
     return true;
@@ -178,12 +178,13 @@ bool MelonLANAdapter::StartHost(const std::string& player_name, int max_players_
 }
 
 bool MelonLANAdapter::StartClient(const std::string& player_name,
-                                   const std::string& host_address_str) {
+                                  const std::string& host_address_str) {
     if (!inited) {
         return false;
     }
 
-    LOG_INFO(Network, "Starting melonDS LAN client connection to {}:{}", host_address_str, kMelonLANPort);
+    LOG_INFO(Network, "Starting melonDS LAN client connection to {}:{}", host_address_str,
+             kMelonLANPort);
 
     enet_host = enet_host_create(nullptr, 16, 2, 0, 0);
     if (!enet_host) {
@@ -252,7 +253,8 @@ bool MelonLANAdapter::StartClient(const std::string& player_name,
 
                 u32 magic = data[1] | (data[2] << 8) | (data[3] << 16) | (data[4] << 24);
                 u32 version = data[5] | (data[6] << 8) | (data[7] << 16) | (data[8] << 24);
-                LOG_INFO(Network, "Host magic: 0x{:08X}, version: {}, expected magic: 0x{:08X}, version: {}", 
+                LOG_INFO(Network,
+                         "Host magic: 0x{:08X}, version: {}, expected magic: 0x{:08X}, version: {}",
                          magic, version, kMelonLANMagic, kMelonProtocolVersion);
                 if (magic != kMelonLANMagic || version != kMelonProtocolVersion) {
                     LOG_ERROR(Network, "Protocol mismatch with melonDS LAN host");
@@ -265,7 +267,8 @@ bool MelonLANAdapter::StartClient(const std::string& player_name,
 
                 max_players = data[10];
                 my_player.ID = data[9];
-                LOG_INFO(Network, "Assigned player ID: {}, max players: {}", my_player.ID, max_players);
+                LOG_INFO(Network, "Assigned player ID: {}, max players: {}", my_player.ID,
+                         max_players);
 
                 // Send player info
                 u8 cmd[9 + sizeof(MelonPlayer)];
@@ -316,7 +319,7 @@ bool MelonLANAdapter::StartClient(const std::string& player_name,
         players[i].Status = Player_None;
         players[i].ID = 0;
     }
-    
+
     // Set up the local player
     players[my_player.ID] = my_player;
     players[my_player.ID].Status = Player_Client;
@@ -325,7 +328,8 @@ bool MelonLANAdapter::StartClient(const std::string& player_name,
 
     active = true;
     is_host = false;
-    LOG_INFO(Network, "MelonDS LAN client successfully connected to {} with player ID {}", host_address_str, my_player.ID);
+    LOG_INFO(Network, "MelonDS LAN client successfully connected to {} with player ID {}",
+             host_address_str, my_player.ID);
     return true;
 }
 
@@ -407,7 +411,7 @@ void MelonLANAdapter::ProcessDiscovery() {
         beacon.Magic = kMelonDiscoveryMagic;
         beacon.Version = kMelonProtocolVersion;
         beacon.Tick = tick;
-        
+
         // Fill discovery data
         std::snprintf(beacon.SessionName, 64, "%s's game", my_player.Name);
         beacon.NumPlayers = static_cast<u8>(num_players);
@@ -422,7 +426,7 @@ void MelonLANAdapter::ProcessDiscovery() {
 
         int sent = sendto(discovery_socket, (const char*)&beacon, sizeof(beacon), 0,
                           (const sockaddr_t*)&saddr, sizeof(saddr));
-        LOG_INFO(Network, "Broadcasting discovery beacon: '{}' ({}/{} players), sent {} bytes", 
+        LOG_INFO(Network, "Broadcasting discovery beacon: '{}' ({}/{} players), sent {} bytes",
                  beacon.SessionName, beacon.NumPlayers, beacon.MaxPlayers, sent);
     } else {
         std::lock_guard<std::mutex> lock(discovery_mutex);
@@ -448,16 +452,16 @@ void MelonLANAdapter::ProcessDiscovery() {
             if (rlen < static_cast<int>(sizeof(beacon))) {
                 continue;
             }
-            LOG_INFO(Network, "Received discovery beacon: {} bytes, magic=0x{:08X}, version={}", 
+            LOG_INFO(Network, "Received discovery beacon: {} bytes, magic=0x{:08X}, version={}",
                      rlen, beacon.Magic, beacon.Version);
             if (beacon.Magic != kMelonDiscoveryMagic) {
-                LOG_ERROR(Network, "Invalid discovery magic: 0x{:08X}, expected 0x{:08X}", 
-                         beacon.Magic, kMelonDiscoveryMagic);
+                LOG_ERROR(Network, "Invalid discovery magic: 0x{:08X}, expected 0x{:08X}",
+                          beacon.Magic, kMelonDiscoveryMagic);
                 continue;
             }
             if (beacon.Version != kMelonProtocolVersion) {
-                LOG_ERROR(Network, "Invalid discovery version: {}, expected {}", 
-                         beacon.Version, kMelonProtocolVersion);
+                LOG_ERROR(Network, "Invalid discovery version: {}, expected {}", beacon.Version,
+                          kMelonProtocolVersion);
                 continue;
             }
             if (beacon.MaxPlayers > 16) {
@@ -465,14 +469,15 @@ void MelonLANAdapter::ProcessDiscovery() {
                 continue;
             }
             if (beacon.NumPlayers > beacon.MaxPlayers) {
-                LOG_ERROR(Network, "Invalid player count: {}/{}", beacon.NumPlayers, beacon.MaxPlayers);
+                LOG_ERROR(Network, "Invalid player count: {}/{}", beacon.NumPlayers,
+                          beacon.MaxPlayers);
                 continue;
             }
 
             u32 key = ntohl(raddr.sin_addr.s_addr);
             beacon.SessionName[63] = '\0';
-            LOG_INFO(Network, "Found host: '{}' with {} players", 
-                     beacon.SessionName, beacon.NumPlayers);
+            LOG_INFO(Network, "Found host: '{}' with {} players", beacon.SessionName,
+                     beacon.NumPlayers);
             LOG_INFO(Network, "Host address: {:08X}", key);
 
             auto it = discovery_list.find(key);
@@ -522,7 +527,8 @@ void MelonLANAdapter::ProcessHostEvent(ENetEvent& event) {
     case ENET_EVENT_TYPE_CONNECT: {
         LOG_INFO(Network, "New client connecting to melonDS LAN host");
         if ((num_players >= max_players) || (num_players >= 16)) {
-            LOG_ERROR(Network, "Host full, rejecting connection (players: {}/{})", num_players, max_players);
+            LOG_ERROR(Network, "Host full, rejecting connection (players: {}/{})", num_players,
+                      max_players);
             enet_peer_disconnect(event.peer, 0);
             break;
         }
@@ -609,8 +615,9 @@ void MelonLANAdapter::ProcessHostEvent(ENetEvent& event) {
             u32 magic = data[1] | (data[2] << 8) | (data[3] << 16) | (data[4] << 24);
             u32 version = data[5] | (data[6] << 8) | (data[7] << 16) | (data[8] << 24);
             if ((magic != kMelonLANMagic) || (version != kMelonProtocolVersion)) {
-                LOG_ERROR(Network, "Invalid magic/version in PlayerInfo: 0x{:08X}/{}, expected 0x{:08X}/{}", 
-                         magic, version, kMelonLANMagic, kMelonProtocolVersion);
+                LOG_ERROR(Network,
+                          "Invalid magic/version in PlayerInfo: 0x{:08X}/{}, expected 0x{:08X}/{}",
+                          magic, version, kMelonLANMagic, kMelonProtocolVersion);
                 enet_peer_disconnect(event.peer, 0);
                 break;
             }
@@ -691,14 +698,16 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
         }
 
         if (playerid < 0) {
-            LOG_INFO(Network, "Rejecting connection from unknown peer at address {:08X}", event.peer->address.host);
+            LOG_INFO(Network, "Rejecting connection from unknown peer at address {:08X}",
+                     event.peer->address.host);
             enet_peer_disconnect(event.peer, 0);
             break;
         }
 
         remote_peers[playerid] = event.peer;
         event.peer->data = &players[playerid];
-        LOG_INFO(Network, "Established direct connection with player {} (ID: {})", players[playerid].Name, playerid);
+        LOG_INFO(Network, "Established direct connection with player {} (ID: {})",
+                 players[playerid].Name, playerid);
     } break;
 
     case ENET_EVENT_TYPE_DISCONNECT: {
@@ -746,7 +755,8 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
             LOG_INFO(Network, "Updated player list with {} players", num_players);
             for (int i = 0; i < 16; i++) {
                 if (players[i].Status != Player_None) {
-                    LOG_INFO(Network, "Player {}: '{}' (ID: {}, Status: {})", i, players[i].Name, players[i].ID, static_cast<int>(players[i].Status));
+                    LOG_INFO(Network, "Player {}: '{}' (ID: {}, Status: {})", i, players[i].Name,
+                             players[i].ID, static_cast<int>(players[i].Status));
                 }
             }
 
@@ -770,7 +780,8 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
                 }
 
                 if (!remote_peers[i]) {
-                    LOG_INFO(Network, "Attempting to connect to client {} at address {:08X}", i, player->Address);
+                    LOG_INFO(Network, "Attempting to connect to client {} at address {:08X}", i,
+                             player->Address);
                     ENetAddress peeraddr;
                     peeraddr.host = player->Address;
                     peeraddr.port = kMelonLANPort;
@@ -822,8 +833,8 @@ void MelonLANAdapter::ProcessLAN(int type) {
     }
 
     u32 time_last = static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                        std::chrono::steady_clock::now().time_since_epoch())
-                                        .count());
+                                         std::chrono::steady_clock::now().time_since_epoch())
+                                         .count());
 
     // Process stale packets
     while (!rx_queue.empty()) {
@@ -851,8 +862,8 @@ void MelonLANAdapter::ProcessLAN(int type) {
 
     int timeout = (type == 2) ? mp_recv_timeout : (type == 0 ? 1 : 0);
     time_last = static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                    std::chrono::steady_clock::now().time_since_epoch())
-                                    .count());
+                                     std::chrono::steady_clock::now().time_since_epoch())
+                                     .count());
 
     int maxMPPackets = (type == 0) ? 4 : 1;
     int receivedMP = 0;
@@ -860,7 +871,8 @@ void MelonLANAdapter::ProcessLAN(int type) {
     ENetEvent event;
     while (enet_host_service(enet_host, &event, timeout) > 0) {
         if (event.type == ENET_EVENT_TYPE_RECEIVE && event.channelID == Chan_MP) {
-            MelonPacketHeader* header = reinterpret_cast<MelonPacketHeader*>(&event.packet->data[0]);
+            MelonPacketHeader* header =
+                reinterpret_cast<MelonPacketHeader*>(&event.packet->data[0]);
 
             bool good = true;
             if (event.packet->dataLength < sizeof(MelonPacketHeader)) {
@@ -874,9 +886,10 @@ void MelonLANAdapter::ProcessLAN(int type) {
             if (!good) {
                 enet_packet_destroy(event.packet);
             } else {
-                header->Magic = static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                                      std::chrono::steady_clock::now().time_since_epoch())
-                                                      .count());
+                header->Magic =
+                    static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                         std::chrono::steady_clock::now().time_since_epoch())
+                                         .count());
 
                 event.packet->userData = event.peer;
                 rx_queue.push(event.packet);
@@ -896,8 +909,8 @@ void MelonLANAdapter::ProcessLAN(int type) {
 
         if (type == 2) {
             u32 time = static_cast<u32>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                                           std::chrono::steady_clock::now().time_since_epoch())
-                                           .count());
+                                            std::chrono::steady_clock::now().time_since_epoch())
+                                            .count());
             if (time < time_last) {
                 return;
             }
@@ -947,8 +960,7 @@ int MelonLANAdapter::SendPacketGeneric(u32 type, u8* packet, int len, u64 timest
 
     u32 flags = ENET_PACKET_FLAG_RELIABLE;
 
-    ENetPacket* enetpacket =
-        enet_packet_create(nullptr, sizeof(MelonPacketHeader) + len, flags);
+    ENetPacket* enetpacket = enet_packet_create(nullptr, sizeof(MelonPacketHeader) + len, flags);
 
     MelonPacketHeader pktheader;
     pktheader.Magic = kMelonPacketMagic;
@@ -1097,12 +1109,13 @@ u16 MelonLANAdapter::RecvReplies(int inst, u8* packets, u64 timestamp, u16 aidma
         if (header->Length) {
             u32 aid = (header->Type >> 16);
             std::memcpy(&packets[(aid - 1) * 1024], &enetpacket->data[sizeof(MelonPacketHeader)],
-                       header->Length);
+                        header->Length);
             ret |= (1 << aid);
         }
 
         myinstmask |= (1 << header->SenderID);
-        if (((myinstmask & connected_bitmask) == connected_bitmask) || ((ret & aidmask) == aidmask)) {
+        if (((myinstmask & connected_bitmask) == connected_bitmask) ||
+            ((ret & aidmask) == aidmask)) {
             rx_queue.pop();
             enet_packet_destroy(enetpacket);
             return ret;
