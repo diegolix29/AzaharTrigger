@@ -145,8 +145,15 @@ bool MelonLANAdapter::StartHost(const std::string& player_name, int max_players_
 
     std::lock_guard<std::mutex> lock(players_mutex);
 
+    // Clear all player slots first
+    std::memset(players, 0, sizeof(players));
+    for (int i = 0; i < 16; i++) {
+        players[i].Status = Player_None;
+        players[i].ID = 0;
+    }
+
+    // Set up host player
     MelonPlayer* player = &players[0];
-    std::memset(player, 0, sizeof(MelonPlayer));
     player->ID = 0;
     std::strncpy(player->Name, player_name.c_str(), 31);
     player->Name[31] = '\0';
@@ -302,6 +309,19 @@ bool MelonLANAdapter::StartClient(const std::string& player_name,
     last_host_peer = nullptr;
     remote_peers[0] = peer;
     peer->data = &players[0];
+
+    // Initialize client player list - clear all players first
+    std::memset(players, 0, sizeof(players));
+    for (int i = 0; i < 16; i++) {
+        players[i].Status = Player_None;
+        players[i].ID = 0;
+    }
+    
+    // Set up the local player
+    players[my_player.ID] = my_player;
+    players[my_player.ID].Status = Player_Client;
+    players[my_player.ID].IsLocalPlayer = true;
+    num_players = 1; // At least we know about ourselves
 
     active = true;
     is_host = false;
@@ -545,6 +565,9 @@ void MelonLANAdapter::ProcessHostEvent(ENetEvent& event) {
             num_players++;
 
             remote_peers[id] = event.peer;
+
+            // Send current player list to the new client immediately
+            HostUpdatePlayerList();
         } else {
             LOG_ERROR(Network, "No available player slots, rejecting connection");
             enet_peer_disconnect(event.peer, 0);
@@ -610,6 +633,7 @@ void MelonLANAdapter::ProcessHostEvent(ENetEvent& event) {
             std::memcpy(hostside, &player, sizeof(MelonPlayer));
             LOG_INFO(Network, "Player '{}' (ID: {}) joined the session", player.Name, player.ID);
 
+            // Send updated player list to all clients
             HostUpdatePlayerList();
         } break;
 
@@ -656,7 +680,7 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
             if (i == my_player.ID) {
                 continue;
             }
-            if (player->Status != Player_Client) {
+            if (player->Status != Player_Client && player->Status != Player_Host) {
                 continue;
             }
 
@@ -667,12 +691,14 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
         }
 
         if (playerid < 0) {
+            LOG_INFO(Network, "Rejecting connection from unknown peer at address {:08X}", event.peer->address.host);
             enet_peer_disconnect(event.peer, 0);
             break;
         }
 
         remote_peers[playerid] = event.peer;
         event.peer->data = &players[playerid];
+        LOG_INFO(Network, "Established direct connection with player {} (ID: {})", players[playerid].Name, playerid);
     } break;
 
     case ENET_EVENT_TYPE_DISCONNECT: {
@@ -739,7 +765,7 @@ void MelonLANAdapter::ProcessClientEvent(ENetEvent& event) {
                 if (i == my_player.ID) {
                     continue;
                 }
-                if (player->Status != Player_Client) {
+                if (player->Status != Player_Client && player->Status != Player_Host) {
                     continue;
                 }
 

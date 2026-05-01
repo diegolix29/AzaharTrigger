@@ -16,6 +16,9 @@
 #include "network/room_member.h"
 #include "network/lan_melon.h"
 
+class MelonHostRoom;
+class MelonJoinRoom;
+
 namespace Ui {
 class Lobby;
 }
@@ -113,6 +116,8 @@ private:
     std::unique_ptr<Network::MelonLANAdapter> melon_lan_adapter;
     QStandardItemModel* melon_model{};
     QTimer* melon_discovery_timer{};
+    std::unique_ptr<MelonHostRoom> melon_host_dialog;
+    std::unique_ptr<MelonJoinRoom> melon_join_dialog;
 };
 
 /**

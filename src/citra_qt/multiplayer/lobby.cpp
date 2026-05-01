@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QInputDialog>
+#include <QLineEdit>
 #include <QList>
 #include <QtConcurrent/QtConcurrentRun>
 #include "citra_qt/citra_qt.h"
@@ -11,6 +12,8 @@
 #include "citra_qt/multiplayer/lobby_p.h"
 #include "citra_qt/multiplayer/message.h"
 #include "citra_qt/multiplayer/validation.h"
+#include "citra_qt/multiplayer/melon_host_room.h"
+#include "citra_qt/multiplayer/melon_join_room.h"
 #include "citra_qt/uisettings.h"
 #include "common/logging/log.h"
 #include "core/hle/service/cfg/cfg.h"
@@ -432,55 +435,27 @@ void LobbyFilterProxyModel::SetFilterSearch(const QString& filter) {
 
 // melonDS LAN slot implementations
 void Lobby::OnMelonHostRoom() {
-    if (!melon_lan_adapter) {
-        return;
+    if (!melon_host_dialog) {
+        melon_host_dialog = std::make_unique<MelonHostRoom>(this);
+        // Set the nickname from the lobby
+        melon_host_dialog->findChild<QLineEdit*>("nickname")->setText(ui->melon_nickname->text());
     }
-
-    if (!ui->melon_nickname->hasAcceptableInput()) {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
-        return;
-    }
-
-    const std::string nickname = ui->melon_nickname->text().toStdString();
-    int max_players = 16; // Default max players for melonDS LAN
-
-    bool ok;
-    int players = QInputDialog::getInt(this, tr("Max Players"), tr("Max Players:"), 16, 1, 16, 1, &ok);
-    if (ok) {
-        max_players = players;
-    }
-
-    if (melon_lan_adapter->StartHost(nickname, max_players)) {
-        ui->melon_status->setText(tr("LAN Status: Hosting as %1").arg(QString::fromStdString(nickname)));
-    } else {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
-    }
+    
+    melon_host_dialog->show();
+    melon_host_dialog->raise();
+    melon_host_dialog->activateWindow();
 }
 
 void Lobby::OnMelonJoinRoom() {
-    if (!melon_lan_adapter) {
-        return;
+    if (!melon_join_dialog) {
+        melon_join_dialog = std::make_unique<MelonJoinRoom>(this);
+        // Set the nickname from the lobby
+        melon_join_dialog->findChild<QLineEdit*>("nickname")->setText(ui->melon_nickname->text());
     }
-
-    if (!ui->melon_nickname->hasAcceptableInput()) {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::USERNAME_NOT_VALID);
-        return;
-    }
-
-    const std::string nickname = ui->melon_nickname->text().toStdString();
-
-    bool ok;
-    QString ip = QInputDialog::getText(this, tr("Join LAN Room"), tr("Host IP Address:"),
-                                        QLineEdit::Normal, QString(), &ok);
-    if (!ok || ip.isEmpty()) {
-        return;
-    }
-
-    if (melon_lan_adapter->StartClient(nickname, ip.toStdString())) {
-        ui->melon_status->setText(tr("LAN Status: Connected to %1").arg(ip));
-    } else {
-        NetworkMessage::ErrorManager::ShowError(NetworkMessage::ErrorManager::UNABLE_TO_CONNECT);
-    }
+    
+    melon_join_dialog->show();
+    melon_join_dialog->raise();
+    melon_join_dialog->activateWindow();
 }
 
 void Lobby::OnMelonDiscoveryUpdate() {

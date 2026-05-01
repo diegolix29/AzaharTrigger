@@ -416,12 +416,12 @@ std::vector<std::string> AndroidMultiplayer::MelonLANGetDiscoveryList() {
         in_addr.s_addr = htonl(addr);
         inet_ntop(AF_INET, &in_addr, ip_str, INET_ADDRSTRLEN);
 
-        std::string entry = std::string(ip_str) + "|" + data.Room.RoomName + "|" +
-                            data.Room.GameName + "|" +
-                            std::to_string(data.Room.NumPlayers) + "|" +
-                            std::to_string(data.Room.MaxPlayers) + "|" +
-                            std::to_string(data.Room.HasPassword) + "|" +
-                            std::to_string(data.Room.InGame);
+        std::string entry = std::string(ip_str) + "|" + data.SessionName + "|" +
+                            "" + "|" +  // GameName not available in MelonDiscoveryData
+                            std::to_string(data.NumPlayers) + "|" +
+                            std::to_string(data.MaxPlayers) + "|" +
+                            std::to_string(false) + "|" +  // HasPassword not available in MelonDiscoveryData
+                            std::to_string(data.Status);  // Status instead of InGame
         result.push_back(entry);
     }
 
