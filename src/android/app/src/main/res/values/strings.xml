@@ -1070,4 +1070,15 @@
     <string name="multiplayer_no_game">No Games Found</string>
     <string name="multiplayer_prefered_game_name_invalid">You must choose a Preferred Application to host a room.</string>
 
+    <!-- melonDS LAN -->
+    <string name="multiplayer_citra_tab">Citra NetPlay</string>
+    <string name="multiplayer_melon_tab">DS LAN (melonDS)</string>
+    <string name="multiplayer_melon_discovery">LAN Discovery</string>
+    <string name="multiplayer_melon_host">Host LAN Room</string>
+    <string name="multiplayer_melon_join">Join LAN Room</string>
+    <string name="multiplayer_melon_host_success">LAN room hosted successfully!</string>
+    <string name="multiplayer_melon_join_success">Joined LAN room successfully!</string>
+    <string name="multiplayer_melon_lobby">DS LAN Lobby</string>
+    <string name="multiplayer_close">Close</string>
+
 </resources>

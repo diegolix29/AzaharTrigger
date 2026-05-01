@@ -26,6 +26,40 @@
             android:layout_marginTop="4dp"
             android:textColor="?attr/colorOnSurface" />
 
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            app:tabMode="fixed"
+            app:tabGravity="fill">
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/multiplayer_citra_tab" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/multiplayer_melon_tab" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Citra Multiplayer Content -->
+            <LinearLayout
+                android:id="@+id/citra_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
         <ImageView
             android:layout_width="140dp"
             android:layout_height="114dp"
@@ -96,6 +130,88 @@
                 app:icon="@drawable/ic_add"
                 app:cornerRadius="16dp" />
         </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- melonDS LAN Content -->
+            <LinearLayout
+                android:id="@+id/melon_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="140dp"
+                    android:layout_height="114dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="24dp"
+                    android:src="@drawable/ic_network"
+                    app:tint="?attr/colorPrimary" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginHorizontal="16dp">
+
+                    <Space
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_melon_discovery"
+                        style="@style/Widget.Material3.Button"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/multiplayer_melon_discovery"
+                        app:cornerRadius="16dp"
+                        app:icon="@drawable/ic_search" />
+
+                    <Space
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_melon_join"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/multiplayer_melon_join"
+                        app:icon="@drawable/ic_install"
+                        app:cornerRadius="16dp" />
+
+                    <Space
+                        android:layout_width="16dp"
+                        android:layout_height="match_parent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_melon_host"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/multiplayer_melon_host"
+                        app:icon="@drawable/ic_add"
+                        app:cornerRadius="16dp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
 
     </LinearLayout>
 </LinearLayout>

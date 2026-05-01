@@ -29,11 +29,49 @@ object NetPlayManager {
     external fun netPlaySendMessage(msg: String)
     external fun netPlayKickUser(username: String)
     external fun netPlayLeaveRoom()
+
+    fun leaveRoom() {
+        stopLANProcessing()
+        melonLANEndSession()
+        netPlayLeaveRoom()
+    }
     external fun netPlayIsModerator(): Boolean
     external fun netPlayGetBanList(): Array<String>
     external fun netPlayBanUser(username: String)
     external fun netPlayUnbanUser(username: String)
     external fun netPlayGetPublicRooms(): Array<String>
+
+    // melonDS LAN compatibility functions
+    external fun melonLANInit(): Boolean
+    external fun melonLANShutdown()
+    external fun melonLANStartDiscovery(): Boolean
+    external fun melonLANStopDiscovery()
+    external fun melonLANGetDiscoveryList(): Array<String>
+    external fun melonLANStartHost(playerName: String, maxPlayers: Int): Boolean
+    external fun melonLANStartClient(playerName: String, hostAddress: String): Boolean
+    external fun melonLANEndSession()
+    external fun melonLANGetPlayerList(): Array<String>
+    external fun melonLANProcess()
+    external fun melonLANIsActive(): Boolean
+    external fun melonLANIsHost(): Boolean
+
+    data class MelonDiscoveryInfo(
+        val ip: String,
+        val sessionName: String,
+        val gameName: String,
+        val numPlayers: Int,
+        val maxPlayers: Int,
+        val hasPassword: Int,
+        val inGame: Int
+    )
+
+    data class MelonPlayerInfo(
+        val id: Int,
+        val name: String,
+        val status: Int,
+        val address: Long,
+        val ping: Int
+    )
 
     data class RoomInfo(
         val name: String,
@@ -278,6 +316,88 @@ object NetPlayManager {
     fun getBanList(): List<String> {
         Log.info("Netplay Ban ${netPlayGetBanList()}.toList()")
         return netPlayGetBanList().toList()
+    }
+
+    // melonDS LAN background processing
+    private var lanProcessHandler: Handler? = null
+    private var lanProcessRunnable: Runnable? = null
+
+    fun startLANProcessing() {
+        if (lanProcessHandler == null) {
+            lanProcessHandler = Handler(Looper.getMainLooper())
+            lanProcessRunnable = object : Runnable {
+                override fun run() {
+                    if (melonLANIsActive()) {
+                        melonLANProcess()
+                        lanProcessHandler?.postDelayed(this, 16) // ~60fps
+                    }
+                }
+            }
+            lanProcessHandler?.post(lanProcessRunnable!!)
+        }
+    }
+
+    fun stopLANProcessing() {
+        lanProcessHandler?.removeCallbacks(lanProcessRunnable!!)
+        lanProcessHandler = null
+        lanProcessRunnable = null
+    }
+
+    // melonDS LAN helper methods
+    fun getMelonDiscoveryList(): List<MelonDiscoveryInfo> {
+        val discoveryData = melonLANGetDiscoveryList()
+        val discoveries = mutableListOf<MelonDiscoveryInfo>()
+
+        for (data in discoveryData) {
+            val parts = data.split("|")
+            if (parts.size >= 7) {
+                discoveries.add(
+                    MelonDiscoveryInfo(
+                        ip = parts[0],
+                        sessionName = parts[1],
+                        gameName = parts[2],
+                        numPlayers = parts[3].toIntOrNull() ?: 0,
+                        maxPlayers = parts[4].toIntOrNull() ?: 0,
+                        hasPassword = parts[5].toIntOrNull() ?: 0,
+                        inGame = parts[6].toIntOrNull() ?: 0
+                    )
+                )
+            }
+        }
+
+        return discoveries
+    }
+
+    fun getMelonPlayerList(): List<MelonPlayerInfo> {
+        val playerData = melonLANGetPlayerList()
+        val players = mutableListOf<MelonPlayerInfo>()
+
+        for (data in playerData) {
+            val parts = data.split("|")
+            if (parts.size >= 5) {
+                players.add(
+                    MelonPlayerInfo(
+                        id = parts[0].toIntOrNull() ?: 0,
+                        name = parts[1],
+                        status = parts[2].toIntOrNull() ?: 0,
+                        address = parts[3].toLongOrNull() ?: 0L,
+                        ping = parts[4].toIntOrNull() ?: 0
+                    )
+                )
+            }
+        }
+
+        return players
+    }
+
+    fun refreshMelonDiscoveryListAsync(callback: (List<MelonDiscoveryInfo>) -> Unit) {
+        Thread {
+            val discoveries = getMelonDiscoveryList()
+
+            Handler(Looper.getMainLooper()).post {
+                callback(discoveries)
+            }
+        }.start()
     }
 
     object NetPlayStatus {
