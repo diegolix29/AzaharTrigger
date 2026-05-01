@@ -349,7 +349,7 @@ class SettingsFragmentPresenter(private val fragmentView: SettingsFragmentView) 
                         checkCountryCompatibility()
                     }
                 override val key = IntSetting.EMULATED_REGION.key
-                override val section = null
+                override val section = Settings.SECTION_SYSTEM
                 override val isRuntimeEditable = false
                 override val valueAsString get() = int.toString()
                 override val defaultValue = IntSetting.EMULATED_REGION.defaultValue
