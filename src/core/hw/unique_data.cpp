@@ -353,23 +353,55 @@ SecureInfoA& GetSecureInfoA() {
 LocalFriendCodeSeedB& GetLocalFriendCodeSeedB() {
     LoadLocalFriendCodeSeedB();
 
+	std::string file_path = GetLocalFriendCodeSeedBPath();
+    if (!FileUtil::Exists(file_path)) {
+		if(!Settings::values.enable_required_online_lle_modules.GetValue())
+		{
+			local_friend_code_seed_b.Invalidate();
+		}
+	}
+	
     return local_friend_code_seed_b;
 }
 
 FileSys::Certificate& GetCTCert() {
     LoadOTP();
 
+    std::string file_path = GetOTPPath();
+    if (!FileUtil::Exists(file_path)) {
+		if(!Settings::values.enable_required_online_lle_modules.GetValue())
+		{
+			ct_cert.Invalidate();
+		}
+	}
+	
     return ct_cert;
 }
 
 FileSys::OTP& GetOTP() {
     LoadOTP();
 
+    std::string file_path = GetOTPPath();
+    if (!FileUtil::Exists(file_path)) {
+		if(!Settings::values.enable_required_online_lle_modules.GetValue())
+		{
+			otp.Invalidate();
+		}
+	}
+	
     return otp;
 }
 MovableSedFull& GetMovableSed() {
     LoadMovable();
 
+    std::string file_path = GetMovablePath();
+    if (!FileUtil::Exists(file_path)) {
+		if(!Settings::values.enable_required_online_lle_modules.GetValue())
+		{
+			movable.Invalidate();
+		}
+	}
+	
     return movable;
 }
 void InvalidateSecureData() {
