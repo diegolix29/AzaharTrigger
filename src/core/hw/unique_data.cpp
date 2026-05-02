@@ -323,24 +323,28 @@ std::string GetMovablePath() {
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
 
-    const auto current_region = Settings::values.region_value.GetValue();
-    for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-		if(region == 3 && current_region != 3) continue;
-        const auto path = Core::GetHomeMenuNcchPath(region);
-
-        if (!path.empty() && FileUtil::Exists(path)) {
-            secure_info_a.body.region = region;
-
-            if (current_region == static_cast<int>(region)) {
-                break;
-            }
-        } else
-            continue;
-    }
-	
-	if(!Settings::values.enable_required_online_lle_modules.GetValue())
-	{
-		secure_info_a.Invalidate();
+	std::string file_path = GetSecureInfoAPath();
+    if (!FileUtil::Exists(file_path)) {		
+		const auto current_region = Settings::values.region_value.GetValue();
+		for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+			if(region == 3 && current_region != 3) continue;
+			const auto path = Core::GetHomeMenuNcchPath(region);
+			
+			if(!path.empty() && FileUtil::Exists(path))
+			{
+				secure_info_a.body.region = region;
+				
+				if(current_region == static_cast<int>(region))
+				{
+					break;
+				}
+			} else continue;
+		}
+		
+		if(!Settings::values.enable_required_online_lle_modules.GetValue())
+		{
+			secure_info_a.Invalidate();
+		}
 	}
 	
     return secure_info_a;
