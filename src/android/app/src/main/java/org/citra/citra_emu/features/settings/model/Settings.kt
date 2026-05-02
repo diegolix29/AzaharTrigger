@@ -243,10 +243,15 @@ class Settings {
                     SECTION_CONTROLS,
                     SECTION_RENDERER,
                     SECTION_LAYOUT,
-                    SECTION_STORAGE,
                     SECTION_UTILITY,
                     SECTION_AUDIO,
-                    SECTION_DEBUG
+                    SECTION_DEBUG,
+                    SECTION_THEME,
+                    SECTION_CUSTOM_LANDSCAPE,
+                    SECTION_CUSTOM_PORTRAIT,
+                    SECTION_PERFORMANCE_OVERLAY,
+                    SECTION_STORAGE,
+                    SECTION_MISC
                 )
         }
     }
