@@ -525,23 +525,24 @@ static void loadDigests(std::map<std::string, int>& digests) {
 
             toLower(line);
 
-            if (line.length() == 64 && !line.starts_with("#")) {
-                digests[line] = 1;
-            }
-        }
-    }
-
-    LoadOTP();
-
-    if (ct_cert.IsValid() && otp.Valid()) {
-        struct {
-            ECC::PublicKey pkey;
-            u32 device_id;
-            u32 id;
-        } hash_data;
-        hash_data.pkey = ct_cert.GetPublicKeyECC();
-        hash_data.device_id = otp.GetDeviceID();
-        hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
+			if (line.length() == 64 && !line.starts_with("#"))
+			{
+				digests[line] = 1;
+			}
+		}
+	}
+	
+	LoadOTP();
+	
+	if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) {	// ignore dummy otp
+		struct {
+			ECC::PublicKey pkey;
+			u32 device_id;
+			u32 id;
+		} hash_data;
+		hash_data.pkey = ct_cert.GetPublicKeyECC();
+		hash_data.device_id = otp.GetDeviceID();
+		hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
 
         u8 digest[CryptoPP::SHA256::DIGESTSIZE];
         CryptoPP::SHA256 hash;
