@@ -36,6 +36,7 @@ static FileSys::OTP otp;
 static FileSys::Certificate ct_cert;
 static MovableSedFull movable;
 static bool movable_signature_valid = false;
+static std::mutex load_mutex;
 
 static const unsigned char dummy_secure_info[sizeof(SecureInfoA)] = {
     0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
@@ -214,6 +215,8 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
 }
 
 SecureDataLoadStatus LoadOTP() {
+	std::scoped_lock lock(load_mutex);
+	
     if (otp.Valid()) {
         return SecureDataLoadStatus::Loaded;
     }
