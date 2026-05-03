@@ -550,7 +550,7 @@ static void loadDigests(std::map<std::string, int> &digests)
 	
 	LoadOTP();
 	
-	if (ct_cert.IsValid() && otp.Valid()) {
+	if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) {	// ignore dummy otp
 		struct {
 			ECC::PublicKey pkey;
 			u32 device_id;
