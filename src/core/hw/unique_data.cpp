@@ -132,7 +132,9 @@ SecureDataLoadStatus LoadSecureInfoA() {
     }
     std::string file_path = GetSecureInfoAPath();
     if (!FileUtil::Exists(file_path)) {
-        memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
+		if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
+		} else return SecureDataLoadStatus::NotFound;
     } else {
 		FileUtil::IOFile file(file_path, "rb");
 		if (!file.IsOpen()) {
@@ -188,7 +190,9 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
     }
     std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-        memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed, sizeof(dummy_local_friend_code_seed));
+        if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed, sizeof(dummy_local_friend_code_seed));
+		} else return SecureDataLoadStatus::NotFound;
     } else {
 		FileUtil::IOFile file(file_path, "rb");
 		if (!file.IsOpen()) {
@@ -280,7 +284,9 @@ SecureDataLoadStatus LoadMovable() {
     }
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-        memcpy(&movable, dummy_movable, sizeof(dummy_movable));
+        if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&movable, dummy_movable, sizeof(dummy_movable));
+		} else return SecureDataLoadStatus::NotFound;
     } else {
 		FileUtil::IOFile file(file_path, "rb");
 		if (!file.IsOpen()) {
@@ -333,26 +339,23 @@ SecureInfoA& GetSecureInfoA() {
 
 	std::string file_path = GetSecureInfoAPath();
     if (!FileUtil::Exists(file_path)) {		
-		const auto current_region = Settings::values.region_value.GetValue();
-		for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-			if(region == 3 && current_region != 3) continue;
-			const auto path = Core::GetHomeMenuNcchPath(region);
+		if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	const auto current_region = Settings::values.region_value.GetValue();
+			for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+				if(region == 3 && current_region != 3) continue;
+				const auto path = Core::GetHomeMenuNcchPath(region);
 			
-			if(!path.empty() && FileUtil::Exists(path))
-			{
-				secure_info_a.body.region = region;
-				
-				if(current_region == static_cast<int>(region))
+				if(!path.empty() && FileUtil::Exists(path))
 				{
-					break;
+					secure_info_a.body.region = region;
+				
+					if(current_region == static_cast<int>(region))
+					{
+						break;
+					}
 				}
-			} else continue;
-		}
-		
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			secure_info_a.Invalidate();
-		}
+			}
+		} else secure_info_a.Invalidate();
 	}
 	
     return secure_info_a;
