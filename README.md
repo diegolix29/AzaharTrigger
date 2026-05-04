@@ -18,7 +18,7 @@ The Azahar logo is the property of PabloMK7 and angyartanddraw
 
 # Installation
 
-### Windows
+### Windows / Linux
 
 Download the latest release from [Releases](https://github.com/AzaharPlus/AzaharPlus/releases).
 
@@ -35,14 +35,10 @@ You can install the app using Obtainium:
 
 If you wish, you can also simply install the latest APK from the [Releases](https://github.com/AzaharPlus/AzaharPlus/releases) page.
 
----
-### Linux
-
-It is available as an AppImage on the [Releases](https://github.com/AzaharPlus/AzaharPlus/releases) page.
-
 # ZipPass
 
-ZipPass allows you to share StreetPass data in the form of zip files.
+ZipPass allows you to share StreetPass data in the form of zip files.<br>
+On desktop it is in File > ZipPass. On android it is in the main menu.
 
 - It can only be used when no game is running.
 - It requires system files and LLE modules enabled.
