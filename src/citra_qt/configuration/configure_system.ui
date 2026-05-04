@@ -766,6 +766,16 @@ installed applications.</string>
               </layout>
              </widget>
             </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QPushButton" name="button_generate_synthetic_data">
+              <property name="text">
+               <string>Generate Synthetic Console Data</string>
+              </property>
+              <property name="toolTip">
+               <string>Generate synthetic console identity data (OTP, SecureInfo_A, LocalFriendCodeSeed_B) from AES keys</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

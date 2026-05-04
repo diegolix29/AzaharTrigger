@@ -282,6 +282,8 @@ ConfigureSystem::ConfigureSystem(Core::System& system_, QWidget* parent)
         ui->button_movable->setEnabled(true);
         InstallSecureData(file_path_qtstr.toStdString(), HW::UniqueData::GetMovablePath());
     });
+    connect(ui->button_generate_synthetic_data, &QPushButton::clicked, this,
+            &ConfigureSystem::GenerateSyntheticData);
 
     for (u8 i = 0; i < country_names.size(); i++) {
         if (std::strcmp(country_names.at(i), "") != 0) {
@@ -767,4 +769,42 @@ void ConfigureSystem::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(
         ui->region_combobox, ui->region_label,
         static_cast<u32>(Settings::values.region_value.GetValue(true) + 1));
+}
+
+void ConfigureSystem::GenerateSyntheticData() {
+    ui->button_generate_synthetic_data->setEnabled(false);
+    
+    QMessageBox::StandardButton reply;
+    QString warning_text =
+        tr("This will generate synthetic console identity data (OTP, SecureInfo_A, LocalFriendCodeSeed_B) "
+           "from your AES keys. This is useful if you don't have access to a real console. "
+           "Any existing console data will be replaced. Continue?");
+    reply = QMessageBox::warning(this, tr("Warning"), warning_text, QMessageBox::No | QMessageBox::Yes);
+    
+    if (reply == QMessageBox::No) {
+        ui->button_generate_synthetic_data->setEnabled(true);
+        return;
+    }
+
+    // Get the current region from the UI
+    u8 region = static_cast<u8>(ui->region_combobox->currentIndex() - 1);
+    if (region > HW::UniqueData::Region::TWN) {
+        region = HW::UniqueData::Region::USA; // Default to USA if invalid
+    }
+
+    std::string error_message;
+    bool success = HW::UniqueData::GenerateSyntheticConsoleData(region, "", error_message);
+    
+    if (success) {
+        QMessageBox::information(this, tr("Success"), 
+                               tr("Synthetic console data generated successfully!"));
+    } else {
+        QMessageBox::critical(this, tr("Error"), 
+                             tr("Failed to generate synthetic console data:\n%1")
+                             .arg(QString::fromStdString(error_message)));
+    }
+    
+    // Refresh the secure data status to show the new state
+    RefreshSecureDataStatus();
+    ui->button_generate_synthetic_data->setEnabled(true);
 }
