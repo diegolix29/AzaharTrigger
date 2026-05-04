@@ -773,14 +773,16 @@ void ConfigureSystem::SetupPerGameUI() {
 
 void ConfigureSystem::GenerateSyntheticData() {
     ui->button_generate_synthetic_data->setEnabled(false);
-    
+
     QMessageBox::StandardButton reply;
     QString warning_text =
-        tr("This will generate synthetic console identity data (OTP, SecureInfo_A, LocalFriendCodeSeed_B) "
+        tr("This will generate synthetic console identity data (OTP, SecureInfo_A, "
+           "LocalFriendCodeSeed_B) "
            "from your AES keys. This is useful if you don't have access to a real console. "
            "Any existing console data will be replaced. Continue?");
-    reply = QMessageBox::warning(this, tr("Warning"), warning_text, QMessageBox::No | QMessageBox::Yes);
-    
+    reply =
+        QMessageBox::warning(this, tr("Warning"), warning_text, QMessageBox::No | QMessageBox::Yes);
+
     if (reply == QMessageBox::No) {
         ui->button_generate_synthetic_data->setEnabled(true);
         return;
@@ -794,16 +796,16 @@ void ConfigureSystem::GenerateSyntheticData() {
 
     std::string error_message;
     bool success = HW::UniqueData::GenerateSyntheticConsoleData(region, "", error_message);
-    
+
     if (success) {
-        QMessageBox::information(this, tr("Success"), 
-                               tr("Synthetic console data generated successfully!"));
+        QMessageBox::information(this, tr("Success"),
+                                 tr("Synthetic console data generated successfully!"));
     } else {
-        QMessageBox::critical(this, tr("Error"), 
-                             tr("Failed to generate synthetic console data:\n%1")
-                             .arg(QString::fromStdString(error_message)));
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Failed to generate synthetic console data:\n%1")
+                                  .arg(QString::fromStdString(error_message)));
     }
-    
+
     // Refresh the secure data status to show the new state
     RefreshSecureDataStatus();
     ui->button_generate_synthetic_data->setEnabled(true);

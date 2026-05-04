@@ -215,8 +215,8 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
 }
 
 SecureDataLoadStatus LoadOTP() {
-	std::scoped_lock lock(load_mutex);
-	
+    std::scoped_lock lock(load_mutex);
+
     if (otp.Valid()) {
         return SecureDataLoadStatus::Loaded;
     }
@@ -326,44 +326,42 @@ std::string GetMovablePath() {
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
 
-	std::string file_path = GetSecureInfoAPath();
-    if (!FileUtil::Exists(file_path)) {		
-		const auto current_region = Settings::values.region_value.GetValue();
-		for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-			if(region == 3 && current_region != 3) continue;
-			const auto path = Core::GetHomeMenuNcchPath(region);
-			
-			if(!path.empty() && FileUtil::Exists(path))
-			{
-				secure_info_a.body.region = region;
-				
-				if(current_region == static_cast<int>(region))
-				{
-					break;
-				}
-			} else continue;
-		}
-		
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			secure_info_a.Invalidate();
-		}
-	}
-	
+    std::string file_path = GetSecureInfoAPath();
+    if (!FileUtil::Exists(file_path)) {
+        const auto current_region = Settings::values.region_value.GetValue();
+        for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+            if (region == 3 && current_region != 3)
+                continue;
+            const auto path = Core::GetHomeMenuNcchPath(region);
+
+            if (!path.empty() && FileUtil::Exists(path)) {
+                secure_info_a.body.region = region;
+
+                if (current_region == static_cast<int>(region)) {
+                    break;
+                }
+            } else
+                continue;
+        }
+
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            secure_info_a.Invalidate();
+        }
+    }
+
     return secure_info_a;
 }
 
 LocalFriendCodeSeedB& GetLocalFriendCodeSeedB() {
     LoadLocalFriendCodeSeedB();
 
-	std::string file_path = GetLocalFriendCodeSeedBPath();
+    std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			local_friend_code_seed_b.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            local_friend_code_seed_b.Invalidate();
+        }
+    }
+
     return local_friend_code_seed_b;
 }
 
@@ -372,12 +370,11 @@ FileSys::Certificate& GetCTCert() {
 
     std::string file_path = GetOTPPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			ct_cert.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            ct_cert.Invalidate();
+        }
+    }
+
     return ct_cert;
 }
 
@@ -386,12 +383,11 @@ FileSys::OTP& GetOTP() {
 
     std::string file_path = GetOTPPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			otp.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            otp.Invalidate();
+        }
+    }
+
     return otp;
 }
 MovableSedFull& GetMovableSed() {
@@ -399,12 +395,11 @@ MovableSedFull& GetMovableSed() {
 
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			movable.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            movable.Invalidate();
+        }
+    }
+
     return movable;
 }
 void InvalidateSecureData() {
@@ -528,24 +523,23 @@ static void loadDigests(std::map<std::string, int>& digests) {
 
             toLower(line);
 
-			if (line.length() == 64 && !line.starts_with("#"))
-			{
-				digests[line] = 1;
-			}
-		}
-	}
-	
-	LoadOTP();
-	
-	if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) {	// ignore dummy otp
-		struct {
-			ECC::PublicKey pkey;
-			u32 device_id;
-			u32 id;
-		} hash_data;
-		hash_data.pkey = ct_cert.GetPublicKeyECC();
-		hash_data.device_id = otp.GetDeviceID();
-		hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
+            if (line.length() == 64 && !line.starts_with("#")) {
+                digests[line] = 1;
+            }
+        }
+    }
+
+    LoadOTP();
+
+    if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) { // ignore dummy otp
+        struct {
+            ECC::PublicKey pkey;
+            u32 device_id;
+            u32 id;
+        } hash_data;
+        hash_data.pkey = ct_cert.GetPublicKeyECC();
+        hash_data.device_id = otp.GetDeviceID();
+        hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
 
         u8 digest[CryptoPP::SHA256::DIGESTSIZE];
         CryptoPP::SHA256 hash;
