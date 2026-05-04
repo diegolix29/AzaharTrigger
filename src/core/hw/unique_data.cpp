@@ -416,11 +416,11 @@ MovableSedFull& GetMovableSed() {
     return movable;
 }
 void InvalidateSecureData() {
-/*    secure_info_a.Invalidate();
+    secure_info_a.Invalidate();
     local_friend_code_seed_b.Invalidate();
     otp.Invalidate();
     ct_cert.Invalidate();
-    movable.Invalidate();*/
+    movable.Invalidate();
 }
 
 static std::string binToHex(u8 bin[])
