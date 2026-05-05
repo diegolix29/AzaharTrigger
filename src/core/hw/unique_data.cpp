@@ -131,20 +131,23 @@ SecureDataLoadStatus LoadSecureInfoA() {
     }
     std::string file_path = GetSecureInfoAPath();
     if (!FileUtil::Exists(file_path)) {
-        return SecureDataLoadStatus::NotFound;
-    }
-    FileUtil::IOFile file(file_path, "rb");
-    if (!file.IsOpen()) {
-        return SecureDataLoadStatus::IOError;
-    }
-    if (file.GetSize() != sizeof(SecureInfoA)) {
-        return SecureDataLoadStatus::Invalid;
-    }
-    if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
-        secure_info_a.Invalidate();
-        return SecureDataLoadStatus::IOError;
-    }
-
+		if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
+		} else return SecureDataLoadStatus::NotFound;
+    } else {
+		FileUtil::IOFile file(file_path, "rb");
+		if (!file.IsOpen()) {
+			return SecureDataLoadStatus::IOError;
+		}
+		if (file.GetSize() != sizeof(SecureInfoA)) {
+			return SecureDataLoadStatus::Invalid;
+		}
+		if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
+			secure_info_a.Invalidate();
+			return SecureDataLoadStatus::IOError;
+		}
+	}
+	
     secure_info_a_region_changed = false;
     HW::AES::InitKeys();
     if (!HW::RSA::GetSecureInfoSlot()) {
@@ -186,20 +189,23 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
     }
     std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-        return SecureDataLoadStatus::NotFound;
-    }
-    FileUtil::IOFile file(file_path, "rb");
-    if (!file.IsOpen()) {
-        return SecureDataLoadStatus::IOError;
-    }
-    if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
-        return SecureDataLoadStatus::Invalid;
-    }
-    if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
-        sizeof(LocalFriendCodeSeedB)) {
-        local_friend_code_seed_b.Invalidate();
-        return SecureDataLoadStatus::IOError;
-    }
+        if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed, sizeof(dummy_local_friend_code_seed));
+		} else return SecureDataLoadStatus::NotFound;
+    } else {
+		FileUtil::IOFile file(file_path, "rb");
+		if (!file.IsOpen()) {
+			return SecureDataLoadStatus::IOError;
+		}
+		if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
+			return SecureDataLoadStatus::Invalid;
+		}
+		if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
+			sizeof(LocalFriendCodeSeedB)) {
+			local_friend_code_seed_b.Invalidate();
+			return SecureDataLoadStatus::IOError;
+		}
+	}
 
     HW::AES::InitKeys();
     if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
@@ -276,12 +282,14 @@ SecureDataLoadStatus LoadMovable() {
     }
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-        memcpy(&movable, dummy_movable, sizeof(dummy_movable));
-    }
-    FileUtil::IOFile file(file_path, "rb");
-    if (!file.IsOpen()) {
-        return SecureDataLoadStatus::IOError;
-    }
+        if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	memcpy(&movable, dummy_movable, sizeof(dummy_movable));
+		} else return SecureDataLoadStatus::NotFound;
+    } else {
+		FileUtil::IOFile file(file_path, "rb");
+		if (!file.IsOpen()) {
+			return SecureDataLoadStatus::IOError;
+		}
 
     std::size_t size = file.GetSize();
     if (size != sizeof(MovableSedFull) && size != sizeof(MovableSed)) {
@@ -326,29 +334,27 @@ std::string GetMovablePath() {
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
 
-    std::string file_path = GetSecureInfoAPath();
-    if (!FileUtil::Exists(file_path)) {
-        const auto current_region = Settings::values.region_value.GetValue();
-        for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-            if (region == 3 && current_region != 3)
-                continue;
-            const auto path = Core::GetHomeMenuNcchPath(region);
-
-            if (!path.empty() && FileUtil::Exists(path)) {
-                secure_info_a.body.region = region;
-
-                if (current_region == static_cast<int>(region)) {
-                    break;
-                }
-            } else
-                continue;
-        }
-
-        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
-            secure_info_a.Invalidate();
-        }
-    }
-
+	std::string file_path = GetSecureInfoAPath();
+    if (!FileUtil::Exists(file_path)) {		
+		if(Settings::values.enable_required_online_lle_modules.GetValue()){
+        	const auto current_region = Settings::values.region_value.GetValue();
+			for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+				if(region == 3 && current_region != 3) continue;
+				const auto path = Core::GetHomeMenuNcchPath(region);
+			
+				if(!path.empty() && FileUtil::Exists(path))
+				{
+					secure_info_a.body.region = region;
+				
+					if(current_region == static_cast<int>(region))
+					{
+						break;
+					}
+				}
+			}
+		} else secure_info_a.Invalidate();
+	}
+	
     return secure_info_a;
 }
 
@@ -403,11 +409,11 @@ MovableSedFull& GetMovableSed() {
     return movable;
 }
 void InvalidateSecureData() {
-    /*    secure_info_a.Invalidate();
-        local_friend_code_seed_b.Invalidate();
-        otp.Invalidate();
-        ct_cert.Invalidate();
-        movable.Invalidate();*/
+    secure_info_a.Invalidate();
+    local_friend_code_seed_b.Invalidate();
+    otp.Invalidate();
+    ct_cert.Invalidate();
+    movable.Invalidate();
 }
 
 static std::string binToHex(u8 bin[]) {
