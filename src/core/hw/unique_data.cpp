@@ -4,7 +4,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -12,8 +16,10 @@
 #include <cryptopp/modes.h>
 #include <cryptopp/osrng.h>
 #include <cryptopp/sha.h>
+#include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/file_sys/archive_systemsavedata.h"
 #include "core/file_sys/certificate.h"
 #include "core/file_sys/ncch_container.h"
@@ -26,6 +32,17 @@
 #include "core/system_titles.h"
 
 namespace HW::UniqueData {
+
+// Forward declarations for static functions
+static std::string binToHex(u8 bin[]);
+static std::array<u8, 32> hexToBin(const std::string& hex);
+static bool isHeaderReadable(NCCH_Header ncch_header);
+static bool testDigest(std::string sdigest, const std::string& filename);
+static void toLower(std::string& str);
+static void saveDigest(std::string digest);
+static void loadDigests(std::map<std::string, int>& digests);
+static std::string findDigest(std::string filename);
+static bool isAppEncrypted(const std::string& path);
 
 static SecureInfoA secure_info_a;
 static bool secure_info_a_signature_valid = false;
@@ -131,23 +148,24 @@ SecureDataLoadStatus LoadSecureInfoA() {
     }
     std::string file_path = GetSecureInfoAPath();
     if (!FileUtil::Exists(file_path)) {
-		if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
-		if (file.GetSize() != sizeof(SecureInfoA)) {
-			return SecureDataLoadStatus::Invalid;
-		}
-		if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
-			secure_info_a.Invalidate();
-			return SecureDataLoadStatus::IOError;
-		}
-	}
-	
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
+        if (file.GetSize() != sizeof(SecureInfoA)) {
+            return SecureDataLoadStatus::Invalid;
+        }
+        if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
+            secure_info_a.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
+    }
+
     secure_info_a_region_changed = false;
     HW::AES::InitKeys();
     if (!HW::RSA::GetSecureInfoSlot()) {
@@ -189,23 +207,25 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
     }
     std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-        if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed, sizeof(dummy_local_friend_code_seed));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed,
+                   sizeof(dummy_local_friend_code_seed));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
-		if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
-			return SecureDataLoadStatus::Invalid;
-		}
-		if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
-			sizeof(LocalFriendCodeSeedB)) {
-			local_friend_code_seed_b.Invalidate();
-			return SecureDataLoadStatus::IOError;
-		}
-	}
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
+        if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
+            return SecureDataLoadStatus::Invalid;
+        }
+        if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
+            sizeof(LocalFriendCodeSeedB)) {
+            local_friend_code_seed_b.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
+    }
 
     HW::AES::InitKeys();
     if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
@@ -282,37 +302,39 @@ SecureDataLoadStatus LoadMovable() {
     }
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-        if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&movable, dummy_movable, sizeof(dummy_movable));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&movable, dummy_movable, sizeof(dummy_movable));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
 
-    std::size_t size = file.GetSize();
-    if (size != sizeof(MovableSedFull) && size != sizeof(MovableSed)) {
-        return SecureDataLoadStatus::Invalid;
-    }
+        std::size_t size = file.GetSize();
+        if (size != sizeof(MovableSedFull) && size != sizeof(MovableSed)) {
+            return SecureDataLoadStatus::Invalid;
+        }
 
-    std::memset(&movable, 0, sizeof(movable));
-    if (file.ReadBytes(&movable, size) != size) {
-        movable.Invalidate();
-        return SecureDataLoadStatus::IOError;
-    }
+        std::memset(&movable, 0, sizeof(movable));
+        if (file.ReadBytes(&movable, size) != size) {
+            movable.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
 
-    HW::AES::InitKeys();
-    if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
-        return SecureDataLoadStatus::CannotValidateSignature;
-    }
-    movable_signature_valid = movable.VerifySignature();
-    if (!movable_signature_valid) {
-        LOG_WARNING(HW, "movable.sed signature check failed");
-    }
+        HW::AES::InitKeys();
+        if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
+            return SecureDataLoadStatus::CannotValidateSignature;
+        }
+        movable_signature_valid = movable.VerifySignature();
+        if (!movable_signature_valid) {
+            LOG_WARNING(HW, "movable.sed signature check failed");
+        }
 
-    return movable_signature_valid ? SecureDataLoadStatus::Loaded
-                                   : SecureDataLoadStatus::InvalidSignature;
+        return movable_signature_valid ? SecureDataLoadStatus::Loaded
+                                       : SecureDataLoadStatus::InvalidSignature;
+    }
 }
 
 std::string GetSecureInfoAPath() {
@@ -334,27 +356,27 @@ std::string GetMovablePath() {
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
 
-	std::string file_path = GetSecureInfoAPath();
-    if (!FileUtil::Exists(file_path)) {		
-		if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	const auto current_region = Settings::values.region_value.GetValue();
-			for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-				if(region == 3 && current_region != 3) continue;
-				const auto path = Core::GetHomeMenuNcchPath(region);
-			
-				if(!path.empty() && FileUtil::Exists(path))
-				{
-					secure_info_a.body.region = region;
-				
-					if(current_region == static_cast<int>(region))
-					{
-						break;
-					}
-				}
-			}
-		} else secure_info_a.Invalidate();
-	}
-	
+    std::string file_path = GetSecureInfoAPath();
+    if (!FileUtil::Exists(file_path)) {
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            const auto current_region = Settings::values.region_value.GetValue();
+            for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+                if (region == 3 && current_region != 3)
+                    continue;
+                const auto path = Core::GetHomeMenuNcchPath(region);
+
+                if (!path.empty() && FileUtil::Exists(path)) {
+                    secure_info_a.body.region = region;
+
+                    if (current_region == static_cast<int>(region)) {
+                        break;
+                    }
+                }
+            }
+        } else
+            secure_info_a.Invalidate();
+    }
+
     return secure_info_a;
 }
 
@@ -523,13 +545,13 @@ static void loadDigests(std::map<std::string, int>& digests) {
             std::string line;
             std::getline(file, line);
 
-            if (line.ends_with("\r")) {
+            if (line.length() > 0 && line.back() == '\r') {
                 line.pop_back();
             }
 
             toLower(line);
 
-            if (line.length() == 64 && !line.starts_with("#")) {
+            if (line.length() == 64 && !(line.length() > 0 && line[0] == '#')) {
                 digests[line] = 1;
             }
         }
@@ -807,7 +829,7 @@ std::vector<std::string> GetAppFilepaths() {
     for (size_t i = 0; i < files.size(); i++) {
         std::string file = files[i].physicalName;
 
-        if (file.ends_with(".app") && isAppEncrypted(file)) {
+        if (file.length() > 4 && file.substr(file.length() - 4) == ".app" && isAppEncrypted(file)) {
             ret.push_back(file);
         }
     }
@@ -826,7 +848,7 @@ int RevertEncryptionRemoval() {
     for (size_t i = 0; i < files.size(); i++) {
         std::string file = files[i].physicalName;
 
-        if (file.ends_with(".app.encrypted")) {
+        if (file.length() > 15 && file.substr(file.length() - 15) == ".app.encrypted") {
             std::string shortName =
                 file.substr(0, file.length() - std::string(".encrypted").length());
 
@@ -839,7 +861,7 @@ int RevertEncryptionRemoval() {
                     res++;
                 }
             }
-        } else if (file.ends_with(".app.decrypted")) {
+        } else if (file.length() > 15 && file.substr(file.length() - 15) == ".app.decrypted") {
             std::string shortName =
                 file.substr(0, file.length() - std::string(".decrypted").length());
 
