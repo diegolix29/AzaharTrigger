@@ -4069,8 +4069,8 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
 }
 
 void GMainWindow::OnMenuLibzipLicence() {
-    QMessageBox::information(this, tr("libzip licence"), tr(
-"Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner\n\
+    QMessageBox::information(this, tr("libzip licence"),
+                             tr("Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner\n\
 \n\
 The authors can be contacted at <info@libzip.org>\n\
 \n\

@@ -7,9 +7,9 @@
 #include <cryptopp/sha.h>
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/file_sys/otp.h"
 #include "core/loader/loader.h"
-#include "common/settings.h"
 
 namespace FileSys {
 
@@ -37,14 +37,15 @@ Loader::ResultStatus OTP::Load(const std::string& file_path, std::span<const u8>
 
     FileUtil::IOFile file(file_path, "rb");
     if (!file.IsOpen()) {
-        if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&temp_otp, dummy_otp, sizeof(dummy_otp));
-		} else return Loader::ResultStatus::ErrorNotFound;
-	} else {
-		if (file.GetSize() != sizeof(OTPBin)) {
-			LOG_ERROR(HW_AES, "Invalid OTP size");
-			return Loader::ResultStatus::Error;
-		}
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&temp_otp, dummy_otp, sizeof(dummy_otp));
+        } else
+            return Loader::ResultStatus::ErrorNotFound;
+    } else {
+        if (file.GetSize() != sizeof(OTPBin)) {
+            LOG_ERROR(HW_AES, "Invalid OTP size");
+            return Loader::ResultStatus::Error;
+        }
 
         if (file.ReadBytes(&temp_otp, sizeof(OTPBin)) != sizeof(OTPBin)) {
             return Loader::ResultStatus::Error;

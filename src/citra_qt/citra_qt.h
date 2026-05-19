@@ -258,7 +258,7 @@ private slots:
     void OnMenuConnectArticBase();
     void OnMenuRemoveAzaharEncryption();
     void OnMenuRevertEncryptionRemoval();
-	void OnMenuLibzipLicence();
+    void OnMenuLibzipLicence();
     void OnDownloadSystemFilesMenu(u32 region);
     void OnMenuBootHomeMenu(u32 region);
     void OnUpdateProgress(std::size_t written, std::size_t total);
