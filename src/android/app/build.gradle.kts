@@ -24,12 +24,11 @@ val abiFilter = listOf("arm64-v8a", "x86_64")
 
 val downloadedJniLibsPath = "${layout.buildDirectory.get().asFile.path}/downloadedJniLibs"
 
-@Suppress("UnstableApiUsage")
 android {
     namespace = "org.citra.citra_emu"
 
     compileSdkVersion = "android-35"
-    ndkVersion = "27.1.12297006"
+    ndkVersion = "27.3.13750724"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -84,7 +83,8 @@ android {
                     "-DCMAKE_CXX_SCAN_FOR_MODULES=OFF", // Disable C++20 modules for old Ninja version
                     "-DALSOFT_ENABLE_MODULES=OFF", // Disable C++20 modules in openal-soft
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
-                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON" // Support Android 15 16KiB page sizes
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON", // Support Android 15 16KiB page sizes
+                    "-DENABLE_GDBSTUB=OFF", // Disable GDB stub
                 )
             }
         }
