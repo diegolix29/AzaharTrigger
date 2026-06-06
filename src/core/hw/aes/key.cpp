@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -38,8 +38,9 @@ namespace {
 // calculating the constant is a software implementation of what the hardware generator does.
 AESKey generator_constant;
 
-//constexpr AESKey generator_constant = {{0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08, 0x02, 0x45,
-//                                        0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A}};
+// constexpr AESKey generator_constant = {{0x1F, 0xF9, 0xE9, 0xAA, 0xC5, 0xFE, 0x04, 0x08, 0x02,
+// 0x45,
+//                                         0x91, 0xDC, 0x5D, 0x52, 0x76, 0x8A}};
 
 AESKey HexToKey(const std::string& hex) {
     if (hex.size() < 32) {
@@ -232,8 +233,8 @@ void LoadPresetKeys() {
     while (!s.eof()) {
         std::string line;
         std::getline(s, line);
-		
-	//	LOG_ERROR(HW_AES, "Dump key '{}'", line);
+
+        //	LOG_ERROR(HW_AES, "Dump key '{}'", line);
 
         // Ignore empty or commented lines.
         if (line.empty() || line.starts_with("#")) {
@@ -622,7 +623,7 @@ void InitKeys(bool force) {
     initialized = true;
     HW::RSA::InitSlots();
     LoadBootromKeys();
-	generator_constant = HexToKey("1ff9e9aac5fe0408024591dc5d52768a");
+    generator_constant = HexToKey("1ff9e9aac5fe0408024591dc5d52768a");
     LoadPresetKeys();
     LoadPresetAesKeys();
     movable_key.SetKeyX(key_slots[0x35].x);

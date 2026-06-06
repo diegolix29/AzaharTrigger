@@ -206,12 +206,13 @@ static bool AttemptLLE(const ServiceModuleInfo& service_module, u64 loading_titl
     if (!Settings::values.lle_modules.at(service_module.name) &&
         (!enable_recommended_lle_modules || !service_module.is_online_recommended))
         return false;
-	
-	if(!HW::UniqueData::IsFullConsoleLinked()){
-		LOG_ERROR(Service, "Service module \"{}\" ignored because !IsFullConsoleLinked()", service_module.name);
-		return false;
-	}
-	
+
+    if (!HW::UniqueData::IsFullConsoleLinked()) {
+        LOG_ERROR(Service, "Service module \"{}\" ignored because !IsFullConsoleLinked()",
+                  service_module.name);
+        return false;
+    }
+
     std::unique_ptr<Loader::AppLoader> loader =
         Loader::GetLoader(AM::GetTitleContentPath(FS::MediaType::NAND, service_module.title_id));
     if (!loader) {

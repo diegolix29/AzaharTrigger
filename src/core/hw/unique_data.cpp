@@ -1,12 +1,25 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
+#include <map>
+#include <mutex>
+#include <sstream>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <cryptopp/aes.h>
+#include <cryptopp/modes.h>
+#include <cryptopp/osrng.h>
 #include <cryptopp/sha.h>
+#include <fmt/format.h>
 #include "common/common_paths.h"
 #include "common/logging/log.h"
+#include "common/settings.h"
 #include "core/file_sys/archive_systemsavedata.h"
 #include "core/file_sys/certificate.h"
 #include "core/file_sys/ncch_container.h"
@@ -16,13 +29,20 @@
 #include "core/hw/rsa/rsa.h"
 #include "core/hw/unique_data.h"
 #include "core/loader/loader.h"
-#include <map>
-#include <sstream>
-#include <boost/iostreams/device/file_descriptor.hpp>
-#include <boost/iostreams/stream.hpp>
 #include "core/system_titles.h"
 
 namespace HW::UniqueData {
+
+// Forward declarations for static functions
+static std::string binToHex(u8 bin[]);
+static std::array<u8, 32> hexToBin(const std::string& hex);
+static bool isHeaderReadable(NCCH_Header ncch_header);
+static bool testDigest(std::string sdigest, const std::string& filename);
+static void toLower(std::string& str);
+static void saveDigest(std::string digest);
+static void loadDigests(std::map<std::string, int>& digests);
+static std::string findDigest(std::string filename);
+static bool isAppEncrypted(const std::string& path);
 
 static SecureInfoA secure_info_a;
 static bool secure_info_a_signature_valid = false;
@@ -36,68 +56,64 @@ static bool movable_signature_valid = false;
 static std::mutex load_mutex;
 
 static const unsigned char dummy_secure_info[sizeof(SecureInfoA)] = {
-	0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x02, 0x00, 0x41, 0x42, 0x43, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x00, 0x00, 0x00, 
-	0x00
-};
+    0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x05, 0x00, 0x6F, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
+    0x31, 0x32, 0x33, 0x34, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x02, 0x00, 0x41, 0x42, 0x43, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x00, 0x00, 0x00,
+    0x00};
 
 static const unsigned char dummy_local_friend_code_seed[sizeof(LocalFriendCodeSeedB)] = {
-	0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00
-};
+    0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31, 0x32, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 static const unsigned char dummy_movable[sizeof(MovableSedFull)] = {
-	0x53, 0x45, 0x45, 0x44, 0x00, 0x01, 0x00, 0x00, 0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
-	0x31, 0x32, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 
-	0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 
-	0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D
-};
+    0x53, 0x45, 0x45, 0x44, 0x00, 0x01, 0x00, 0x00, 0x44, 0x55, 0x4D, 0x4D, 0x59, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x31,
+    0x32, 0x33, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2B,
+    0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2B, 0x2D,
+    0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D, 0x2D};
 
 bool SecureInfoA::VerifySignature() const {
     return true;
@@ -116,7 +132,7 @@ bool LocalFriendCodeSeedB::VerifySignature() const {
 }
 
 bool MovableSed::VerifySignature() const {
-	return true;
+    return true;
     return lfcs.VerifySignature();
 }
 
@@ -132,23 +148,24 @@ SecureDataLoadStatus LoadSecureInfoA() {
     }
     std::string file_path = GetSecureInfoAPath();
     if (!FileUtil::Exists(file_path)) {
-		if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&secure_info_a, dummy_secure_info, sizeof(dummy_secure_info));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
-		if (file.GetSize() != sizeof(SecureInfoA)) {
-			return SecureDataLoadStatus::Invalid;
-		}
-		if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
-			secure_info_a.Invalidate();
-			return SecureDataLoadStatus::IOError;
-		}
-	}
-	
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
+        if (file.GetSize() != sizeof(SecureInfoA)) {
+            return SecureDataLoadStatus::Invalid;
+        }
+        if (file.ReadBytes(&secure_info_a, sizeof(SecureInfoA)) != sizeof(SecureInfoA)) {
+            secure_info_a.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
+    }
+
     secure_info_a_region_changed = false;
     HW::AES::InitKeys();
     if (!HW::RSA::GetSecureInfoSlot()) {
@@ -190,23 +207,25 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
     }
     std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-        if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed, sizeof(dummy_local_friend_code_seed));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&local_friend_code_seed_b, dummy_local_friend_code_seed,
+                   sizeof(dummy_local_friend_code_seed));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
-		if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
-			return SecureDataLoadStatus::Invalid;
-		}
-		if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
-			sizeof(LocalFriendCodeSeedB)) {
-			local_friend_code_seed_b.Invalidate();
-			return SecureDataLoadStatus::IOError;
-		}
-	}
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
+        if (file.GetSize() != sizeof(LocalFriendCodeSeedB)) {
+            return SecureDataLoadStatus::Invalid;
+        }
+        if (file.ReadBytes(&local_friend_code_seed_b, sizeof(LocalFriendCodeSeedB)) !=
+            sizeof(LocalFriendCodeSeedB)) {
+            local_friend_code_seed_b.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
+    }
 
     HW::AES::InitKeys();
     if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
@@ -222,8 +241,8 @@ SecureDataLoadStatus LoadLocalFriendCodeSeedB() {
 }
 
 SecureDataLoadStatus LoadOTP() {
-	std::scoped_lock lock(load_mutex);
-	
+    std::scoped_lock lock(load_mutex);
+
     if (otp.Valid()) {
         return SecureDataLoadStatus::Loaded;
     }
@@ -264,11 +283,10 @@ SecureDataLoadStatus LoadOTP() {
                      HW::ECC::CreateECCPrivateKey(otp.GetCTCertPrivateKey(), true),
                      HW::ECC::CreateECCSignature(otp.GetCTCertSignature()));
 
+    // Bypass CTCert verification to prevent crashes
     if (!ct_cert.VerifyMyself(HW::ECC::GetRootPublicKey())) {
-        LOG_ERROR(HW, "CTCert failed verification");
-    //    otp.Invalidate();
-    //    ct_cert.Invalidate();
-    //    return SecureDataLoadStatus::IOError;
+        LOG_WARNING(HW, "CTCert verification bypassed");
+        // Continue despite verification failure
     }
 
     return SecureDataLoadStatus::Loaded;
@@ -284,38 +302,39 @@ SecureDataLoadStatus LoadMovable() {
     }
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-        if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	memcpy(&movable, dummy_movable, sizeof(dummy_movable));
-		} else return SecureDataLoadStatus::NotFound;
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            memcpy(&movable, dummy_movable, sizeof(dummy_movable));
+        } else
+            return SecureDataLoadStatus::NotFound;
     } else {
-		FileUtil::IOFile file(file_path, "rb");
-		if (!file.IsOpen()) {
-			return SecureDataLoadStatus::IOError;
-		}
+        FileUtil::IOFile file(file_path, "rb");
+        if (!file.IsOpen()) {
+            return SecureDataLoadStatus::IOError;
+        }
 
-		std::size_t size = file.GetSize();
-		if (size != sizeof(MovableSedFull) && size != sizeof(MovableSed)) {
-			return SecureDataLoadStatus::Invalid;
-		}
+        std::size_t size = file.GetSize();
+        if (size != sizeof(MovableSedFull) && size != sizeof(MovableSed)) {
+            return SecureDataLoadStatus::Invalid;
+        }
 
-		std::memset(&movable, 0, sizeof(movable));
-		if (file.ReadBytes(&movable, size) != size) {
-			movable.Invalidate();
-			return SecureDataLoadStatus::IOError;
-		}
-	}
+        std::memset(&movable, 0, sizeof(movable));
+        if (file.ReadBytes(&movable, size) != size) {
+            movable.Invalidate();
+            return SecureDataLoadStatus::IOError;
+        }
 
-    HW::AES::InitKeys();
-    if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
-        return SecureDataLoadStatus::CannotValidateSignature;
+        HW::AES::InitKeys();
+        if (!HW::RSA::GetLocalFriendCodeSeedSlot()) {
+            return SecureDataLoadStatus::CannotValidateSignature;
+        }
+        movable_signature_valid = movable.VerifySignature();
+        if (!movable_signature_valid) {
+            LOG_WARNING(HW, "movable.sed signature check failed");
+        }
+
+        return movable_signature_valid ? SecureDataLoadStatus::Loaded
+                                       : SecureDataLoadStatus::InvalidSignature;
     }
-    movable_signature_valid = movable.VerifySignature();
-    if (!movable_signature_valid) {
-        LOG_WARNING(HW, "movable.sed signature check failed");
-    }
-
-    return movable_signature_valid ? SecureDataLoadStatus::Loaded
-                                   : SecureDataLoadStatus::InvalidSignature;
 }
 
 std::string GetSecureInfoAPath() {
@@ -337,41 +356,40 @@ std::string GetMovablePath() {
 SecureInfoA& GetSecureInfoA() {
     LoadSecureInfoA();
 
-	std::string file_path = GetSecureInfoAPath();
-    if (!FileUtil::Exists(file_path)) {		
-		if(Settings::values.enable_required_online_lle_modules.GetValue()){
-        	const auto current_region = Settings::values.region_value.GetValue();
-			for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
-				if(region == 3 && current_region != 3) continue;
-				const auto path = Core::GetHomeMenuNcchPath(region);
-			
-				if(!path.empty() && FileUtil::Exists(path))
-				{
-					secure_info_a.body.region = region;
-				
-					if(current_region == static_cast<int>(region))
-					{
-						break;
-					}
-				}
-			}
-		} else secure_info_a.Invalidate();
-	}
-	
+    std::string file_path = GetSecureInfoAPath();
+    if (!FileUtil::Exists(file_path)) {
+        if (Settings::values.enable_required_online_lle_modules.GetValue()) {
+            const auto current_region = Settings::values.region_value.GetValue();
+            for (u32 region = 0; region < Core::NUM_SYSTEM_TITLE_REGIONS; region++) {
+                if (region == 3 && current_region != 3)
+                    continue;
+                const auto path = Core::GetHomeMenuNcchPath(region);
+
+                if (!path.empty() && FileUtil::Exists(path)) {
+                    secure_info_a.body.region = region;
+
+                    if (current_region == static_cast<int>(region)) {
+                        break;
+                    }
+                }
+            }
+        } else
+            secure_info_a.Invalidate();
+    }
+
     return secure_info_a;
 }
 
 LocalFriendCodeSeedB& GetLocalFriendCodeSeedB() {
     LoadLocalFriendCodeSeedB();
 
-	std::string file_path = GetLocalFriendCodeSeedBPath();
+    std::string file_path = GetLocalFriendCodeSeedBPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			local_friend_code_seed_b.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            local_friend_code_seed_b.Invalidate();
+        }
+    }
+
     return local_friend_code_seed_b;
 }
 
@@ -380,12 +398,11 @@ FileSys::Certificate& GetCTCert() {
 
     std::string file_path = GetOTPPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			ct_cert.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            ct_cert.Invalidate();
+        }
+    }
+
     return ct_cert;
 }
 
@@ -394,12 +411,11 @@ FileSys::OTP& GetOTP() {
 
     std::string file_path = GetOTPPath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			otp.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            otp.Invalidate();
+        }
+    }
+
     return otp;
 }
 MovableSedFull& GetMovableSed() {
@@ -407,12 +423,11 @@ MovableSedFull& GetMovableSed() {
 
     std::string file_path = GetMovablePath();
     if (!FileUtil::Exists(file_path)) {
-		if(!Settings::values.enable_required_online_lle_modules.GetValue())
-		{
-			movable.Invalidate();
-		}
-	}
-	
+        if (!Settings::values.enable_required_online_lle_modules.GetValue()) {
+            movable.Invalidate();
+        }
+    }
+
     return movable;
 }
 void InvalidateSecureData() {
@@ -423,17 +438,15 @@ void InvalidateSecureData() {
     movable.Invalidate();
 }
 
-static std::string binToHex(u8 bin[])
-{
-	std::string res = "";
-	
-	for(int i=0; i<32; i++)
-	{
-		std::string s = fmt::format("{:02x}", bin[i]);
-		res += s;
-	}
-	
-	return res;
+static std::string binToHex(u8 bin[]) {
+    std::string res = "";
+
+    for (int i = 0; i < 32; i++) {
+        std::string s = fmt::format("{:02x}", bin[i]);
+        res += s;
+    }
+
+    return res;
 }
 
 static std::array<u8, 32> hexToBin(const std::string& hex) {
@@ -441,361 +454,484 @@ static std::array<u8, 32> hexToBin(const std::string& hex) {
 
     for (unsigned int i = 0; i < hex.length(); i += 2) {
         std::string byteString = hex.substr(i, 2);
-        bytes[i/2] = static_cast<u8>(std::strtol(byteString.c_str(), nullptr, 16));
+        bytes[i / 2] = static_cast<u8>(std::strtol(byteString.c_str(), nullptr, 16));
     }
-	
+
     return bytes;
 }
 
-static bool isHeaderReadable(NCCH_Header ncch_header)
-{
-	bool ret = true;
-	
-	if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic
-	&&  Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic
-	&&  memcmp("NDHT", ncch_header.signature, 4) != 0
-	&&  memcmp("dlplay", ncch_header.signature, 6) != 0
-	&&  memcmp("NARC", ncch_header.signature + 128, 4) != 0
-	&&  memcmp("DS INTERNET", ncch_header.signature, 11) != 0)
-	{
-		ret = false;
-	}
-	
-	return ret;
+static bool isHeaderReadable(NCCH_Header ncch_header) {
+    bool ret = true;
+
+    if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic &&
+        Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic &&
+        memcmp("NDHT", ncch_header.signature, 4) != 0 &&
+        memcmp("dlplay", ncch_header.signature, 6) != 0 &&
+        memcmp("NARC", ncch_header.signature + 128, 4) != 0 &&
+        memcmp("DS INTERNET", ncch_header.signature, 11) != 0) {
+        ret = false;
+    }
+
+    return ret;
 }
 
-static bool testDigest(std::string sdigest, const std::string& filename)
-{
-	u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-	memcpy(digest, hexToBin(sdigest).data(), 32);
+static bool testDigest(std::string sdigest, const std::string& filename) {
+    u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+    memcpy(digest, hexToBin(sdigest).data(), 32);
 
-	std::vector<u8> key(0x10);
+    std::vector<u8> key(0x10);
     std::vector<u8> ctr(0x10);
     memcpy(key.data(), digest, 0x10);
     memcpy(ctr.data(), digest + 0x10, 12);
 
     FileUtil::CryptoIOFile file(filename, "rb", key, ctr, 0);
-	
-	if (!file.IsOpen()) {
-		return false;
-	}
 
-	NCCH_Header ncch_header;
-	
-	if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
-		return false;
-	}
+    if (!file.IsOpen()) {
+        return false;
+    }
 
-	return isHeaderReadable(ncch_header);
+    NCCH_Header ncch_header;
+
+    if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
+        return false;
+    }
+
+    return isHeaderReadable(ncch_header);
 }
 
-static void toLower(std::string &str)
-{
-	for(size_t i=0; i<str.length(); i++)
-	{
-		str[i] = (char)std::tolower(str[i]);
-	}
+static void toLower(std::string& str) {
+    for (size_t i = 0; i < str.length(); i++) {
+        str[i] = (char)std::tolower(str[i]);
+    }
 }
 
-static void saveDigest(std::string digest)
-{
-	// ADD digest at the end of the file
-	LOG_ERROR(HW, "saveDigest");
-	
+static void saveDigest(std::string digest) {
+    // ADD digest at the end of the file
+    LOG_ERROR(HW, "saveDigest");
+
     const std::string path{
         fmt::format("{}/digests.txt", FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir))};
-		
+
     if (!FileUtil::CreateFullPath(path)) {
         LOG_ERROR(Service_FS, "Failed to create digests.txt");
         return;
     }
-	
+
     FileUtil::IOFile file{path, "a"};
     if (!file.IsOpen()) {
         LOG_ERROR(Service_FS, "Failed to open digests.txt");
         return;
     }
-	
-	file.WriteBytes("\n", 1);
-	
-	if (file.WriteBytes(digest.c_str(), digest.length()) != digest.length()) {
+
+    file.WriteBytes("\n", 1);
+
+    if (file.WriteBytes(digest.c_str(), digest.length()) != digest.length()) {
         LOG_ERROR(Service_FS, "Failed to write digest fully");
     }
-	
-	file.WriteBytes("\n", 1);
+
+    file.WriteBytes("\n", 1);
 }
 
-static void loadDigests(std::map<std::string, int> &digests)
-{
-    const std::string filepath = FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + "digests.txt";
+static void loadDigests(std::map<std::string, int>& digests) {
+    const std::string filepath =
+        FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir) + "digests.txt";
     FileUtil::CreateFullPath(filepath);
 
     boost::iostreams::stream<boost::iostreams::file_descriptor_source> file;
     FileUtil::OpenFStream<std::ios_base::in>(file, filepath);
-	
-    if (file.is_open())
-	{
-		while (!file.eof())
-		{
-			std::string line;
-			std::getline(file, line);
-			
-			if(line.ends_with("\r"))
-			{
-				line.pop_back();
-			}
-			
-			toLower(line);
 
-			if (line.length() == 64 && !line.starts_with("#"))
-			{
-				digests[line] = 1;
-			}
-		}
-	}
-	
-	LoadOTP();
-	
-	if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) {	// ignore dummy otp
-		struct {
-			ECC::PublicKey pkey;
-			u32 device_id;
-			u32 id;
-		} hash_data;
-		hash_data.pkey = ct_cert.GetPublicKeyECC();
-		hash_data.device_id = otp.GetDeviceID();
-		hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
+    if (file.is_open()) {
+        while (!file.eof()) {
+            std::string line;
+            std::getline(file, line);
 
-		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-		CryptoPP::SHA256 hash;
-		hash.CalculateDigest(digest, reinterpret_cast<CryptoPP::byte*>(&hash_data), sizeof(hash_data));
+            if (line.length() > 0 && line.back() == '\r') {
+                line.pop_back();
+            }
 
-		std::string sdigest = binToHex(digest);
+            toLower(line);
 
-		if(digests[sdigest] == 0)
-		{
-			saveDigest(sdigest);
-		}
+            if (line.length() == 64 && !(line.length() > 0 && line[0] == '#')) {
+                digests[line] = 1;
+            }
+        }
+    }
+
+    LoadOTP();
+
+    if (ct_cert.IsValid() && otp.Valid() && otp.GetDeviceID() != 0x34333231) { // ignore dummy otp
+        struct {
+            ECC::PublicKey pkey;
+            u32 device_id;
+            u32 id;
+        } hash_data;
+        hash_data.pkey = ct_cert.GetPublicKeyECC();
+        hash_data.device_id = otp.GetDeviceID();
+        hash_data.id = static_cast<u32>(UniqueCryptoFileID::NCCH);
+
+        u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+        CryptoPP::SHA256 hash;
+        hash.CalculateDigest(digest, reinterpret_cast<CryptoPP::byte*>(&hash_data),
+                             sizeof(hash_data));
+
+        std::string sdigest = binToHex(digest);
+
+        if (digests[sdigest] == 0) {
+            saveDigest(sdigest);
+        }
     }
 }
 
-static std::string findDigest(std::string filename)
-{
-	std::string ret;
-	std::map<std::string, int> digests;
-	
-	loadDigests(digests);
-	
-	for(auto it=digests.begin(); it!=digests.end(); it++)
-	{
-		if(testDigest(it->first, filename))
-		{
-			ret = it->first;
-		}
-	}
-	
-	return ret;
+static std::string findDigest(std::string filename) {
+    std::string ret;
+    std::map<std::string, int> digests;
+
+    loadDigests(digests);
+
+    for (auto it = digests.begin(); it != digests.end(); it++) {
+        if (testDigest(it->first, filename)) {
+            ret = it->first;
+        }
+    }
+
+    return ret;
 }
 
 std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
                                                        const char openmode[], UniqueCryptoFileID id,
                                                        int flags) {
-	std::string sdigest = findDigest(filename);
+    std::string sdigest = findDigest(filename);
 
-	if(sdigest.length() == 64)
-	{
-		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-		memcpy(digest, hexToBin(sdigest).data(), 32);
-		
-		std::vector<u8> key(0x10);
-		std::vector<u8> ctr(0x10);
-		memcpy(key.data(), digest, 0x10);
-		memcpy(ctr.data(), digest + 0x10, 12);
+    if (sdigest.length() == 64) {
+        u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+        memcpy(digest, hexToBin(sdigest).data(), 32);
 
-//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+        std::vector<u8> key(0x10);
+        std::vector<u8> ctr(0x10);
+        memcpy(key.data(), digest, 0x10);
+        memcpy(ctr.data(), digest + 0x10, 12);
 
-		return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
-	}
-	
-	return std::make_unique<FileUtil::IOFile>(filename, openmode);
+        //		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+
+        return std::make_unique<FileUtil::CryptoIOFile>(filename, openmode, key, ctr, flags);
+    }
+
+    return std::make_unique<FileUtil::IOFile>(filename, openmode);
 }
 
 bool IsFullConsoleLinked() {
-    return GetOTP().Valid() && GetSecureInfoA().IsValid() && GetLocalFriendCodeSeedB().IsValid();
+    // A console is considered "linked" when at least SecureInfo_A and
+    // LocalFriendCodeSeed_B exist on disk with valid (non-zero) data.
+    // We try loading them on first call; subsequent calls use in-memory state.
+    if (otp.Valid() && secure_info_a.IsValid() && local_friend_code_seed_b.IsValid()) {
+        return true;
+    }
+    if (!FileUtil::Exists(GetSecureInfoAPath()) ||
+        !FileUtil::Exists(GetLocalFriendCodeSeedBPath())) {
+        return false;
+    }
+    const auto sia_status = LoadSecureInfoA();
+    const auto lfcs_status = LoadLocalFriendCodeSeedB();
+    const bool sia_ok = (static_cast<int>(sia_status) >= 0 ||
+                         sia_status == SecureDataLoadStatus::CannotValidateSignature);
+    const bool lfcs_ok = (static_cast<int>(lfcs_status) >= 0 ||
+                          lfcs_status == SecureDataLoadStatus::CannotValidateSignature);
+    return sia_ok && lfcs_ok;
 }
 
 void UnlinkConsole() {
-/*    // Remove all console unique data, as well as the act, nim and frd savefiles
-    const std::string system_save_data_path =
-        FileSys::GetSystemSaveDataContainerPath(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir));
-    constexpr std::array<std::array<u8, 8>, 3> save_data_ids{{
-        {0x00, 0x00, 0x00, 0x00, 0x2C, 0x00, 0x01, 0x00},
-        {0x00, 0x00, 0x00, 0x00, 0x32, 0x00, 0x01, 0x00},
-        {0x00, 0x00, 0x00, 0x00, 0x38, 0x00, 0x01, 0x00},
-    }};
-
-    for (auto& id : save_data_ids) {
-        const std::string final_path = FileSys::GetSystemSaveDataPath(system_save_data_path, id);
-        FileUtil::DeleteDirRecursively(final_path, 2);
-    }
-
     FileUtil::Delete(GetOTPPath());
     FileUtil::Delete(GetSecureInfoAPath());
     FileUtil::Delete(GetLocalFriendCodeSeedBPath());
 
-    InvalidateSecureData();*/
+    secure_info_a.Invalidate();
+    local_friend_code_seed_b.Invalidate();
+    otp.Invalidate();
+    ct_cert.Invalidate();
+    movable.Invalidate();
+
+    LOG_INFO(HW, "Console unlinked: identity files deleted.");
 }
 
+// ?????????????????????????????????????????????????????????????????????????????
+// Synthetic console identity generation
+// ?????????????????????????????????????????????????????????????????????????????
+bool GenerateSyntheticConsoleData(u8 region, const std::string& serial_override,
+                                  std::string& out_error) {
+    using namespace HW::AES;
 
-static bool isAppEncrypted(const std::string& path)
-{
+    // 1. Ensure AES keys are available
+    InitKeys();
+    const auto [otp_key, otp_iv] = GetOTPKeyIV();
+
+    auto is_zero = [](const auto& arr) {
+        return std::all_of(arr.begin(), arr.end(), [](auto x) { return x == 0; });
+    };
+    if (is_zero(otp_key) || is_zero(otp_iv)) {
+        out_error = "otpKey / otpIV not found.\n"
+                    "Add them to keys.txt:\n"
+                    "  otpKey=<32 hex chars>\n"
+                    "  otpIV=<32 hex chars>\n"
+                    "or place boot9.bin in the sysdata directory.";
+        return false;
+    }
+
+    CryptoPP::AutoSeededRandomPool rng;
+
+    // 2. Build OTP body
+    FileSys::OTP::OTPBin otp_bin{};
+    otp_bin.body.magic = FileSys::OTP::otp_magic;
+
+    // Random retail device-ID: high nibble 0x2 = O3DS retail
+    {
+        u32 dev_id = 0;
+        rng.GenerateBlock(reinterpret_cast<u8*>(&dev_id), 4);
+        otp_bin.body.device_id = (dev_id & 0x0FFFFFFF) | 0x20000000;
+    }
+    rng.GenerateBlock(otp_bin.body.fallback_movable_keyY.data(),
+                      otp_bin.body.fallback_movable_keyY.size());
+    otp_bin.body.otp_version = 5;
+    otp_bin.body.system_type = 0; // retail
+    otp_bin.body.manufacture_date = {0x20, 0x19, 0x01, 0x01, 0x00, 0x00};
+
+    // Generate ECC key pair for CTCert
+    {
+        auto [priv, pub] = HW::ECC::GenerateKeyPair();
+        otp_bin.body.ctcert.expiry_date = 0x77359400; // ~2099
+        std::memcpy(otp_bin.body.ctcert.priv_key.data(), priv.x.data(),
+                    std::min(priv.x.size(), otp_bin.body.ctcert.priv_key.size()));
+        // Signature field: store public key X half so LoadOTP can derive CTCert
+        std::memcpy(otp_bin.body.ctcert.signature.data(), pub.xy.data(),
+                    std::min(pub.xy.size(), otp_bin.body.ctcert.signature.size()));
+    }
+    rng.GenerateBlock(otp_bin.body.random_key_seed_bytes.data(),
+                      otp_bin.body.random_key_seed_bytes.size());
+
+    // Hash body
+    {
+        CryptoPP::SHA256 sha;
+        sha.CalculateDigest(otp_bin.hash.data(), reinterpret_cast<const u8*>(&otp_bin.body),
+                            sizeof(otp_bin.body));
+    }
+
+    // Encrypt
+    FileSys::OTP::OTPBin enc_otp = otp_bin;
+    {
+        CryptoPP::CBC_Mode<CryptoPP::AES>::Encryption enc;
+        enc.SetKeyWithIV(otp_key.data(), otp_key.size(), otp_iv.data());
+        enc.ProcessData(reinterpret_cast<u8*>(&enc_otp), reinterpret_cast<const u8*>(&otp_bin),
+                        sizeof(enc_otp));
+    }
+
+    const std::string otp_path = GetOTPPath();
+    FileUtil::CreateFullPath(otp_path);
+    {
+        FileUtil::IOFile f(otp_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&enc_otp, sizeof(enc_otp)) != sizeof(enc_otp)) {
+            out_error = "Failed to write otp.bin to: " + otp_path;
+            return false;
+        }
+    }
+
+    // 3. Build SecureInfo_A
+    SecureInfoA sia{};
+    sia.body.region = region;
+    sia.body.unknown = 0x00;
+    {
+        std::string serial = serial_override;
+        if (serial.empty()) {
+            std::array<u8, 5> rb{};
+            rng.GenerateBlock(rb.data(), rb.size());
+            serial =
+                fmt::format("AZH{:02X}{:02X}{:02X}{:02X}{:02X}", rb[0], rb[1], rb[2], rb[3], rb[4]);
+        }
+        serial.resize(15, '\0');
+        std::memcpy(sia.body.serial_number.data(), serial.data(), 15);
+    }
+
+    const std::string sia_path = GetSecureInfoAPath();
+    FileUtil::CreateFullPath(sia_path);
+    {
+        FileUtil::IOFile f(sia_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&sia, sizeof(sia)) != sizeof(sia)) {
+            out_error = "Failed to write SecureInfo_A to: " + sia_path;
+            return false;
+        }
+    }
+
+    // 4. Build LocalFriendCodeSeed_B
+    LocalFriendCodeSeedB lfcs{};
+    lfcs.body.unknown = 0;
+    rng.GenerateBlock(reinterpret_cast<u8*>(&lfcs.body.friend_code_seed),
+                      sizeof(lfcs.body.friend_code_seed));
+    if (lfcs.body.friend_code_seed == 0) {
+        lfcs.body.friend_code_seed = 0xDEADBEEFCAFEBABEULL;
+    }
+
+    const std::string lfcs_path = GetLocalFriendCodeSeedBPath();
+    FileUtil::CreateFullPath(lfcs_path);
+    {
+        FileUtil::IOFile f(lfcs_path, "wb");
+        if (!f.IsOpen() || f.WriteBytes(&lfcs, sizeof(lfcs)) != sizeof(lfcs)) {
+            out_error = "Failed to write LocalFriendCodeSeed_B to: " + lfcs_path;
+            return false;
+        }
+    }
+
+    // 5. Reload in-memory state
+    secure_info_a.Invalidate();
+    local_friend_code_seed_b.Invalidate();
+    otp.Invalidate();
+    ct_cert.Invalidate();
+
+    const auto otp_status = LoadOTP();
+    if (otp_status != SecureDataLoadStatus::Loaded) {
+        out_error = fmt::format("otp.bin written but reloading failed (status {}).\n"
+                                "Verify otpKey/otpIV are correct and try again.",
+                                static_cast<int>(otp_status));
+        return false;
+    }
+    LoadSecureInfoA();
+    LoadLocalFriendCodeSeedB();
+
+    LOG_INFO(HW, "Synthetic console generated: deviceID=0x{:08X} region={} serial={}",
+             otp_bin.body.device_id, region,
+             std::string(reinterpret_cast<const char*>(sia.body.serial_number.data()), 15));
+
+    out_error.clear();
+    return true;
+}
+
+static bool isAppEncrypted(const std::string& path) {
     FileUtil::IOFile file(path, "rb");
-	
-	if (!file.IsOpen()) {
-		return false;
-	}
 
-	NCCH_Header ncch_header;
-	
-	if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
-		return false;
-	}
-	
-	return !isHeaderReadable(ncch_header);
+    if (!file.IsOpen()) {
+        return false;
+    }
+
+    NCCH_Header ncch_header;
+
+    if (file.ReadBytes(&ncch_header, sizeof(NCCH_Header)) != sizeof(NCCH_Header)) {
+        return false;
+    }
+
+    return !isHeaderReadable(ncch_header);
 }
 
-std::vector<std::string> GetAppFilepaths()
-{
-	std::vector<std::string> ret;
-	
+std::vector<std::string> GetAppFilepaths() {
+    std::vector<std::string> ret;
+
     FileUtil::FSTEntry data_dir;
     std::vector<FileUtil::FSTEntry> files;
     FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
     FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
-	
-	for(size_t i=0; i<files.size(); i++)
-	{
-		std::string file = files[i].physicalName;
-		
-		if(file.ends_with(".app")
-		&& isAppEncrypted(file))
-		{
-			ret.push_back(file);
-		}
-	}
-	
-	return ret;
+
+    for (size_t i = 0; i < files.size(); i++) {
+        std::string file = files[i].physicalName;
+
+        if (file.length() > 4 && file.substr(file.length() - 4) == ".app" && isAppEncrypted(file)) {
+            ret.push_back(file);
+        }
+    }
+
+    return ret;
 }
 
-int RevertEncryptionRemoval()
-{
-	int res = 0;
-	
+int RevertEncryptionRemoval() {
+    int res = 0;
+
     FileUtil::FSTEntry data_dir;
     std::vector<FileUtil::FSTEntry> files;
     FileUtil::ScanDirectoryTree(FileUtil::GetUserPath(FileUtil::UserPath::UserDir), data_dir, 2048);
     FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
-	
-	for(size_t i=0; i<files.size(); i++)
-	{
-		std::string file = files[i].physicalName;
-		
-		if(file.ends_with(".app.encrypted"))
-		{
-			std::string shortName = file.substr(0, file.length() - std::string(".encrypted").length());
-			
-			if(FileUtil::Exists(shortName))
-			{
-				std::string sdigest = findDigest(file);
-				
-				if(sdigest.length() == 64)
-				{
-					FileUtil::Rename(shortName, shortName + ".decrypted");
-					FileUtil::Rename(file, shortName);
-					res ++;
-				}
-			}
-		}
-		else if(file.ends_with(".app.decrypted"))
-		{
-			std::string shortName = file.substr(0, file.length() - std::string(".decrypted").length());
-			
-			if(!FileUtil::Exists(shortName))
-			{
-				FileUtil::Rename(file, shortName);
-			}
-		}
-	}
-	
-	return res;
+
+    for (size_t i = 0; i < files.size(); i++) {
+        std::string file = files[i].physicalName;
+
+        if (file.length() > 15 && file.substr(file.length() - 15) == ".app.encrypted") {
+            std::string shortName =
+                file.substr(0, file.length() - std::string(".encrypted").length());
+
+            if (FileUtil::Exists(shortName)) {
+                std::string sdigest = findDigest(file);
+
+                if (sdigest.length() == 64) {
+                    FileUtil::Rename(shortName, shortName + ".decrypted");
+                    FileUtil::Rename(file, shortName);
+                    res++;
+                }
+            }
+        } else if (file.length() > 15 && file.substr(file.length() - 15) == ".app.decrypted") {
+            std::string shortName =
+                file.substr(0, file.length() - std::string(".decrypted").length());
+
+            if (!FileUtil::Exists(shortName)) {
+                FileUtil::Rename(file, shortName);
+            }
+        }
+    }
+
+    return res;
 }
 
-int RemoveAzaharEncryption(const std::string& path)
-{
-	int ret = 0;
-	LOG_ERROR(HW, "RemoveAzaharEncryption {}", path);
-	
-	if(FileUtil::Exists(path + ".decrypted"))
-	{
-		FileUtil::Rename(path, path + ".encrypted");
-		FileUtil::Rename(path + ".decrypted", path);
-		
-		return 0;
-	}
-	
-	std::string sdigest = findDigest(path);
-	
-	if(sdigest.length() == 64)
-	{
-		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
-		memcpy(digest, hexToBin(sdigest).data(), 32);
-		
-		std::vector<u8> key(0x10);
-		std::vector<u8> ctr(0x10);
-		memcpy(key.data(), digest, 0x10);
-		memcpy(ctr.data(), digest + 0x10, 12);
+int RemoveAzaharEncryption(const std::string& path) {
+    int ret = 0;
+    LOG_ERROR(HW, "RemoveAzaharEncryption {}", path);
 
-//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+    if (FileUtil::Exists(path + ".decrypted")) {
+        FileUtil::Rename(path, path + ".encrypted");
+        FileUtil::Rename(path + ".decrypted", path);
 
-		FileUtil::CryptoIOFile cfile(path, "rb", key, ctr, 0);
-		FileUtil::Delete(path + ".decrypting");
-		FileUtil::IOFile dfile(path + ".decrypting", "wb");
-		char* buffer = new char[1000000];
-		int tocopy = (int)cfile.ReadBytes(buffer, 1000000);
-		int written = 0;
-		
-		while(tocopy > 0)
-		{
-			written = (int)dfile.WriteBytes(buffer, tocopy);
-			
-			if(written != tocopy)
-			{
-				ret = 1;
-				LOG_ERROR(HW, "copy error {}", path);
-				break;
-			}
-			
-			tocopy = (int)cfile.ReadBytes(buffer, 1000000);
-		}
-		
-		cfile.Close();
-		dfile.Close();
-		delete[] buffer;
-		
-		if(ret == 0)
-		{
-			FileUtil::Rename(path + ".decrypting", path + ".decrypted");
-			FileUtil::Rename(path, path + ".encrypted");
-			FileUtil::Rename(path + ".decrypted", path);
-		}
-	}
-	else
-	{
-		ret = 2;
-		LOG_ERROR(HW, "no digest found {}", path);
-	}
-	
-	return ret;
+        return 0;
+    }
+
+    std::string sdigest = findDigest(path);
+
+    if (sdigest.length() == 64) {
+        u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+        memcpy(digest, hexToBin(sdigest).data(), 32);
+
+        std::vector<u8> key(0x10);
+        std::vector<u8> ctr(0x10);
+        memcpy(key.data(), digest, 0x10);
+        memcpy(ctr.data(), digest + 0x10, 12);
+
+        //		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+
+        FileUtil::CryptoIOFile cfile(path, "rb", key, ctr, 0);
+        FileUtil::Delete(path + ".decrypting");
+        FileUtil::IOFile dfile(path + ".decrypting", "wb");
+        char* buffer = new char[1000000];
+        int tocopy = (int)cfile.ReadBytes(buffer, 1000000);
+        int written = 0;
+
+        while (tocopy > 0) {
+            written = (int)dfile.WriteBytes(buffer, tocopy);
+
+            if (written != tocopy) {
+                ret = 1;
+                LOG_ERROR(HW, "copy error {}", path);
+                break;
+            }
+
+            tocopy = (int)cfile.ReadBytes(buffer, 1000000);
+        }
+
+        cfile.Close();
+        dfile.Close();
+        delete[] buffer;
+
+        if (ret == 0) {
+            FileUtil::Rename(path + ".decrypting", path + ".decrypted");
+            FileUtil::Rename(path, path + ".encrypted");
+            FileUtil::Rename(path + ".decrypted", path);
+        }
+    } else {
+        ret = 2;
+        LOG_ERROR(HW, "no digest found {}", path);
+    }
+
+    return ret;
 }
 
 } // namespace HW::UniqueData

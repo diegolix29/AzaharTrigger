@@ -80,6 +80,8 @@ android {
                 arguments(
                     "-DENABLE_QT=0", // Don't use QT
                     "-DENABLE_SDL2=0", // Don't use SDL
+                    "-DCMAKE_CXX_SCAN_FOR_MODULES=OFF", // Disable C++20 modules for old Ninja version
+                    "-DALSOFT_ENABLE_MODULES=OFF", // Disable C++20 modules in openal-soft
                     "-DANDROID_ARM_NEON=true", // cryptopp requires Neon to work
                     "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON", // Support Android 15 16KiB page sizes
                     "-DENABLE_GDBSTUB=OFF", // Disable GDB stub

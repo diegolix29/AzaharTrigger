@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -1262,10 +1262,10 @@ void GMainWindow::UpdateMenuState() {
     for (QAction* action : running_actions) {
         action->setEnabled(emulation_running);
     }
-	
-	ui->action_Export_ZipPass->setEnabled(!emulation_running);
-	ui->action_Import_ZipPass->setEnabled(!emulation_running);
-	ui->action_Clear_StreetPass_Config->setEnabled(!emulation_running);
+
+    ui->action_Export_ZipPass->setEnabled(!emulation_running);
+    ui->action_Import_ZipPass->setEnabled(!emulation_running);
+    ui->action_Clear_StreetPass_Config->setEnabled(!emulation_running);
 
     ui->action_Capture_Screenshot->setEnabled(emulation_running);
     ui->action_Advance_Frame->setEnabled(emulation_running && is_paused);
@@ -2444,54 +2444,58 @@ void GMainWindow::OnMenuConnectArticBase() {
 }
 
 void GMainWindow::OnMenuRevertEncryptionRemoval() {
-	game_list->SetDirectoryWatcherEnabled(false);
-	int res = HW::UniqueData::RevertEncryptionRemoval();
-	
-	if(res == 0)
-		QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to revert"));
-	else
-		QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) successfully reverted").arg(res));
-	
-	game_list->SetDirectoryWatcherEnabled(true);
+    game_list->SetDirectoryWatcherEnabled(false);
+    int res = HW::UniqueData::RevertEncryptionRemoval();
+
+    if (res == 0)
+        QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to revert"));
+    else
+        QMessageBox::information(this, tr("AzaharPlus"),
+                                 tr("%1 file(s) successfully reverted").arg(res));
+
+    game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnMenuRemoveAzaharEncryption() {
     const std::vector<std::string> paths = HW::UniqueData::GetAppFilepaths();
-	
-	if(paths.size() == 0)
-	{
-		QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to decrypt"));
-		return;
-	}
-	
+
+    if (paths.size() == 0) {
+        QMessageBox::information(this, tr("AzaharPlus"), tr("Nothing to decrypt"));
+        return;
+    }
+
     game_list->SetDirectoryWatcherEnabled(false);
-	
-	std::map<int, int> results;
-    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, (int)paths.size(), this);
+
+    std::map<int, int> results;
+    QProgressDialog progress(tr("Removing Azahar encryption..."), tr("Abort"), 0, (int)paths.size(),
+                             this);
     progress.setWindowModality(Qt::WindowModal);
 
-	for(size_t i=0; i<paths.size(); i++)
-	{
-		progress.setValue((int)i);
-		
-		if (progress.wasCanceled())
-        {
-			break;
-		}
-		
-		results[HW::UniqueData::RemoveAzaharEncryption(paths[i])]++;
-	}
-	
-	progress.setValue((int)paths.size());
-	
-	QMessageBox::information(this, tr("AzaharPlus"), tr("%1 file(s) succesfully decrypted\n%2 file(s) file system errors\n%3 file(s) unable to be decrypted").arg(results[0]).arg(results[1]).arg(results[2]));
+    for (size_t i = 0; i < paths.size(); i++) {
+        progress.setValue((int)i);
 
-	game_list->SetDirectoryWatcherEnabled(true);
+        if (progress.wasCanceled()) {
+            break;
+        }
+
+        results[HW::UniqueData::RemoveAzaharEncryption(paths[i])]++;
+    }
+
+    progress.setValue((int)paths.size());
+
+    QMessageBox::information(this, tr("AzaharPlus"),
+                             tr("%1 file(s) succesfully decrypted\n%2 file(s) file system "
+                                "errors\n%3 file(s) unable to be decrypted")
+                                 .arg(results[0])
+                                 .arg(results[1])
+                                 .arg(results[2]));
+
+    game_list->SetDirectoryWatcherEnabled(true);
 }
 
 void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
-	game_list->SetDirectoryWatcherEnabled(false);
-	
+    game_list->SetDirectoryWatcherEnabled(false);
+
     const auto mode = Core::SystemTitleSet::OldAndNew;
     const std::vector<u64> titles = Core::GetSystemTitleIds(mode, region);
 
@@ -2522,12 +2526,13 @@ void GMainWindow::OnDownloadSystemFilesMenu(u32 region) {
     if (failed) {
         QMessageBox::critical(this, tr("AzaharPlus"), tr("Downloading system files failed."));
     } else if (!future_watcher.isCanceled()) {
-        QMessageBox::information(this, tr("AzaharPlus"), tr("Successfully downloaded system files."));
+        QMessageBox::information(this, tr("AzaharPlus"),
+                                 tr("Successfully downloaded system files."));
     }
-	
-	game_list->SetDirectoryWatcherEnabled(true);
+
+    game_list->SetDirectoryWatcherEnabled(true);
     game_list->PopulateAsync(UISettings::values.game_dirs);
-	UpdateBootHomeMenuState();
+    UpdateBootHomeMenuState();
 }
 
 void GMainWindow::OnMenuBootHomeMenu(u32 region) {
@@ -3104,55 +3109,58 @@ void GMainWindow::OnConfigure() {
 }
 
 void GMainWindow::OnExportZipPass() {
-	QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Export ZipPass Data"),
-													out_path,
-													tr("ZipPass (*.pass.zip)"));
-	if(fileName.length() == 0) return;
-	
-	int ret = Core::exportZipPass(fileName.toStdString());
-	
-	if(ret < 0){
-		QMessageBox::critical(this, tr("Export ZipPass Data"), tr("Failure"));
-	}else if(ret == 0){
-		QMessageBox::warning(this, tr("Export ZipPass Data"), tr("Nothing to export"));
-	}else{
-		QMessageBox::information(this, tr("Export ZipPass Data"), tr("Success"));
-	}
+    QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export ZipPass Data"), out_path,
+                                                    tr("ZipPass (*.pass.zip)"));
+    if (fileName.length() == 0)
+        return;
+
+    int ret = Core::exportZipPass(fileName.toStdString());
+
+    if (ret < 0) {
+        QMessageBox::critical(this, tr("Export ZipPass Data"), tr("Failure"));
+    } else if (ret == 0) {
+        QMessageBox::warning(this, tr("Export ZipPass Data"), tr("Nothing to export"));
+    } else {
+        QMessageBox::information(this, tr("Export ZipPass Data"), tr("Success"));
+    }
 }
 
 void GMainWindow::OnClearStreetPassConfig() {
-	Core::clearStreetPassConfig();
-	
-	QMessageBox::information(this, tr("Clear StreetPass Configuration"), tr("Success"));
+    Core::clearStreetPassConfig();
+
+    QMessageBox::information(this, tr("Clear StreetPass Configuration"), tr("Success"));
 }
 
 void GMainWindow::OnImportZipPass() {
-	QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
-	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Import ZipPass Data"),
-													out_path,
-													tr("ZipPass (*.pass.zip)"));
-	int ret = 0;
-	int err = 0;
-	
-	if(fileNames.size() == 0) return;
-	
-	for (const QString& fileName: fileNames){
-		int res = Core::importZipPass(fileName.toStdString());
-		
-		if(res > 0) ret++;
-        if(res < 0) err++;
-	}
-	
-	if(err > 0 && ret == 0) ret = -1;
-	
-	if(ret < 0){
-		QMessageBox::critical(this, tr("Import ZipPass Data"), tr("Failure"));
-	}else if(ret == 0){
-		QMessageBox::warning(this, tr("Import ZipPass Data"), tr("Nothing to import"));
-	}else{
-		QMessageBox::information(this, tr("Import ZipPass Data"), tr("Success"));
-	}
+    QString out_path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir));
+    QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Import ZipPass Data"), out_path,
+                                                          tr("ZipPass (*.pass.zip)"));
+    int ret = 0;
+    int err = 0;
+
+    if (fileNames.size() == 0)
+        return;
+
+    for (const QString& fileName : fileNames) {
+        int res = Core::importZipPass(fileName.toStdString());
+
+        if (res > 0)
+            ret++;
+        if (res < 0)
+            err++;
+    }
+
+    if (err > 0 && ret == 0)
+        ret = -1;
+
+    if (ret < 0) {
+        QMessageBox::critical(this, tr("Import ZipPass Data"), tr("Failure"));
+    } else if (ret == 0) {
+        QMessageBox::warning(this, tr("Import ZipPass Data"), tr("Nothing to import"));
+    } else {
+        QMessageBox::information(this, tr("Import ZipPass Data"), tr("Success"));
+    }
 }
 
 void GMainWindow::OnLoadAmiibo() {
@@ -4064,8 +4072,8 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
 }
 
 void GMainWindow::OnMenuLibzipLicence() {
-    QMessageBox::information(this, tr("libzip licence"), tr(
-"Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner\n\
+    QMessageBox::information(this, tr("libzip licence"),
+                             tr("Copyright (C) 1999-2020 Dieter Baron and Thomas Klausner\n\
 \n\
 The authors can be contacted at <info@libzip.org>\n\
 \n\

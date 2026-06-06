@@ -858,7 +858,7 @@ std::string Module::EncodeBase64(std::span<const u8> in) {
     /// String used by cecd for base64 encoding found in the sysmodule disassembly
     const std::string base64_dict =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
-		
+
     std::string out;
     Base64Encoder encoder;
     AlgorithmParameters params =

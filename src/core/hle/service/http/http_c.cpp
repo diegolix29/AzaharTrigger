@@ -2084,87 +2084,99 @@ bool HTTP_C::PerformStateChecks(Kernel::HLERequestContext& ctx, IPC::RequestPars
 }
 
 void HTTP_C::DecryptClCertA() {
-    if (!HW::AES::IsNormalKeyAvailable(HW::AES::KeySlotID::SSLKey)) {
-        LOG_ERROR(Service_HTTP, "NormalKey in KeySlot 0x0D missing");
+    static constexpr u32 iv_length = 16;
+
+    // If the SSL key (slot 0x0D) is available, decrypt the ClCertA title from NAND.
+    // If not, fall back to the bundled cert/key headers that ship with the emulator.
+    // Either way we end up with ClCertA.init = true so HTTP requests can proceed.
+
+    const bool has_ssl_key = HW::AES::IsNormalKeyAvailable(HW::AES::KeySlotID::SSLKey);
+
+    std::vector<u8> cert_file_data;
+    std::vector<u8> key_file_data;
+    bool use_bundled = false;
+
+    if (has_ssl_key) {
+        // Try reading the ClCertA title from the emulated NAND
+        FileSys::NCCHArchive archive(0x0004001b00010002, Service::FS::MediaType::NAND);
+
+        std::array<char, 8> exefs_filepath;
+        FileSys::Path file_path =
+            FileSys::MakeNCCHFilePath(FileSys::NCCHFileOpenType::NCCHData, 0,
+                                      FileSys::NCCHFilePathType::RomFS, exefs_filepath);
+        FileSys::Mode open_mode = {};
+        open_mode.read_flag.Assign(1);
+        auto file_result = archive.OpenFile(file_path, open_mode, 0);
+
+        if (file_result.Failed()) {
+            LOG_WARNING(Service_HTTP, "ClCertA NAND title missing; using bundled cert/key.");
+            use_bundled = true;
+        } else {
+            auto romfs = std::move(file_result).Unwrap();
+            std::vector<u8> romfs_buffer(romfs->GetSize());
+            romfs->Read(0, romfs_buffer.size(), romfs_buffer.data());
+            romfs->Close();
+
+            const RomFS::RomFSFile cert_file =
+                RomFS::GetFile(romfs_buffer.data(), {u"ctr-common-1-cert.bin"});
+            const RomFS::RomFSFile key_file_romfs =
+                RomFS::GetFile(romfs_buffer.data(), {u"ctr-common-1-key.bin"});
+
+            if (cert_file.Length() <= iv_length || key_file_romfs.Length() <= iv_length) {
+                LOG_WARNING(Service_HTTP, "ClCertA RomFS files too small; using bundled cert/key.");
+                use_bundled = true;
+            } else {
+                cert_file_data.resize(cert_file.Length());
+                std::memcpy(cert_file_data.data(), cert_file.Data(), cert_file.Length());
+                key_file_data.resize(key_file_romfs.Length());
+                std::memcpy(key_file_data.data(), key_file_romfs.Data(), key_file_romfs.Length());
+            }
+        }
+    } else {
+        LOG_WARNING(Service_HTTP, "SSL key (slot 0x0D) not available; using bundled cert/key. "
+                                  "Nintendo's online servers may reject this certificate.");
+        use_bundled = true;
+    }
+
+    if (use_bundled) {
+        // Use the bundled ctr-common-1 cert and key headers directly.
+        // These are already decrypted (they are the plaintext reference cert),
+        // so we copy them without AES decryption and mark ClCertA as initialised.
+        cert_file_data.resize(ctr_common_1_cert_bin_size);
+        std::memcpy(cert_file_data.data(), ctr_common_1_cert_bin, cert_file_data.size());
+
+        key_file_data.resize(ctr_common_1_key_bin_size);
+        std::memcpy(key_file_data.data(), ctr_common_1_key_bin, key_file_data.size());
+
+        // The bundled headers do NOT have the IV prefix; store as-is.
+        ClCertA.certificate = std::move(cert_file_data);
+        ClCertA.private_key = std::move(key_file_data);
+        ClCertA.init = true;
         return;
     }
 
+    // Decrypt with the SSL key
     HW::AES::AESKey key = HW::AES::GetNormalKey(HW::AES::KeySlotID::SSLKey);
-    static constexpr u32 iv_length = 16;
-    std::vector<u8> cert_file_data;
-    std::vector<u8> key_file_data;
-
-    FileSys::NCCHArchive archive(0x0004001b00010002, Service::FS::MediaType::NAND);
-
-    std::array<char, 8> exefs_filepath;
-    FileSys::Path file_path = FileSys::MakeNCCHFilePath(
-        FileSys::NCCHFileOpenType::NCCHData, 0, FileSys::NCCHFilePathType::RomFS, exefs_filepath);
-    FileSys::Mode open_mode = {};
-    open_mode.read_flag.Assign(1);
-    auto file_result = archive.OpenFile(file_path, open_mode, 0);
-    if (file_result.Failed()) {
-        LOG_ERROR(Service_HTTP, "ClCertA file missing, using default");
-
-        cert_file_data.resize(ctr_common_1_cert_bin_size);
-        memcpy(cert_file_data.data(), ctr_common_1_cert_bin, cert_file_data.size());
-
-        key_file_data.resize(ctr_common_1_key_bin_size);
-        memcpy(key_file_data.data(), ctr_common_1_key_bin, key_file_data.size());
-    } else {
-        auto romfs = std::move(file_result).Unwrap();
-        std::vector<u8> romfs_buffer(romfs->GetSize());
-        romfs->Read(0, romfs_buffer.size(), romfs_buffer.data());
-        romfs->Close();
-
-        const RomFS::RomFSFile cert_file =
-            RomFS::GetFile(romfs_buffer.data(), {u"ctr-common-1-cert.bin"});
-        if (cert_file.Length() == 0) {
-            LOG_ERROR(Service_HTTP, "ctr-common-1-cert.bin missing");
-            return;
-        }
-        if (cert_file.Length() <= iv_length) {
-            LOG_ERROR(Service_HTTP, "ctr-common-1-cert.bin size is too small. Size: {}",
-                      cert_file.Length());
-            return;
-        }
-
-        cert_file_data.resize(cert_file.Length());
-        memcpy(cert_file_data.data(), cert_file.Data(), cert_file.Length());
-
-        const RomFS::RomFSFile key_file =
-            RomFS::GetFile(romfs_buffer.data(), {u"ctr-common-1-key.bin"});
-        if (key_file.Length() == 0) {
-            LOG_ERROR(Service_HTTP, "ctr-common-1-key.bin missing");
-            return;
-        }
-        if (key_file.Length() <= iv_length) {
-            LOG_ERROR(Service_HTTP, "ctr-common-1-key.bin size is too small. Size: {}",
-                      key_file.Length());
-            return;
-        }
-
-        key_file_data.resize(key_file.Length());
-        memcpy(key_file_data.data(), key_file.Data(), key_file.Length());
-    }
 
     std::vector<u8> cert_data(cert_file_data.size() - iv_length);
-
-    using CryptoPP::AES;
-    CryptoPP::CBC_Mode<AES>::Decryption aes_cert;
-    std::array<u8, iv_length> cert_iv;
-    std::memcpy(cert_iv.data(), cert_file_data.data(), iv_length);
-    aes_cert.SetKeyWithIV(key.data(), AES::BLOCKSIZE, cert_iv.data());
-    aes_cert.ProcessData(cert_data.data(), cert_file_data.data() + iv_length,
-                         cert_file_data.size() - iv_length);
+    {
+        CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption aes_cert;
+        std::array<u8, iv_length> cert_iv;
+        std::memcpy(cert_iv.data(), cert_file_data.data(), iv_length);
+        aes_cert.SetKeyWithIV(key.data(), CryptoPP::AES::BLOCKSIZE, cert_iv.data());
+        aes_cert.ProcessData(cert_data.data(), cert_file_data.data() + iv_length,
+                             cert_file_data.size() - iv_length);
+    }
 
     std::vector<u8> key_data(key_file_data.size() - iv_length);
-
-    CryptoPP::CBC_Mode<AES>::Decryption aes_key;
-    std::array<u8, iv_length> key_iv;
-    std::memcpy(key_iv.data(), key_file_data.data(), iv_length);
-    aes_key.SetKeyWithIV(key.data(), AES::BLOCKSIZE, key_iv.data());
-    aes_key.ProcessData(key_data.data(), key_file_data.data() + iv_length,
-                        key_file_data.size() - iv_length);
+    {
+        CryptoPP::CBC_Mode<CryptoPP::AES>::Decryption aes_key;
+        std::array<u8, iv_length> key_iv;
+        std::memcpy(key_iv.data(), key_file_data.data(), iv_length);
+        aes_key.SetKeyWithIV(key.data(), CryptoPP::AES::BLOCKSIZE, key_iv.data());
+        aes_key.ProcessData(key_data.data(), key_file_data.data() + iv_length,
+                            key_file_data.size() - iv_length);
+    }
 
     ClCertA.certificate = std::move(cert_data);
     ClCertA.private_key = std::move(key_data);

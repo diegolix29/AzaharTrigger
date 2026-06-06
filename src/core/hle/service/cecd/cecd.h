@@ -608,7 +608,7 @@ public:
 private:
     const std::vector<u8> cecd_system_savedata_id = {0x00, 0x00, 0x00, 0x00,
                                                      0x26, 0x00, 0x01, 0x00};
-													 
+
     std::string GetCecDataPathTypeAsString(
         const CecDataPathType type, const u32 program_id,
         std::span<const u8> msg_id = std::span<const u8>{}) const;

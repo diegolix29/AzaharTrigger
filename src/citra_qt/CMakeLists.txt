@@ -166,6 +166,12 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     multiplayer/lobby.h
     multiplayer/lobby.ui
     multiplayer/lobby_p.h
+    multiplayer/melon_host_room.cpp
+    multiplayer/melon_host_room.h
+    multiplayer/melon_host_room.ui
+    multiplayer/melon_join_room.cpp
+    multiplayer/melon_join_room.h
+    multiplayer/melon_join_room.ui
     multiplayer/message.cpp
     multiplayer/message.h
     multiplayer/moderation_dialog.cpp

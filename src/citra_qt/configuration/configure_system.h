@@ -57,6 +57,7 @@ private:
 
     void InstallSecureData(const std::string& from_path, const std::string& to_path);
     void RefreshSecureDataStatus();
+    void GenerateSyntheticData();
 
     void SetupPerGameUI();
 

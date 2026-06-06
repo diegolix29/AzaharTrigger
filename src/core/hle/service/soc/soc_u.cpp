@@ -2264,119 +2264,140 @@ std::optional<SOC_U::InterfaceInfo> SOC_U::GetDefaultInterfaceInfo() {
     }
 
     InterfaceInfo ret;
-
-    SocketHolder::SOCKET sock_fd = -1;
     bool interface_found = false;
-    struct sockaddr_in s_in = {.sin_family = AF_INET, .sin_port = htons(53), .sin_addr = {}};
-    s_in.sin_addr.s_addr = inet_addr("8.8.8.8");
-    socklen_t s_info_len = sizeof(struct sockaddr_in);
-    sockaddr_in s_info;
 
-    if ((sock_fd = ::socket(AF_INET, SOCK_STREAM, 0)) == static_cast<SocketHolder::SOCKET>(-1)) {
-        return std::nullopt;
-    }
-
-    if (::connect(sock_fd, (struct sockaddr*)(&s_in), sizeof(struct sockaddr_in)) != 0) {
-        closesocket(sock_fd);
-        return std::nullopt;
-    }
-
-    if (::getsockname(sock_fd, (struct sockaddr*)&s_info, &s_info_len) != 0 ||
-        s_info_len != sizeof(struct sockaddr_in)) {
-        closesocket(sock_fd);
-        return std::nullopt;
-    }
-    closesocket(sock_fd);
-
-#ifdef _WIN32
-    sock_fd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
-    if (sock_fd == static_cast<SocketHolder::SOCKET>(SOCKET_ERROR)) {
-        return std::nullopt;
-    }
-
-    const int max_interfaces = 100;
-    std::vector<INTERFACE_INFO> interface_list_vec(max_interfaces);
-    INTERFACE_INFO* interface_list = reinterpret_cast<INTERFACE_INFO*>(interface_list_vec.data());
-    unsigned long bytes_used;
-    if (WSAIoctl(sock_fd, SIO_GET_INTERFACE_LIST, 0, 0, interface_list,
-                 max_interfaces * sizeof(INTERFACE_INFO), &bytes_used, 0, 0) == SOCKET_ERROR) {
-        closesocket(sock_fd);
-        return std::nullopt;
-    }
-    closesocket(sock_fd);
-
-    int num_interfaces = bytes_used / sizeof(INTERFACE_INFO);
-    for (int i = 0; i < num_interfaces; i++) {
-        if (((sockaddr*)&(interface_list[i].iiAddress))->sa_family == AF_INET &&
-            std::memcmp(&((sockaddr_in*)&(interface_list[i].iiAddress))->sin_addr.s_addr,
-                        &s_info.sin_addr.s_addr, sizeof(s_info.sin_addr.s_addr)) == 0) {
-            ret.address = ((sockaddr_in*)&(interface_list[i].iiAddress))->sin_addr.s_addr;
-            ret.netmask = ((sockaddr_in*)&(interface_list[i].iiNetmask))->sin_addr.s_addr;
-            ret.broadcast =
-                ((sockaddr_in*)&(interface_list[i].iiBroadcastAddress))->sin_addr.s_addr;
-            interface_found = true;
-            {
-                char address[16] = {0}, netmask[16] = {0}, broadcast[16] = {0};
-                std::strncpy(address,
-                             inet_ntoa(((sockaddr_in*)&(interface_list[i].iiAddress))->sin_addr),
-                             sizeof(address) - 1);
-                std::strncpy(netmask,
-                             inet_ntoa(((sockaddr_in*)&(interface_list[i].iiNetmask))->sin_addr),
-                             sizeof(netmask) - 1);
-                std::strncpy(
-                    broadcast,
-                    inet_ntoa(((sockaddr_in*)&(interface_list[i].iiBroadcastAddress))->sin_addr),
-                    sizeof(broadcast) - 1);
-
-                LOG_DEBUG(Service_SOC, "Found interface: (addr: {}, netmask: {}, broadcast: {})",
-                          address, netmask, broadcast);
+    // Step 1: probe preferred outbound interface via connect-to-8.8.8.8.
+    // This identifies which local IP the OS would use for internet traffic.
+    // On failure (no internet, firewall, etc.) we fall through to Step 2
+    // instead of returning nullopt – Android devices almost always have a
+    // usable network adapter even when DNS/TCP to 8.8.8.8 is blocked.
+    in_addr preferred_addr{};
+    bool preferred_found = false;
+    {
+        SocketHolder::SOCKET probe_fd = ::socket(AF_INET, SOCK_STREAM, 0);
+        if (probe_fd != static_cast<SocketHolder::SOCKET>(-1)) {
+            struct sockaddr_in s_in{};
+            s_in.sin_family = AF_INET;
+            s_in.sin_port = htons(53);
+            s_in.sin_addr.s_addr = inet_addr("8.8.8.8");
+            if (::connect(probe_fd, reinterpret_cast<sockaddr*>(&s_in), sizeof(s_in)) == 0) {
+                struct sockaddr_in s_info{};
+                socklen_t s_info_len = sizeof(s_info);
+                if (::getsockname(probe_fd, reinterpret_cast<sockaddr*>(&s_info), &s_info_len) ==
+                        0 &&
+                    s_info_len == sizeof(struct sockaddr_in)) {
+                    preferred_addr = s_info.sin_addr;
+                    preferred_found = true;
+                    LOG_DEBUG(Service_SOC, "Preferred outbound addr probed via 8.8.8.8");
+                }
+            } else {
+                LOG_DEBUG(Service_SOC, "8.8.8.8 probe failed (no internet?), "
+                                       "falling back to interface enumeration");
             }
-            break;
+            closesocket(probe_fd);
         }
     }
-#elif !(defined(ANDROID) && defined(HAVE_LIBRETRO))
-    // Libretro Android builds target API 21, but getifaddrs() requires API 24+.
-    // Standalone Android (minSdk 29) and other platforms have getifaddrs().
-    struct ifaddrs* ifaddr;
-    struct ifaddrs* ifa;
-    if (getifaddrs(&ifaddr) == -1) {
-        return std::nullopt;
-    }
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET) {
-            struct sockaddr_in* in_address = (struct sockaddr_in*)ifa->ifa_addr;
-            struct sockaddr_in* in_netmask = (struct sockaddr_in*)ifa->ifa_netmask;
-            struct sockaddr_in* in_broadcast = (struct sockaddr_in*)ifa->ifa_broadaddr;
-            if (in_address->sin_addr.s_addr == s_info.sin_addr.s_addr) {
-                ret.address = in_address->sin_addr.s_addr;
-                ret.netmask = in_netmask->sin_addr.s_addr;
-                ret.broadcast = in_broadcast->sin_addr.s_addr;
-                interface_found = true;
-                {
-                    char address[16] = {0}, netmask[16] = {0}, broadcast[16] = {0};
-                    std::strncpy(address, inet_ntoa(in_address->sin_addr), sizeof(address) - 1);
-                    std::strncpy(netmask, inet_ntoa(in_netmask->sin_addr), sizeof(netmask) - 1);
-                    std::strncpy(broadcast, inet_ntoa(in_broadcast->sin_addr),
-                                 sizeof(broadcast) - 1);
+    // Step 2: enumerate all network interfaces and pick the best one.
+    // Priority: (a) exact match with preferred_addr if probing succeeded,
+    //           (b) first non-loopback IPv4 interface otherwise.
+#ifdef _WIN32
+    {
+        SocketHolder::SOCKET ws_fd = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0);
+        if (ws_fd != static_cast<SocketHolder::SOCKET>(SOCKET_ERROR)) {
+            constexpr int kMaxIfaces = 100;
+            std::vector<INTERFACE_INFO> iface_list(kMaxIfaces);
+            unsigned long bytes_used = 0;
+            if (WSAIoctl(ws_fd, SIO_GET_INTERFACE_LIST, 0, 0, iface_list.data(),
+                         kMaxIfaces * sizeof(INTERFACE_INFO), &bytes_used, 0, 0) != SOCKET_ERROR) {
+                const int num = static_cast<int>(bytes_used / sizeof(INTERFACE_INFO));
+                for (int i = 0; i < num; ++i) {
+                    auto* sa_base = reinterpret_cast<sockaddr*>(&iface_list[i].iiAddress);
+                    if (sa_base->sa_family != AF_INET)
+                        continue;
+                    auto* sa = reinterpret_cast<sockaddr_in*>(sa_base);
+                    if (sa->sin_addr.s_addr == htonl(INADDR_LOOPBACK))
+                        continue;
 
-                    LOG_DEBUG(Service_SOC,
-                              "Found interface: (addr: {}, netmask: {}, broadcast: {})", address,
-                              netmask, broadcast);
+                    const bool matches =
+                        preferred_found && sa->sin_addr.s_addr == preferred_addr.s_addr;
+
+                    if (!interface_found || matches) {
+                        ret.address = sa->sin_addr.s_addr;
+                        ret.netmask = reinterpret_cast<sockaddr_in*>(&iface_list[i].iiNetmask)
+                                          ->sin_addr.s_addr;
+                        ret.broadcast =
+                            reinterpret_cast<sockaddr_in*>(&iface_list[i].iiBroadcastAddress)
+                                ->sin_addr.s_addr;
+                        interface_found = true;
+                        char addr_s[16]{};
+                        std::strncpy(addr_s, inet_ntoa(sa->sin_addr), sizeof(addr_s) - 1);
+                        LOG_DEBUG(Service_SOC, "Interface candidate (Win): {} match={}", addr_s,
+                                  matches);
+                        if (matches)
+                            break;
+                    }
                 }
             }
+            closesocket(ws_fd);
         }
     }
-    freeifaddrs(ifaddr);
+#else
+    // Non-Windows (Linux, macOS, Android API 24+)
+    // Libretro Android targets API 21; standalone Android minSdk=29, so
+    // getifaddrs is always available for standalone builds.
+#if !(defined(ANDROID) && defined(HAVE_LIBRETRO))
+    {
+        struct ifaddrs* ifaddr = nullptr;
+        if (getifaddrs(&ifaddr) == 0) {
+            for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+                if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET)
+                    continue;
+
+                auto* in_a = reinterpret_cast<struct sockaddr_in*>(ifa->ifa_addr);
+                auto* in_m = reinterpret_cast<struct sockaddr_in*>(ifa->ifa_netmask);
+                auto* in_b = reinterpret_cast<struct sockaddr_in*>(ifa->ifa_broadaddr);
+
+                // Skip loopback
+                if (in_a->sin_addr.s_addr == htonl(INADDR_LOOPBACK))
+                    continue;
+
+                const bool matches =
+                    preferred_found && in_a->sin_addr.s_addr == preferred_addr.s_addr;
+
+                if (!interface_found || matches) {
+                    ret.address = in_a->sin_addr.s_addr;
+                    ret.netmask = in_m ? in_m->sin_addr.s_addr : 0xFFFFFF00u;
+                    ret.broadcast = in_b ? in_b->sin_addr.s_addr : (ret.address | ~ret.netmask);
+                    interface_found = true;
+                    char addr_s[INET_ADDRSTRLEN]{};
+                    inet_ntop(AF_INET, &in_a->sin_addr, addr_s, sizeof(addr_s));
+                    LOG_DEBUG(Service_SOC, "Interface candidate: {} ({}) match={}",
+                              ifa->ifa_name ? ifa->ifa_name : "?", addr_s, matches);
+                    if (matches)
+                        break;
+                }
+            }
+            freeifaddrs(ifaddr);
+        }
+    }
+#endif // !(ANDROID && HAVE_LIBRETRO)
 #endif // _WIN32
+
     if (interface_found) {
         this->interface_info = ret;
         this->interface_info_cached = true;
+        char addr_s[INET_ADDRSTRLEN]{};
+        struct in_addr tmp{};
+        tmp.s_addr = ret.address;
+        inet_ntop(AF_INET, &tmp, addr_s, sizeof(addr_s));
+        LOG_INFO(Service_SOC, "Default interface: {}", addr_s);
         return ret;
-    } else {
-        LOG_DEBUG(Service_SOC, "Interface not found");
-        return std::nullopt;
     }
+
+    LOG_WARNING(Service_SOC, "No usable network interface found – "
+                             "in-game internet features may not work.");
+    return std::nullopt;
 }
 
 std::shared_ptr<SOC_U> GetService(Core::System& system) {

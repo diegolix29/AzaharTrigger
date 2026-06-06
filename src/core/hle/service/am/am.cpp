@@ -1,4 +1,4 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
+// FILE MODIFIED BY AzaharPlus APRIL 2025
 
 // Copyright Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
@@ -89,8 +89,8 @@ public:
 };
 
 NCCHCryptoFile::NCCHCryptoFile(const std::string& out_file, bool encrypted_content) {
-	file = std::make_unique<FileUtil::IOFile>(out_file, "wb");
-	
+    file = std::make_unique<FileUtil::IOFile>(out_file, "wb");
+
     if (Settings::values.compress_cia_installs) {
         std::array<u8, 4> magic = {'N', 'C', 'C', 'H'};
         file = std::make_unique<FileUtil::Z3DSWriteIOFile>(
@@ -419,17 +419,16 @@ void CIAFile::AuthorizeDecryptionFromHLE() {
 CIAFile::CIAFile(Core::System& system_, Service::FS::MediaType media_type, bool from_cdn_)
     : system(system_), from_cdn(from_cdn_), decryption_authorized(true), media_type(media_type),
       decryption_state(std::make_unique<DecryptionState>()) {
-	
-	if(Loader::getProgramId() == "0004000003070C00"
-	|| Loader::getProgramId() == "0004000000030600"
-	|| Loader::getProgramId() == "0004000000030700"
-	|| Loader::getProgramId() == "0004000000030800"
-	|| Loader::getProgramId() == "0004000000030A00")
-	{
-		LOG_ERROR(Service_AM, "Tactical decryption avoidance");
-		decryption_authorized = false;
-	}
-	
+
+    if (Loader::getProgramId() == "0004000003070C00" ||
+        Loader::getProgramId() == "0004000000030600" ||
+        Loader::getProgramId() == "0004000000030700" ||
+        Loader::getProgramId() == "0004000000030800" ||
+        Loader::getProgramId() == "0004000000030A00") {
+        LOG_ERROR(Service_AM, "Tactical decryption avoidance");
+        decryption_authorized = false;
+    }
+
     // If data is being installing from CDN, provide a fake header to the container so that
     // it's not uninitialized.
     if (from_cdn) {
@@ -563,16 +562,13 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
                     install_results.push_back(current_content_install_result);
                 }
                 current_content_index = static_cast<u16>(i);
-                if (Settings::values.compress_cia_installs)
-				{
-					current_content_file =
-	                    std::make_unique<NCCHCryptoFile>(content_file_paths[i], decryption_authorized);
-	                current_content_file->decryption_authorized = decryption_authorized;
-				}
-				else
-				{
-					content_files.emplace_back(content_file_paths[i], "wb");
-				}
+                if (Settings::values.compress_cia_installs) {
+                    current_content_file = std::make_unique<NCCHCryptoFile>(content_file_paths[i],
+                                                                            decryption_authorized);
+                    current_content_file->decryption_authorized = decryption_authorized;
+                } else {
+                    content_files.emplace_back(content_file_paths[i], "wb");
+                }
 
                 current_content_install_result.type = InstallResult::Type::APP;
                 current_content_install_result.install_full_path = content_file_paths[i];
@@ -594,24 +590,21 @@ ResultVal<std::size_t> CIAFile::WriteContentData(u64 offset, std::size_t length,
                 decryption_state->content[i].ProcessData(temp.data(), temp.data(), temp.size());
             }
 
-            if (Settings::values.compress_cia_installs)
-			{
-				auto& file = *current_content_file;
-	            file.Write(temp.data(), temp.size());
-	            if (file.IsError()) {
-	                // This can never happen in real HW
-	                current_content_install_result.result =
-	                    Result(ErrCodes::InvalidImportState, ErrorModule::AM,
-	                           ErrorSummary::InvalidState, ErrorLevel::Permanent);
-	                install_results.push_back(current_content_install_result);
-	                return current_content_install_result.result;
-	            }
-			}
-			else
-			{
-				auto& file = content_files[i];
-				file.WriteBytes(temp.data(), temp.size());
-			}
+            if (Settings::values.compress_cia_installs) {
+                auto& file = *current_content_file;
+                file.Write(temp.data(), temp.size());
+                if (file.IsError()) {
+                    // This can never happen in real HW
+                    current_content_install_result.result =
+                        Result(ErrCodes::InvalidImportState, ErrorModule::AM,
+                               ErrorSummary::InvalidState, ErrorLevel::Permanent);
+                    install_results.push_back(current_content_install_result);
+                    return current_content_install_result.result;
+                }
+            } else {
+                auto& file = content_files[i];
+                file.WriteBytes(temp.data(), temp.size());
+            }
 
             // Keep tabs on how much of this content ID has been written so new range_min
             // values can be calculated.
@@ -1082,7 +1075,7 @@ InstallStatus InstallCIA(const std::string& path,
                          std::function<ProgressCallback>&& update_callback) {
     LOG_INFO(Service_AM, "Installing {}...", path);
 
-	Loader::resetProgramId();
+    Loader::resetProgramId();
 
     if (!FileUtil::Exists(path)) {
         LOG_ERROR(Service_AM, "File {} does not exist!", path);

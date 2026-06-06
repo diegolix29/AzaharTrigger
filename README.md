@@ -1,4 +1,4 @@
-<b>AzaharPlus</b> is a fork of the Azahar 3DS emulator with extra features.
+<b>AzaharTrigger</b> is a fork of the Azahar Plus 3DS emulator with extra features.
 
 Each version is the same as the corresponding version of Azahar exept for this:
 - Compatibility with all game files. If a file works with any Citra fork, it works with AzaharPlus.
@@ -7,6 +7,8 @@ Each version is the same as the corresponding version of Azahar exept for this:
 - Compatibility with Android 9
 - ZipPass: A new way to exchange StreetPass data through zip files
 
+- Added back local multiplayer, from Kleidis and rebased by diegolix29
+  
 The Azahar logo is the property of PabloMK7 and angyartanddraw
 ---
 
