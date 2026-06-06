@@ -19,9 +19,6 @@ class KReadableEvent;
 } // namespace Kernel
 
 namespace Service::NFC {
-	
-bool makeAmiiboFile(std::string id, std::string filePath);
-	
 class NfcDevice {
 public:
     NfcDevice(Core::System& system_);
