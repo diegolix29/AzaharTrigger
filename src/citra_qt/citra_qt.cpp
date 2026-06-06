@@ -1924,11 +1924,9 @@ void GMainWindow::InitializeAmiibos()
 	for (const auto& pair : amiibos) {
 		QAction *amiiboAction = new QAction(this);
 		
-amiiboAction->setText(
-            QStringLiteral("%1 \t[%2]")
-                .arg(QString::fromStdString(pair.second))
-                .arg(QString::fromStdString(amiibos_series[pair.first.substr(13, 2)])));
-        amiiboAction->setData(QStringLiteral("%1").arg(QString::fromStdString(pair.first)));		
+		amiiboAction->setText(QStringLiteral("%1 \t[%2]").arg(pair.second).arg(amiibos_series[pair.first.substr(13, 2)]));
+		amiiboAction->setData(QStringLiteral("%1").arg(pair.first));
+		
         connect(amiiboAction, &QAction::triggered, this, &GMainWindow::OnMenuAmiiboAction);
 		
 		ui->menu_Amiibo_Full_List->addAction(amiiboAction);
