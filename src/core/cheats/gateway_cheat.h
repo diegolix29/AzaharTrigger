@@ -69,8 +69,8 @@ public:
     std::string GetType() const override;
     std::string GetCode() const override;
     std::string ToString() const override;
-	
-	void SetBuiltIn(bool builtIn) override;
+
+    void SetBuiltIn(bool builtIn) override;
     bool IsBuiltIn() const override;
 
     /// Gateway cheats look like:
@@ -87,6 +87,6 @@ private:
     const std::string name;
     std::vector<CheatLine> cheat_lines;
     const std::string comments;
-	bool built_in = false;
+    bool built_in = false;
 };
 } // namespace Cheats

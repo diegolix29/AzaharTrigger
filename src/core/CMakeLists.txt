@@ -1,3 +1,18 @@
+# --- ADDED FOR CHEATS JSON GENERATION ---
+# Make sure CMake can find Python
+find_package(Python3 REQUIRED)
+
+# Generate the cheats byte array header from the JSON file
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/cheats/cheats_data.h
+    COMMAND Python3::Interpreter ${CMAKE_CURRENT_SOURCE_DIR}/cheats/generate_cheats_header.py
+            ${CMAKE_CURRENT_SOURCE_DIR}/cheats/cheats.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/cheats/cheats_data.h
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/cheats/cheats.json
+            ${CMAKE_CURRENT_SOURCE_DIR}/cheats/generate_cheats_header.py
+)
+# ----------------------------------------
+
 add_library(citra_core STATIC EXCLUDE_FROM_ALL
     3ds.h
     arm/arm_interface.h
@@ -32,6 +47,7 @@ add_library(citra_core STATIC EXCLUDE_FROM_ALL
     cheats/cheats.h
     cheats/gateway_cheat.cpp
     cheats/gateway_cheat.h
+    cheats/cheats_data.h
     core.cpp
     core.h
     core_timing.cpp

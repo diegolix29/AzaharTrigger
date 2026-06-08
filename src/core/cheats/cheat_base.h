@@ -26,7 +26,7 @@ public:
     virtual std::string GetCode() const = 0;
 
     virtual std::string ToString() const = 0;
-	
+
     virtual void SetBuiltIn(bool builtIn) = 0;
     virtual bool IsBuiltIn() const = 0;
 };

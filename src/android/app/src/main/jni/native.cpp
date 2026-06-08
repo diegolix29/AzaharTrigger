@@ -45,6 +45,7 @@
 #include "core/hle/service/nfc/nfc.h"
 #include "core/hw/unique_data.h"
 #include "core/loader/loader.h"
+#include "core/loader/ncch.h"
 #include "core/savestate.h"
 #include "core/system_titles.h"
 #include "core/zip_pass.h"
@@ -54,7 +55,6 @@
 #include "jni/camera/ndk_camera.h"
 #include "jni/camera/still_image_camera.h"
 #include "jni/config.h"
-#include "core/loader/ncch.h"
 
 #include "network/announce_multiplayer_session.h"
 #ifdef ENABLE_OPENGL

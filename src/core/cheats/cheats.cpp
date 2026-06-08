@@ -74,8 +74,8 @@ void CheatEngine::SaveCheatFile(u64 title_id) const {
 
     auto cheats = GetCheats();
     for (const auto& cheat : cheats) {
-		if(!cheat->IsBuiltIn() || cheat->IsEnabled())
-			file.WriteString(cheat->ToString());
+        if (!cheat->IsBuiltIn() || cheat->IsEnabled())
+            file.WriteString(cheat->ToString());
     }
 }
 
