@@ -39,9 +39,6 @@ import org.citra.citra_emu.utils.Log
 import org.citra.citra_emu.utils.NetPlayManager
 import org.citra.citra_emu.utils.RemovableStorageHelper
 import org.citra.citra_emu.viewmodel.CompressProgressDialogViewModel
-import org.citra.citra_emu.utils.NetPlayManager
-import java.lang.ref.WeakReference
-import java.util.Date
 
 /**
  * Class which contains methods that interact

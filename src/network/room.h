@@ -77,8 +77,8 @@ enum RoomMessageTypes : u8 {
     IdModPermissionDenied,
     IdModNoSuchUser,
     IdJoinSuccessAsMod,
-	// Specific to AzaharPlus
-	idAzaharPlusSpecific = 0xff
+    // Specific to AzaharPlus
+    idAzaharPlusSpecific = 0xff
 };
 
 enum AzaharPlusSpecificTypes : u8 {

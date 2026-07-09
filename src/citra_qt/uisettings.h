@@ -158,6 +158,7 @@ struct Values {
     bool multiplayer_filter_games_owned;
     bool multiplayer_filter_hide_empty;
     bool multiplayer_filter_hide_full;
+    bool multiplayer_filter_hide_locked;
 
     // logging
     Settings::Setting<bool> show_console{false, "showConsole"};

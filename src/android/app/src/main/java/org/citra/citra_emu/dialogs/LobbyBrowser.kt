@@ -78,10 +78,9 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
     }
 
     private fun setupSearchBar() {
-        binding.checkEmpty.setOnClickListener { _ -> adapter.filterAndSearch() }
-        binding.checkFull.setOnClickListener { _ -> adapter.filterAndSearch() }
-        binding.checkLocked.setOnClickListener { _ -> adapter.filterAndSearch() }
-
+        binding.chipHideEmpty.setOnClickListener { _ -> adapter.filterAndSearch() }
+        binding.chipHideFull.setOnClickListener { _ -> adapter.filterAndSearch() }
+        binding.chipHideLocked.setOnClickListener { _ -> adapter.filterAndSearch() }
 
         binding.searchText.doOnTextChanged { text: CharSequence?, _: Int, _: Int, _: Int ->
             if (text.toString().isNotEmpty()) {
@@ -207,13 +206,13 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
             val baseList = NetPlayManager.getPublicRooms()
             var filteredList: List<NetPlayManager.RoomInfo> = baseList
 
-            if(binding.checkEmpty.isChecked){
+            if(binding.chipHideEmpty.isChecked){
                 filteredList = filteredList.filter { it.members.isNotEmpty() }
             }
-            if(binding.checkFull.isChecked){
+            if(binding.chipHideFull.isChecked){
                 filteredList = filteredList.filter { it.members.size < it.maxPlayers }
             }
-            if(binding.checkLocked.isChecked){
+            if(binding.chipHideLocked.isChecked){
                 filteredList = filteredList.filter { !it.hasPassword }
             }
             

@@ -430,7 +430,7 @@
     <string name="loader_error_file_not_found">Il file ROM non esiste</string>
     <string name="no_game_present">Nessun gioco avviabile è presente!</string>
 
-    <string name="loader_error_generic">Si è verificato un errore durante il caricamento della ROM: \"%s (%d)\"</string>
+    <string name="loader_error_generic">Si è verificato un errore durante il caricamento della ROM: \"%1$s (%2$d)\"</string>
     <string name="core_error_success">Successo</string>
     <string name="core_error_not_initialized">Non inizializzato</string>
     <string name="core_error_get_loader">Loader per il file non trovato, tipo di file non compatibile</string>

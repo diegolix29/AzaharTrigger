@@ -34,6 +34,11 @@ target_link_libraries(network PUBLIC enet)
 target_include_directories(network PUBLIC ${CMAKE_SOURCE_DIR}/externals/enet/include)
 add_dependencies(network enet)
 
+if (ANDROID AND ENABLE_LIBRETRO)
+  target_compile_definitions(network PRIVATE HAVE_LIBRETRO_VFS)
+  target_link_libraries(network PRIVATE libretro_common)
+endif()
+
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(network PRIVATE precompiled_headers.h)
 endif()

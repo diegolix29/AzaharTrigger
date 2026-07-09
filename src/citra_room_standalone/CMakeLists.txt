@@ -9,7 +9,7 @@ if (BSD STREQUAL "NetBSD")
     disable_pax_mprotect(citra_room_standalone)
 endif()
 
-target_link_libraries(citra_room_standalone PRIVATE citra_room)
+target_link_libraries(citra_room_standalone PRIVATE citra_room citra_core)
 
 if(UNIX AND NOT APPLE)
     install(TARGETS citra_room_standalone RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")

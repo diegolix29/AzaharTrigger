@@ -9,12 +9,12 @@
 
 #include "common/string_util.h"
 #include "core/hle/service/am/am.h"
+#include "core/hle/service/cecd/cecd.h"
 #include "core/hle/service/fs/archive.h"
 #include "core/loader/loader.h"
 #include "core/loader/smdh.h"
 #include "jni/android_common/android_common.h"
 #include "jni/id_cache.h"
-#include "core/hle/service/cecd/cecd.h"
 
 namespace {
 
@@ -124,35 +124,31 @@ JNIEXPORT void JNICALL Java_org_citra_citra_1emu_model_GameInfo_finalize(JNIEnv*
     delete GetPointer(env, obj);
 }
 
-static int getNumExtMessages(std::string cecId)
-{
-	const std::string ext_inbox_path{fmt::format("{}/zippass/inboxes/{}/", 
-				FileUtil::GetUserPath(FileUtil::UserPath::UserDir),
-				cecId)};
-	
-	FileUtil::FSTEntry data_dir;
-	std::vector<FileUtil::FSTEntry> files;
-	FileUtil::ScanDirectoryTree(ext_inbox_path, data_dir, 2048);
-	FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
-	
-	return files.size();
+static int getNumExtMessages(std::string cecId) {
+    const std::string ext_inbox_path{fmt::format(
+        "{}/zippass/inboxes/{}/", FileUtil::GetUserPath(FileUtil::UserPath::UserDir), cecId)};
+
+    FileUtil::FSTEntry data_dir;
+    std::vector<FileUtil::FSTEntry> files;
+    FileUtil::ScanDirectoryTree(ext_inbox_path, data_dir, 2048);
+    FileUtil::GetAllFilesFromNestedEntries(data_dir, files);
+
+    return files.size();
 }
 
-static int getNumMessages(std::string cecId)
-{
-    std::string inboxPath = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)
-                            + "/data/00000000000000000000000000000000/sysdata/00010026/00000000/CEC/"
-                            + cecId + "/InBox___";
+static int getNumMessages(std::string cecId) {
+    std::string inboxPath =
+        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+        "/data/00000000000000000000000000000000/sysdata/00010026/00000000/CEC/" + cecId +
+        "/InBox___";
 
-    if (!FileUtil::IsDirectory(inboxPath))
-    {
+    if (!FileUtil::IsDirectory(inboxPath)) {
         return 0;
     }
 
     std::string boxInfoPath = inboxPath + "/BoxInfo_____";
 
-    if (!FileUtil::Exists(boxInfoPath))
-    {
+    if (!FileUtil::Exists(boxInfoPath)) {
         return 0;
     }
 
@@ -179,15 +175,15 @@ jstring Java_org_citra_citra_1emu_model_GameInfo_getTitle(JNIEnv* env, jobject o
     std::string streetpassPrefix = "";
     std::string cecId = FileUtil::getCecId(fmt::format("{:016X}", GetPointer(env, obj)->title_id));
 
-    if(cecId.length() == 8){
-		int n = getNumMessages(cecId);
-		int ext = getNumExtMessages(cecId);
-		
-		if(n > 0)
-			streetpassPrefix = "[ " + std::to_string(n) + " ]  ";
-		
-		if(ext > 0)
-			streetpassPrefix = "[ " + std::to_string(n) + " + " + std::to_string(ext) + " ]  ";
+    if (cecId.length() == 8) {
+        int n = getNumMessages(cecId);
+        int ext = getNumExtMessages(cecId);
+
+        if (n > 0)
+            streetpassPrefix = "[ " + std::to_string(n) + " ]  ";
+
+        if (ext > 0)
+            streetpassPrefix = "[ " + std::to_string(n) + " + " + std::to_string(ext) + " ]  ";
     }
 
     return ToJString(env, (streetpassPrefix + Common::UTF16ToUTF8(title)).data());

@@ -11,6 +11,7 @@
 #include "common/logging/log.h"
 
 namespace AndroidUtils {
+
 JNIEnv* GetEnvForThread() {
     thread_local static struct OwnedEnv {
         OwnedEnv() {

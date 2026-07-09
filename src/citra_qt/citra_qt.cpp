@@ -8834,14 +8834,14 @@ void GMainWindow::LoadTranslation() {
 
     if (UISettings::values.language.isEmpty()) {
         // Use the system's default locale
-        loaded = translator.load(QLocale::system(), {}, {}, QStringLiteral(":/languages/"));
+        loaded = citraTranslator.load(QLocale::system(), {}, {}, QStringLiteral(":/languages/"));
     } else {
         // Otherwise load from the specified file
-        loaded = translator.load(UISettings::values.language, QStringLiteral(":/languages/"));
+        loaded = citraTranslator.load(UISettings::values.language, QStringLiteral(":/languages/"));
     }
 
     if (loaded) {
-        qApp->installTranslator(&translator);
+        qApp->installTranslator(&citraTranslator);
     } else {
         UISettings::values.language = QStringLiteral("en");
     }
@@ -8849,7 +8849,7 @@ void GMainWindow::LoadTranslation() {
 
 void GMainWindow::OnLanguageChanged(const QString& locale) {
     if (UISettings::values.language != QStringLiteral("en")) {
-        qApp->removeTranslator(&translator);
+        qApp->removeTranslator(&citraTranslator);
     }
 
     UISettings::values.language = locale;

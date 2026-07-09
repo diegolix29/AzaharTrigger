@@ -914,9 +914,9 @@ void QtConfig::ReadWebServiceValues() {
         ReadSetting(Settings::QKeys::web_api_url, QStringLiteral("http://88.198.47.46:5000"))
             .toString()
             .toStdString();
-	if(NetSettings::values.web_api_url == "https://api.citra-emu.org"){
-		NetSettings::values.web_api_url = "http://88.198.47.46:5000";
-	}
+    if (NetSettings::values.web_api_url == "https://api.citra-emu.org") {
+        NetSettings::values.web_api_url = "http://88.198.47.46:5000";
+    }
     NetSettings::values.citra_username =
         ReadSetting(Settings::QKeys::citra_username).toString().toStdString();
     NetSettings::values.citra_token =

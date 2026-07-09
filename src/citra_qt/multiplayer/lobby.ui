@@ -99,7 +99,14 @@
              </property>
             </widget>
            </item>
-           <!-- <item>
+           <item>
+            <widget class="QCheckBox" name="hide_locked">
+             <property name="text">
+              <string>Hide Locked Rooms</string>
+             </property>
+            </widget>
+           </item>
+           <!--<item>
             <widget class="QCheckBox" name="include_lan_rooms">
              <property name="text">
               <string>Include DS LAN Rooms</string>

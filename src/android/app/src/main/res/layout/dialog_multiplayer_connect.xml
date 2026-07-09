@@ -82,8 +82,6 @@
                 android:layout_height="match_parent" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_wifi_direct"
-                android:text="@string/multiplayer_wifi_direct"
                 android:id="@+id/btn_lobby_browser"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="0dp"
@@ -101,6 +99,32 @@
 
         </LinearLayout>
 	
+<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:layout_marginHorizontal="16dp">
+
+            <Space
+                android:layout_width="40dp"
+                android:layout_height="match_parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWifiDirect"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Wi-Fi Direct"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_network" />
+
+            <Space
+                android:layout_width="40dp"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -165,13 +189,11 @@
 
             <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_melon_discovery"
-                android:id="@+id/btn_lobby_browser"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                         android:text="@string/multiplayer_melon_discovery"
-                android:text="@string/multiplayer_public_room"
                 app:cornerRadius="16dp"
                 app:icon="@drawable/ic_search" />
 
@@ -190,13 +212,11 @@
 
             <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_melon_join"
-                android:id="@+id/btn_join"
                 style="@style/Widget.Material3.Button.ElevatedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                         android:text="@string/multiplayer_melon_join"
-                android:text="@string/multiplayer_join_room"
                 app:icon="@drawable/ic_install"
                 app:cornerRadius="16dp" />
 
@@ -206,13 +226,11 @@
 
             <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_melon_host"
-                android:id="@+id/btn_create"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                         android:text="@string/multiplayer_melon_host"
-                android:text="@string/multiplayer_create_room"
                 app:icon="@drawable/ic_add"
                 app:cornerRadius="16dp" />
         </LinearLayout>

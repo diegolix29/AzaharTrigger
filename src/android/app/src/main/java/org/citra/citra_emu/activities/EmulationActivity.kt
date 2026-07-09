@@ -56,7 +56,6 @@ import org.citra.citra_emu.utils.FileUtil
 import org.citra.citra_emu.utils.Log
 import org.citra.citra_emu.utils.NetPlayManager
 import org.citra.citra_emu.utils.RefreshRateUtil
-import org.citra.citra_emu.utils.NetPlayManager
 import org.citra.citra_emu.utils.ThemeUtil
 import org.citra.citra_emu.viewmodel.EmulationViewModel
 

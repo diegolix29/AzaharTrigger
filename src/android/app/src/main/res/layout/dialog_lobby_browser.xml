@@ -120,32 +120,37 @@
                 android:clipToPadding="false"
                 android:paddingHorizontal="16dp">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chip_group"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    app:chipSpacingHorizontal="8dp"
-                    app:singleLine="true"
-                    app:singleSelection="true">
+<com.google.android.material.chip.ChipGroup
+    android:id="@+id/chip_group"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    app:chipSpacingHorizontal="8dp"
+    app:singleLine="true"
+    app:singleSelection="false"> <com.google.android.material.chip.Chip
+        android:id="@+id/chip_hide_empty"
+        style="@style/Widget.Material3.Chip.Filter" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkable="true"
+        android:text="@string/multiplayer_hide_empty_rooms" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_hide_empty"
-                        style="@style/Widget.Material3.Chip.Suggestion.Elevated"
-                        android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                        android:text="@string/multiplayer_hide_empty_rooms"
-                        app:chipCornerRadius="16dp" />
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chip_hide_full"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkable="true"
+        android:text="@string/multiplayer_hide_full_rooms" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_hide_full"
-                        style="@style/Widget.Material3.Chip.Suggestion.Elevated"
-                        android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                        android:checked="false"
-                        android:text="@string/multiplayer_hide_full_rooms"
-                        app:chipCornerRadius="16dp" />
-                </com.google.android.material.chip.ChipGroup>
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chip_hide_locked"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checkable="true"
+        android:text="Hide Locked" /> 
+</com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>

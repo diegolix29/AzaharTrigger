@@ -343,29 +343,27 @@ std::vector<std::string> AndroidMultiplayer::NetPlayGetPublicRooms() {
             std::string owner = room.owner;
             std::string preferred_game = room.preferred_game;
 
-            std::replace( name.begin(), name.end(), '|', '-');
-            std::replace( description.begin(), description.end(), '|', '-');
-            std::replace( owner.begin(), owner.end(), '|', '-');
-            std::replace( preferred_game.begin(), preferred_game.end(), '|', '-');
+            std::replace(name.begin(), name.end(), '|', '-');
+            std::replace(description.begin(), description.end(), '|', '-');
+            std::replace(owner.begin(), owner.end(), '|', '-');
+            std::replace(preferred_game.begin(), preferred_game.end(), '|', '-');
 
             room_list.push_back(name + "|" + (room.has_password ? "1" : "0") + "|" +
                                 std::to_string(room.max_player) + "|" + room.ip + "|" +
-                                std::to_string(room.port) + "|" + description + "|" +
-                                owner + "|" + std::to_string(room.preferred_game_id) + "|" +
-                                preferred_game);
+                                std::to_string(room.port) + "|" + description + "|" + owner + "|" +
+                                std::to_string(room.preferred_game_id) + "|" + preferred_game);
 
             for (const auto& member : room.members) {
                 std::string username = member.username;
                 std::string nickname = member.nickname;
                 std::string game_name = member.game_name;
 
-                std::replace( username.begin(), username.end(), '|', '-');
-                std::replace( nickname.begin(), nickname.end(), '|', '-');
-                std::replace( game_name.begin(), game_name.end(), '|', '-');
+                std::replace(username.begin(), username.end(), '|', '-');
+                std::replace(nickname.begin(), nickname.end(), '|', '-');
+                std::replace(game_name.begin(), game_name.end(), '|', '-');
 
-                room_list.push_back("MEMBER|" + name + "|" + username + "|" +
-                                    nickname + "|" + std::to_string(member.game_id) + "|" +
-                                    game_name);
+                room_list.push_back("MEMBER|" + name + "|" + username + "|" + nickname + "|" +
+                                    std::to_string(member.game_id) + "|" + game_name);
             }
         }
     }

@@ -430,7 +430,7 @@
     <string name="loader_error_file_not_found">ROM-fil eksisterer ikke</string>
     <string name="no_game_present">Intet startbart spil til stede!</string>
 
-    <string name="loader_error_generic">Der opstod en fejl under indlæsning af ROM: \"%s (%d)\"</string>
+    <string name="loader_error_generic">Der opstod en fejl under indlæsning af ROM: \"%1$s (%2$d)\"</string>
     <string name="core_error_success">Succes</string>
     <string name="core_error_not_initialized">Ikke initialiseret</string>
     <string name="core_error_get_loader">Indlæser til fil ikke fundet, inkompatibel filtype</string>

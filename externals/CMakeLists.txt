@@ -535,8 +535,8 @@ set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
 set(ZLIB_FOUND TRUE)
 
 # Disable libzip installation and export to avoid export issues
-set(LIBZIP_DO_INSTALL OFF)
-set(LIBZIP_DISABLE_EXPORT ON)
+set(LIBZIP_DO_INSTALL OFF CACHE BOOL "" FORCE)
+set(LIBZIP_DISABLE_EXPORT ON CACHE BOOL "" FORCE)
 
 add_subdirectory(libzip EXCLUDE_FROM_ALL)
 set(ENABLE_OPENSSL OFF CACHE BOOL "" FORCE)

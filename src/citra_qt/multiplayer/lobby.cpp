@@ -125,6 +125,7 @@ Lobby::Lobby(Core::System& system_, QWidget* parent, QStandardItemModel* list,
     ui->games_owned->setChecked(UISettings::values.multiplayer_filter_games_owned);
     ui->hide_empty->setChecked(UISettings::values.multiplayer_filter_hide_empty);
     ui->hide_full->setChecked(UISettings::values.multiplayer_filter_hide_full);
+    ui->hide_locked->setChecked(UISettings::values.multiplayer_filter_hide_locked);
 
     // manually start a refresh when the window is opening
     // TODO(jroweboy): if this refresh is slow for people with bad internet, then don't do it as
@@ -237,6 +238,7 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     UISettings::values.multiplayer_filter_games_owned = ui->games_owned->isChecked();
     UISettings::values.multiplayer_filter_hide_empty = ui->hide_empty->isChecked();
     UISettings::values.multiplayer_filter_hide_full = ui->hide_full->isChecked();
+    UISettings::values.multiplayer_filter_hide_locked = ui->hide_locked->isChecked();
 }
 
 void Lobby::ResetModel() {
@@ -360,10 +362,11 @@ bool LobbyFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& s
             return false;
         }
     }
-	
-	if (filter_locked) {
+
+    if (filter_locked) {
         QModelIndex password_index = sourceModel()->index(sourceRow, Column::ROOM_NAME);
-		bool has_password = sourceModel()->data(password_index, LobbyItemName::PasswordRole).toBool();
+        bool has_password =
+            sourceModel()->data(password_index, LobbyItemName::PasswordRole).toBool();
         if (has_password) {
             return false;
         }

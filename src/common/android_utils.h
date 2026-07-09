@@ -6,6 +6,7 @@
 
 #ifdef ANDROID
 #include <string>
+#include <string_view>
 #include <vector>
 #include <fcntl.h>
 #include <jni.h>
@@ -76,8 +77,8 @@ enum class AndroidOpenMode {
 
 class AndroidBuildFlavors {
 public:
-    static constexpr std::string GOOGLEPLAY = "googlePlay";
-    static constexpr std::string VANILLA = "vanilla";
+    static constexpr std::string_view GOOGLEPLAY = "googlePlay";
+    static constexpr std::string_view VANILLA = "vanilla";
 };
 
 inline AndroidOpenMode operator|(AndroidOpenMode a, int b) {

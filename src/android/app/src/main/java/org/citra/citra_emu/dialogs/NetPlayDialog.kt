@@ -201,15 +201,25 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         LobbyBrowser(context).show()
                         dismiss()
                     }
-                }
-            }
-        }
-    }
 
                     // melonDS LAN button handlers
                     btnMelonDiscovery.setOnClickListener {
                         showMelonDiscoveryDialog()
                         dismiss()
+                    }
+                    btnMelonJoin.setOnClickListener {
+                        showMelonInputDialog(false)
+                        dismiss()
+                    }
+                    btnMelonHost.setOnClickListener {
+                        showMelonInputDialog(true)
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
     private fun showWifiDirectDialog() {
         val activity = CompatUtils.findActivity(context)
         activeWifiDirectManager?.stop()  // clean up any stale group from a previous session
@@ -291,13 +301,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 dialog.dismiss()
                 Toast.makeText(CitraApplication.appContext, message, Toast.LENGTH_LONG).show()
                 NetPlayDialog(context).show()
-                    btnMelonJoin.setOnClickListener {
-                        showMelonInputDialog(false)
-                        dismiss()
             }
-                    btnMelonHost.setOnClickListener {
-                        showMelonInputDialog(true)
-                        dismiss()
         }
 
         binding.btnCancel.setOnClickListener {
@@ -305,6 +309,8 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             NetPlayDialog(context).show()
         }
 
+        // On cancel/error: tear down the group immediately and clear the reference.
+        // On success: leave the group alive — the multiplayer session runs over it.
         // On cancel/error: tear down the group immediately and clear the reference.
         // On success: leave the group alive — the multiplayer session runs over it.
         //             The reference is kept in activeWifiDirectManager until the lobby is left.

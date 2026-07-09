@@ -428,7 +428,7 @@
     <string name="loader_error_file_not_found">Plik ROMu nie istnieje</string>
     <string name="no_game_present">Brak gry do uruchomienia!</string>
 
-    <string name="loader_error_generic">Wystąpił błąd podczas ładowania pamięci ROM: \"%s (%d)\"</string>
+    <string name="loader_error_generic">Wystąpił błąd podczas ładowania pamięci ROM: \"%1$s (%2$d)\"</string>
     <string name="core_error_success">Sukces</string>
     <string name="core_error_not_initialized">Nie zainicjowano</string>
     <string name="core_error_get_loader">Nie znaleziono pliku, który miał zostać załadowany, typ pliku jest niekompatybilny</string>
