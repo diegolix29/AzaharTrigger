@@ -57,7 +57,7 @@ const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> QtConfi
 // This must be in alphabetical order according to action name as it must have the same order as
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
-const std::array<UISettings::Shortcut, 43> QtConfig::default_hotkeys {{
+const std::vector<UISettings::Shortcut> QtConfig::default_hotkeys {{
      {QStringLiteral("Advance Frame"),            QStringLiteral("Main Window"), {QStringLiteral(""),       Qt::ApplicationShortcut}},
      {QStringLiteral("Audio Mute/Unmute"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+M"), Qt::WindowShortcut}},
      {QStringLiteral("Audio Volume Down"),        QStringLiteral("Main Window"), {QStringLiteral(""),       Qt::WindowShortcut}},
@@ -513,6 +513,7 @@ void QtConfig::ReadDebuggingValues() {
     ReadBasicSetting(Settings::values.use_gdbstub);
     ReadBasicSetting(Settings::values.gdbstub_port);
     ReadBasicSetting(Settings::values.renderer_debug);
+    ReadBasicSetting(Settings::values.pica_debugging);
     ReadBasicSetting(Settings::values.dump_command_buffers);
     ReadBasicSetting(Settings::values.instant_debug_log);
     ReadBasicSetting(Settings::values.enable_rpc_server);
@@ -714,6 +715,7 @@ void QtConfig::ReadRendererValues() {
     ReadGlobalSetting(Settings::values.shaders_accurate_mul);
     ReadGlobalSetting(Settings::values.use_disk_shader_cache);
     ReadGlobalSetting(Settings::values.use_vsync);
+    ReadGlobalSetting(Settings::values.use_skip_duplicate_frames);
     ReadGlobalSetting(Settings::values.use_display_refresh_rate_detection);
     ReadGlobalSetting(Settings::values.resolution_factor);
     ReadGlobalSetting(Settings::values.use_integer_scaling);
@@ -909,9 +911,12 @@ void QtConfig::ReadWebServiceValues() {
     qt_config->beginGroup(QStringLiteral("WebService"));
 
     NetSettings::values.web_api_url =
-        ReadSetting(Settings::QKeys::web_api_url, QStringLiteral("https://api.citra-emu.org"))
+        ReadSetting(Settings::QKeys::web_api_url, QStringLiteral("http://88.198.47.46:5000"))
             .toString()
             .toStdString();
+	if(NetSettings::values.web_api_url == "https://api.citra-emu.org"){
+		NetSettings::values.web_api_url = "http://88.198.47.46:5000";
+	}
     NetSettings::values.citra_username =
         ReadSetting(Settings::QKeys::citra_username).toString().toStdString();
     NetSettings::values.citra_token =
@@ -1103,6 +1108,7 @@ void QtConfig::SaveDebuggingValues() {
     WriteBasicSetting(Settings::values.use_gdbstub);
     WriteBasicSetting(Settings::values.gdbstub_port);
     WriteBasicSetting(Settings::values.renderer_debug);
+    WriteBasicSetting(Settings::values.pica_debugging);
     WriteBasicSetting(Settings::values.instant_debug_log);
     WriteBasicSetting(Settings::values.enable_rpc_server);
     WriteBasicSetting(Settings::values.toggle_unique_data_console_type);
@@ -1263,6 +1269,7 @@ void QtConfig::SaveRendererValues() {
     WriteGlobalSetting(Settings::values.shaders_accurate_mul);
     WriteGlobalSetting(Settings::values.use_disk_shader_cache);
     WriteGlobalSetting(Settings::values.use_vsync);
+    WriteGlobalSetting(Settings::values.use_skip_duplicate_frames);
     WriteGlobalSetting(Settings::values.use_display_refresh_rate_detection);
     WriteGlobalSetting(Settings::values.resolution_factor);
     WriteGlobalSetting(Settings::values.use_integer_scaling);
@@ -1441,7 +1448,7 @@ void QtConfig::SaveWebServiceValues() {
 
     WriteSetting(Settings::QKeys::web_api_url,
                  QString::fromStdString(NetSettings::values.web_api_url),
-                 QStringLiteral("https://api.citra-emu.org"));
+                 QStringLiteral("http://88.198.47.46:5000"));
     WriteSetting(Settings::QKeys::citra_username,
                  QString::fromStdString(NetSettings::values.citra_username));
     WriteSetting(Settings::QKeys::citra_token,

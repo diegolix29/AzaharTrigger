@@ -541,6 +541,8 @@ void RasterizerOpenGL::DrawTriangles() {
 
 bool RasterizerOpenGL::Draw(bool accelerate, bool is_indexed) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
+    const DebugScope scope(runtime, Common::Vec4f{}, "RasterizerOpenGL::Draw");
+
     SyncDrawState();
 
     const bool shadow_rendering = regs.framebuffer.IsShadowRendering();
@@ -715,6 +717,7 @@ void RasterizerOpenGL::SyncTextureUnits(const Framebuffer* framebuffer) {
         if (!IsFeedbackLoop(texture_index, framebuffer, surface)) {
             BindMaterial(texture_index, surface);
             state.texture_units[texture_index].texture_2d = surface.Handle();
+            state.texture_units[texture_index].target = GL_TEXTURE_2D;
         }
     }
 

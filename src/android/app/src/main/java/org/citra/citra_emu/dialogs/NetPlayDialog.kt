@@ -4,7 +4,10 @@
 
 package org.citra.citra_emu.dialogs
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
@@ -14,32 +17,67 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.PopupMenu
+import android.net.wifi.p2p.WifiP2pDevice
+import android.net.wifi.p2p.WifiP2pManager
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+import androidx.core.content.ContextCompat.registerReceiver
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.citra.citra_emu.CitraApplication
+import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.databinding.DialogMultiplayerConnectBinding
 import org.citra.citra_emu.databinding.DialogMultiplayerLobbyBinding
 import org.citra.citra_emu.databinding.DialogMultiplayerRoomBinding
+import org.citra.citra_emu.databinding.DialogWifiDirectSearchingBinding
 import org.citra.citra_emu.databinding.ItemBanListBinding
 import org.citra.citra_emu.databinding.ItemButtonNetplayBinding
 import org.citra.citra_emu.databinding.ItemTextNetplayBinding
+import org.citra.citra_emu.databinding.ItemWifiDirectPeerBinding
 import org.citra.citra_emu.dialogs.ChatDialog
 import org.citra.citra_emu.utils.CompatUtils
 import org.citra.citra_emu.utils.GameHelper
 import org.citra.citra_emu.utils.NetPlayManager
+import org.citra.citra_emu.utils.WifiDirectManager
 
 class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var adapter: NetPlayAdapter
     private val gameNameList: MutableList<Array<String>> = mutableListOf()
     private val gameIdList: MutableList<Array<Long>> = mutableListOf()
 
+    companion object {
+        // Kept alive across NetPlayDialog instances: the Wi-Fi Direct group must remain up
+        // for the duration of the multiplayer session, which outlasts the connection dialog.
+        // Cleared (and the group torn down) when the user leaves the lobby.
+        private var activeWifiDirectManager: WifiDirectManager? = null
+
+        /** Call from the host Activity's onDestroy to ensure the Wi-Fi Direct group is torn down. */
+        fun stopWifiDirect() {
+            activeWifiDirectManager?.stop()
+            activeWifiDirectManager = null
+        }
+
+        var thisDeviceName = "This Device"
+    }
+
+    class WifiDirectBroadcastRcv : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val device = intent?.getParcelableExtra<WifiP2pDevice>(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE)
+            thisDeviceName = device?.deviceName!!
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val intentFilter = IntentFilter(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION)
+        val receiver = WifiDirectBroadcastRcv();
+        registerReceiver(context, receiver, intentFilter, RECEIVER_NOT_EXPORTED)
 
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -54,8 +92,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     listMultiplayer.adapter = adapter
                     adapter.loadMultiplayerMenu()
                     btnLeave.setOnClickListener {
-                        NetPlayManager.leaveRoom()
+                        NetPlayManager.netPlayLeaveRoom()
+                        activeWifiDirectManager?.stop()
+                        activeWifiDirectManager = null
                         dismiss()
+                        NetPlayDialog(context).show()
                     }
                     btnChat.setOnClickListener {
                         ChatDialog(context).show()
@@ -128,6 +169,10 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     })
 
                     // Prepare the game list in case a user tries to create a room
+                    // Prepare the game list in case a user tries to create a room.
+                    // Always seed with a "None" option first so the dropdown is never empty.
+                    gameNameList.add(arrayOf(context.getString(R.string.multiplayer_no_preferred_game)))
+                    gameIdList.add(arrayOf(-1L))
                     for (game in GameHelper.cachedGameList) {
                         val gameName = game.title
                         if (gameNameList.none { it[0] == gameName }) {
@@ -148,27 +193,130 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         showNetPlayInputDialog(false)
                         dismiss()
                     }
+                    btnWifiDirect.setOnClickListener {
+                        showWifiDirectDialog()
+                        dismiss()
+                    }
                     btnLobbyBrowser.setOnClickListener {
                         LobbyBrowser(context).show()
-                        dismiss()
-                    }
-
-                    // melonDS LAN button handlers
-                    btnMelonDiscovery.setOnClickListener {
-                        showMelonDiscoveryDialog()
-                        dismiss()
-                    }
-                    btnMelonJoin.setOnClickListener {
-                        showMelonInputDialog(false)
-                        dismiss()
-                    }
-                    btnMelonHost.setOnClickListener {
-                        showMelonInputDialog(true)
                         dismiss()
                     }
                 }
             }
         }
+    }
+
+                    // melonDS LAN button handlers
+                    btnMelonDiscovery.setOnClickListener {
+                        showMelonDiscoveryDialog()
+                        dismiss()
+    private fun showWifiDirectDialog() {
+        val activity = CompatUtils.findActivity(context)
+        activeWifiDirectManager?.stop()  // clean up any stale group from a previous session
+        val wifiDirectManager = WifiDirectManager(activity)
+        activeWifiDirectManager = wifiDirectManager
+
+        if (!wifiDirectManager.hasPermission()) {
+            ActivityCompat.requestPermissions(
+                activity,
+                wifiDirectManager.getRequiredPermissions(),
+                0
+            )
+            Toast.makeText(context, R.string.multiplayer_wifi_direct_permission_needed, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val dialog = BottomSheetDialog(activity)
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.behavior.skipCollapsed = true
+        dialog.setCancelable(false)
+
+        val binding = DialogWifiDirectSearchingBinding.inflate(LayoutInflater.from(activity))
+        dialog.setContentView(binding.root)
+
+        val peerAdapter = WifiDirectPeerAdapter { device ->
+            wifiDirectManager.connectToSelectedPeer(device)
+        }
+        binding.recyclerPeers.layoutManager = LinearLayoutManager(activity)
+        binding.recyclerPeers.adapter = peerAdapter
+
+        var connectionSucceeded = false
+
+        wifiDirectManager.listener = object : WifiDirectManager.Listener {
+            override fun onSearching() {
+                binding.progress.visibility = View.VISIBLE
+                binding.recyclerPeers.visibility = View.GONE
+                binding.textStatus.text = activity.getString(R.string.multiplayer_wifi_direct_searching, thisDeviceName)
+            }
+
+            override fun onPeersFound(peers: List<WifiP2pDevice>) {
+                if (peers.isEmpty()) {
+                    binding.progress.visibility = View.VISIBLE
+                    binding.recyclerPeers.visibility = View.GONE
+                    binding.textStatus.text = activity.getString(R.string.multiplayer_wifi_direct_searching, thisDeviceName)
+                } else {
+                    binding.progress.visibility = View.GONE
+                    binding.recyclerPeers.visibility = View.VISIBLE
+                    binding.textStatus.text = activity.getString(R.string.multiplayer_wifi_direct_select_peer, thisDeviceName)
+                    peerAdapter.submitList(peers)
+                }
+            }
+
+            override fun onConnecting(peerName: String) {
+                binding.recyclerPeers.visibility = View.GONE
+                binding.progress.visibility = View.VISIBLE
+                binding.textStatus.text = activity.getString(R.string.multiplayer_wifi_direct_connecting, thisDeviceName, peerName)
+            }
+
+            override fun onSettingUp(isHost: Boolean) {
+                binding.textStatus.text = activity.getString(
+                    if (isHost) R.string.multiplayer_wifi_direct_setting_up_host
+                    else R.string.multiplayer_wifi_direct_setting_up_client, thisDeviceName
+                )
+            }
+
+            override fun onSuccess(isHost: Boolean) {
+                connectionSucceeded = true
+                dialog.dismiss()
+                Toast.makeText(
+                    CitraApplication.appContext,
+                    if (isHost) R.string.multiplayer_create_room_success else R.string.multiplayer_join_room_success,
+                    Toast.LENGTH_LONG
+                ).show()
+                NetPlayDialog(context).show()
+            }
+
+            override fun onError(message: String) {
+                dialog.dismiss()
+                Toast.makeText(CitraApplication.appContext, message, Toast.LENGTH_LONG).show()
+                NetPlayDialog(context).show()
+                    btnMelonJoin.setOnClickListener {
+                        showMelonInputDialog(false)
+                        dismiss()
+            }
+                    btnMelonHost.setOnClickListener {
+                        showMelonInputDialog(true)
+                        dismiss()
+        }
+
+        binding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+            NetPlayDialog(context).show()
+        }
+
+        // On cancel/error: tear down the group immediately and clear the reference.
+        // On success: leave the group alive — the multiplayer session runs over it.
+        //             The reference is kept in activeWifiDirectManager until the lobby is left.
+        dialog.setOnDismissListener {
+            if (!connectionSucceeded) {
+                wifiDirectManager.stop()
+                activeWifiDirectManager = null
+            }
+        }
+
+        dialog.show()
+        wifiDirectManager.startDiscovery()
     }
 
     data class NetPlayItems(
@@ -310,6 +458,10 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         val activity = CompatUtils.findActivity(context)
         val dialog = BottomSheetDialog(activity)
 
+        dialog.setOnDismissListener {
+            NetPlayDialog(context).show()
+        }
+
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
         dialog.behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -338,10 +490,25 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     gameNameList.map { it[0] }
                 )
             )
+            if (isCreateRoom) {
+                // Default to the running game if it is in the cached list, otherwise "None".
+                var selectedIndex = 0 // index 0 is always "None"
+                if (NativeLibrary.isRunning()) {
+                    val runningTitleId = NativeLibrary.getRunningTitleId()
+                    if (runningTitleId != 0L) {
+                        val idx = gameIdList.indexOfFirst { it[0] == runningTitleId }
+                        if (idx != -1) selectedIndex = idx
+                    }
+                }
+                setText(gameNameList[selectedIndex][0], false)
+            }
         }
 
         binding.preferedGameName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.roomName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
+        if (isCreateRoom) {
+            binding.roomName.setText(activity.getString(R.string.multiplayer_default_room_name, NetPlayManager.getUsername(activity)))
+        }
         binding.maxPlayersContainer.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.maxPlayersLabel.text = context.getString(R.string.multiplayer_max_players_value, binding.maxPlayers.value.toInt())
 
@@ -357,7 +524,11 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             val username = binding.username.text.toString()
             val portStr = binding.ipPort.text.toString()
             val preferedGameName = binding.dropdownPreferedGameName.text.toString()
-            val preferedGameId = gameIdList[gameNameList.indexOfFirst { it[0] == preferedGameName }][0]
+            val preferedGameId = run {
+                val index = gameNameList.indexOfFirst { it[0] == preferedGameName }
+                val id = if (index != -1) gameIdList[index][0] else -1L
+                if (id == -1L) 0L else id  // convert "None" sentinel to 0 (no preference)
+            }
             val password = binding.password.text.toString()
             val port = portStr.toIntOrNull() ?: run {
                 Toast.makeText(activity, R.string.multiplayer_port_invalid, Toast.LENGTH_LONG).show()
@@ -382,7 +553,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 return@setOnClickListener
             }
 
-            if (ipAddress.length < 7 || username.length < 5) {
+            if (ipAddress.length < 7 || username.length < 3) {
                 Toast.makeText(activity, R.string.multiplayer_input_invalid, Toast.LENGTH_LONG).show()
                 binding.btnConfirm.isEnabled = true
                 binding.btnConfirm.text = activity.getString(R.string.original_button_text)
@@ -754,5 +925,30 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             }
         }
 
+    }
+
+    private class WifiDirectPeerAdapter(
+        private val onPeerSelected: (WifiP2pDevice) -> Unit
+    ) : RecyclerView.Adapter<WifiDirectPeerAdapter.ViewHolder>() {
+
+        private var peers: List<WifiP2pDevice> = emptyList()
+
+        class ViewHolder(val binding: ItemWifiDirectPeerBinding) : RecyclerView.ViewHolder(binding.root)
+
+        fun submitList(newPeers: List<WifiP2pDevice>) {
+            peers = newPeers
+            notifyDataSetChanged()
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
+            ViewHolder(ItemWifiDirectPeerBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val device = peers[position]
+            holder.binding.itemPeerName.text = device.deviceName?.takeIf { it.isNotEmpty() } ?: device.deviceAddress
+            holder.binding.root.setOnClickListener { onPeerSelected(device) }
+        }
+
+        override fun getItemCount() = peers.size
     }
 }

@@ -133,7 +133,7 @@
                         android:id="@+id/chip_hide_empty"
                         style="@style/Widget.Material3.Chip.Suggestion.Elevated"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    android:layout_height="wrap_content"
                         android:text="@string/multiplayer_hide_empty_rooms"
                         app:chipCornerRadius="16dp" />
 
@@ -141,7 +141,7 @@
                         android:id="@+id/chip_hide_full"
                         style="@style/Widget.Material3.Chip.Suggestion.Elevated"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                    android:layout_height="wrap_content"
                         android:checked="false"
                         android:text="@string/multiplayer_hide_full_rooms"
                         app:chipCornerRadius="16dp" />

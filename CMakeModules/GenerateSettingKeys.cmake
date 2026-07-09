@@ -32,6 +32,7 @@ foreach(KEY IN ITEMS
     "physical_device"
     "use_gles"
     "renderer_debug"
+    "pica_debugging"
     "dump_command_buffers"
     "spirv_shader_gen"
     "disable_spirv_optimizer"
@@ -41,6 +42,7 @@ foreach(KEY IN ITEMS
     "use_disk_shader_cache"
     "shaders_accurate_mul"
     "use_vsync"
+    "use_skip_duplicate_frames"
     "use_display_refresh_rate_detection"
     "use_shader_jit"
     "resolution_factor"
@@ -238,6 +240,8 @@ if (ANDROID)
         "android_hide_images"
         "screen_orientation"
         "performance_overlay_position"
+        "enable_secondary_display"
+        "combo_button_buttons"
     )
         string(REPLACE "_" "_1" KEY_JNI_ESCAPED ${KEY})
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")

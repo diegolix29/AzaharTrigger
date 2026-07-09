@@ -16,6 +16,7 @@ import android.text.format.Formatter
 import android.widget.Toast
 import androidx.preference.PreferenceManager
 import org.citra.citra_emu.CitraApplication
+import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.dialogs.ChatMessage
 import java.net.Inet4Address
@@ -149,8 +150,12 @@ object NetPlayManager {
         adapterRefreshListener = listener
     }
 
-    fun getUsername(activity: Context): String {        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
-        val name = "Azahar${(Math.random() * 100).toInt()}"
+    fun getUsername(activity: Context): String {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        var name = NativeLibrary.getSystemUsername()
+        if (name.isEmpty()) {
+            name = "Azahar${(Math.random() * 100).toInt()}"
+        }
         return prefs.getString("NetPlayUsername", name) ?: name
     }
 

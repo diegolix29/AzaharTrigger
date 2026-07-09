@@ -152,6 +152,7 @@ void Config::ReadValues() {
     ReadSetting("Renderer", Settings::values.resolution_factor);
     ReadSetting("Renderer", Settings::values.use_disk_shader_cache);
     ReadSetting("Renderer", Settings::values.use_vsync);
+    ReadSetting("Renderer", Settings::values.use_skip_duplicate_frames);
     ReadSetting("Renderer", Settings::values.texture_filter);
     ReadSetting("Renderer", Settings::values.texture_sampling);
     ReadSetting("Renderer", Settings::values.turbo_limit);
@@ -314,6 +315,7 @@ void Config::ReadValues() {
     Settings::values.record_frame_times =
         android_config->GetBoolean("Debugging", Settings::HKeys::record_frame_times.c_str(), false);
     ReadSetting("Debugging", Settings::values.renderer_debug);
+    ReadSetting("Debugging", Settings::values.pica_debugging);
     ReadSetting("Debugging", Settings::values.use_gdbstub);
     ReadSetting("Debugging", Settings::values.gdbstub_port);
     ReadSetting("Debugging", Settings::values.instant_debug_log);
@@ -329,7 +331,10 @@ void Config::ReadValues() {
 
     // Web Service
     NetSettings::values.web_api_url =
-        android_config->GetString("WebService", "web_api_url", "https://api.citra-emu.org");
+        android_config->GetString("WebService", "web_api_url", "http://88.198.47.46:5000");
+	if(NetSettings::values.web_api_url == "https://api.citra-emu.org"){
+		NetSettings::values.web_api_url = "http://88.198.47.46:5000";
+	}
     NetSettings::values.citra_username =
         android_config->GetString("WebService", "citra_username", "");
     NetSettings::values.citra_token = android_config->GetString("WebService", "citra_token", "");
