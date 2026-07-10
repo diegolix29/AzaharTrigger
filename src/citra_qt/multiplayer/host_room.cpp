@@ -140,6 +140,7 @@ void HostRoomWindow::Host() {
         if (ui->load_ban_list->isChecked()) {
             ban_list = UISettings::values.ban_list;
         }
+        std::string server_address;
         if (auto room = Network::GetRoom().lock()) {
             bool created = room->Create(ui->room_name->text().toStdString(),
                                         ui->room_description->toPlainText().toStdString(), "",
@@ -152,6 +153,13 @@ void HostRoomWindow::Host() {
                 LOG_ERROR(Network, "Could not create room!");
                 ui->host->setEnabled(true);
                 return;
+            }
+            server_address = room->GetRoomInformation().address;
+
+            if (server_address.empty() || server_address == "0.0.0.0") {
+                server_address = "127.0.0.1";
+                LOG_INFO(Network, "Room address not fetched yet or wild card; defaulting host "
+                                  "connection to 127.0.0.1");
             }
         }
         // Start the announce session if they chose Public
@@ -193,7 +201,7 @@ void HostRoomWindow::Host() {
         }
 #endif
         member->Join(ui->username->text().toStdString(), Service::CFG::GetConsoleIdHash(system),
-                     "127.0.0.1", static_cast<u16>(port), 0,
+                     server_address.c_str(), static_cast<u16>(port), 0,
                      Service::CFG::GetConsoleMacAddress(system), password, token);
 
         // Store settings

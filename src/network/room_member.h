@@ -152,6 +152,11 @@ public:
     RoomInformation GetRoomInformation() const;
 
     /**
+     * Returns the address used to connect to the room.
+     */
+    const std::string& GetServerAddress() const;
+
+    /**
      * Returns whether we're connected to a server or not.
      */
     bool IsConnected() const;

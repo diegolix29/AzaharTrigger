@@ -51,6 +51,7 @@ enum class NetPlayStatus : s32 {
     ADDRESS_UNBANNED,
 
     CHAT_MESSAGE,
+    ROOM_INFORMATION_UPDATED,
 };
 
 class AndroidMultiplayer {

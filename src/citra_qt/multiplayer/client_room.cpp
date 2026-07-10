@@ -4,10 +4,12 @@
 
 #include <future>
 #include <QColor>
+#include <QHostAddress>
 #include <QImage>
 #include <QList>
 #include <QLocale>
 #include <QMetaType>
+#include <QNetworkInterface>
 #include <QTime>
 #include <QtConcurrent/QtConcurrentRun>
 #include "citra_qt/game_list_p.h"
@@ -94,11 +96,31 @@ void ClientRoomWindow::UpdateView() {
             auto memberlist = member->GetMemberInformation();
             ui->chat->SetPlayerList(memberlist);
             const auto information = member->GetRoomInformation();
+            const auto& address = member->GetServerAddress();
             setWindowTitle(QString(tr("%1 (%2/%3 members) - connected"))
                                .arg(QString::fromStdString(information.name))
                                .arg(memberlist.size())
                                .arg(information.member_slots));
             ui->description->setText(QString::fromStdString(information.description));
+            if (!address.empty() && information.port != 0) {
+                QString display_address = QString::fromStdString(address);
+
+                if (display_address == QStringLiteral("0.0.0.0") ||
+                    display_address == QStringLiteral("127.0.0.1")) {
+                    for (const QHostAddress& host_address : QNetworkInterface::allAddresses()) {
+                        if (host_address.protocol() == QAbstractSocket::IPv4Protocol &&
+                            host_address != QHostAddress(QHostAddress::LocalHost)) {
+                            display_address = host_address.toString();
+                            break;
+                        }
+                    }
+                }
+
+                ui->connection_info->setText(
+                    tr("Address: %1:%2").arg(display_address).arg(information.port));
+            } else {
+                ui->connection_info->clear();
+            }
             return;
         }
     }

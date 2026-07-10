@@ -957,6 +957,8 @@ void Room::RoomImpl::BroadcastRoomInformation() {
         }
     }
 
+    packet << room_information.address;
+
     ENetPacket* enet_packet =
         enet_packet_create(packet.GetData(), packet.GetDataSize(), ENET_PACKET_FLAG_RELIABLE);
     enet_host_broadcast(server, 0, enet_packet);
@@ -1165,6 +1167,15 @@ bool Room::Create(const std::string& name, const std::string& description,
     room_impl->room_information.description = description;
     room_impl->room_information.member_slots = max_connections;
     room_impl->room_information.port = server_port;
+
+    // If no server address was specified, get the local IP address from the ENet host
+    if (server_address.empty()) {
+        char host_ip[256];
+        enet_address_get_host_ip(&room_impl->server->address, host_ip, sizeof(host_ip) - 1);
+        room_impl->room_information.address = host_ip;
+    } else {
+        room_impl->room_information.address = server_address;
+    }
     room_impl->room_information.preferred_game = preferred_game;
     room_impl->room_information.preferred_game_id = preferred_game_id;
     room_impl->room_information.host_username = host_username;

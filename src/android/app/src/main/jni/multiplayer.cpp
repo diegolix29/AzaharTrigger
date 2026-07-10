@@ -141,6 +141,9 @@ bool AndroidMultiplayer::NetworkInit() {
             msg += chat.message;
             AddNetPlayMessage(static_cast<int>(status), msg);
         });
+        member->BindOnRoomInformationChanged([this](const Network::RoomInformation&) {
+            AddNetPlayMessage(static_cast<int>(NetPlayStatus::ROOM_INFORMATION_UPDATED), "");
+        });
     }
 
     return true;
@@ -171,16 +174,25 @@ NetPlayStatus AndroidMultiplayer::NetPlayCreateRoom(const std::string& ipaddress
         return NetPlayStatus::CREATE_ROOM_ERROR;
     }
 
+    // Use the ipaddress passed from the Android frontend instead of ""
     if (!room->Create(room_name, "", ipaddress, port, password, std::min(max_players, 16),
                       NetSettings::values.citra_username, preferedGameName, preferedGameId,
                       std::make_unique<Network::VerifyUser::NullBackend>(), {})) {
         return NetPlayStatus::CREATE_ROOM_ERROR;
     }
 
+    // Get the actual IP address from the room information
+    std::string server_address = room->GetRoomInformation().address;
+
+    std::string join_address = server_address;
+    if (join_address.empty() || join_address == "0.0.0.0") {
+        join_address = "127.0.0.1";
+    }
+
     // Failsafe timer to avoid joining before creation
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    member->Join(username, Service::CFG::GetConsoleIdHash(system), ipaddress.c_str(), port, 0,
+    member->Join(username, Service::CFG::GetConsoleIdHash(system), join_address.c_str(), port, 0,
                  Network::NoPreferredMac, password);
 
     // Failsafe timer to avoid joining before creation
@@ -275,9 +287,11 @@ std::vector<std::string> AndroidMultiplayer::NetPlayRoomInfo() {
     if (auto room = Network::GetRoomMember().lock()) {
         auto members = room->GetMemberInformation();
         if (!members.empty()) {
-            // name and max players
+            // name, max players, address, and port
             auto room_info = room->GetRoomInformation();
-            info_list.push_back(room_info.name + "|" + std::to_string(room_info.member_slots));
+            const auto& address = room->GetServerAddress();
+            info_list.push_back(room_info.name + "|" + std::to_string(room_info.member_slots) +
+                                "|" + address + "|" + std::to_string(room_info.port));
             // all members
             for (const auto& member : members) {
                 info_list.push_back(member.nickname);

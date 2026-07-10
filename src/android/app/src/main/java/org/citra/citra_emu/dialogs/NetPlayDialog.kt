@@ -336,6 +336,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             const val MULTIPLAYER_ROOM_MEMBER = 2
             const val MULTIPLAYER_SEPARATOR = 3
             const val MULTIPLAYER_ROOM_COUNT = 4
+            const val MULTIPLAYER_ROOM_ADDRESS = 5
             const val TYPE_BUTTON = 0
             const val TYPE_TEXT = 1
             const val TYPE_SEPARATOR = 2
@@ -364,6 +365,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     val iconRes = when (item.option) {
                         NetPlayItems.MULTIPLAYER_ROOM_TEXT -> R.drawable.ic_system
                         NetPlayItems.MULTIPLAYER_ROOM_COUNT -> R.drawable.ic_joined
+                        NetPlayItems.MULTIPLAYER_ROOM_ADDRESS -> R.drawable.ic_joined
                         else -> 0
                     }
                     visibility = if (iconRes != 0) {
@@ -419,6 +421,9 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 val roomInfo = infos[0].split("|")
                 netPlayItems.add(NetPlayItems(NetPlayItems.MULTIPLAYER_ROOM_TEXT, roomInfo[0], NetPlayItems.TYPE_TEXT))
                 netPlayItems.add(NetPlayItems(NetPlayItems.MULTIPLAYER_ROOM_COUNT, "${infos.size - 1}/${roomInfo[1]}", NetPlayItems.TYPE_TEXT))
+                if (roomInfo.size >= 4 && roomInfo[2].isNotEmpty() && roomInfo[3].isNotEmpty()) {
+                    netPlayItems.add(NetPlayItems(NetPlayItems.MULTIPLAYER_ROOM_ADDRESS, "${roomInfo[2]}:${roomInfo[3]}", NetPlayItems.TYPE_TEXT))
+                }
                 netPlayItems.add(NetPlayItems(NetPlayItems.MULTIPLAYER_SEPARATOR, "", NetPlayItems.TYPE_SEPARATOR))
                 for (i in 1 until infos.size) {
                     netPlayItems.add(NetPlayItems(NetPlayItems.MULTIPLAYER_ROOM_MEMBER, infos[i], NetPlayItems.TYPE_BUTTON))

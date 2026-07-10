@@ -45,6 +45,8 @@ public:
 
     MacAddress mac_address; ///< The mac_address of this member.
 
+    std::string server_address; ///< The address this member connected to.
+
     std::mutex network_mutex; ///< Mutex that controls access to the `client` variable.
     /// Thread that receives and dispatches network packets
     std::unique_ptr<std::thread> loop_thread;
@@ -342,6 +344,12 @@ void RoomMember::RoomMemberImpl::HandleRoomInformationPacket(const ENetEvent* ev
             }
         }
     }
+
+    if (!packet.EndOfPacket()) {
+        packet >> info.address;
+        room_information.address = info.address;
+    }
+
     Invoke(room_information);
 }
 
@@ -564,6 +572,8 @@ void RoomMember::RoomMemberImpl::Disconnect() {
     member_information.clear();
     room_information.member_slots = 0;
     room_information.name.clear();
+    room_information.address.clear();
+    server_address.clear();
 
     if (!server)
         return;
@@ -682,6 +692,13 @@ RoomInformation RoomMember::GetRoomInformation() const {
     return room_member_impl->room_information;
 }
 
+const std::string& RoomMember::GetServerAddress() const {
+    if (!room_member_impl->room_information.address.empty()) {
+        return room_member_impl->room_information.address;
+    }
+    return room_member_impl->server_address;
+}
+
 void RoomMember::Join(const std::string& nick, const std::string& console_id_hash,
                       const char* server_addr, u16 server_port, u16 client_port,
                       const MacAddress& preferred_mac, const std::string& password,
@@ -701,6 +718,7 @@ void RoomMember::Join(const std::string& nick, const std::string& console_id_has
     }
 
     room_member_impl->SetState(State::Joining);
+    room_member_impl->server_address = server_addr;
 
     ENetAddress address{};
     enet_address_set_host(&address, server_addr);
