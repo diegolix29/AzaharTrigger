@@ -5306,7 +5306,8 @@ void GMainWindow::InitializeSaveStateMenuActions() {
 
 void GMainWindow::InitializeHotkeys() {
     hotkey_registry.LoadHotkeys();
-
+    hotkey_registry.buttonMonitor.start(16);
+    LOG_DEBUG(Frontend, "Initializing hotkeys");
     const QString main_window = QStringLiteral("Main Window");
     const QString fullscreen = QStringLiteral("Fullscreen");
 
@@ -5320,6 +5321,7 @@ void GMainWindow::InitializeHotkeys() {
         this->addAction(action);
         if (!primary_only)
             secondary_window->addAction(action);
+        hotkey_registry.SetAction(main_window, action_name, action);
     };
 
     link_action_shortcut(ui->action_Load_File, QStringLiteral("Load File"));
@@ -7572,6 +7574,10 @@ void GMainWindow::TriggerRotateScreens() {
 }
 
 void GMainWindow::OnSaveState() {
+    if (!system.IsPoweredOn()) {
+        return;
+    }
+
     QAction* action = qobject_cast<QAction*>(sender());
     ASSERT(action);
 
@@ -7581,6 +7587,10 @@ void GMainWindow::OnSaveState() {
 }
 
 void GMainWindow::OnLoadState() {
+    if (!system.IsPoweredOn()) {
+        return;
+    }
+
     QAction* action = qobject_cast<QAction*>(sender());
     ASSERT(action);
 
