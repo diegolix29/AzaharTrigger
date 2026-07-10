@@ -200,6 +200,7 @@ if (ENABLE_QT)
         "geometry"
         "state"
         "geometryRenderWindow"
+        "geometrySecondaryWindow"
         "gameListHeaderState"
         "microProfileDialogGeometry"
         "name"
