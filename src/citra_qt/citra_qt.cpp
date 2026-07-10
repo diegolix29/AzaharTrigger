@@ -5600,6 +5600,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Previous_Amiibo, &GMainWindow::OnPreviousAmiibo);
     connect_menu(ui->action_Load_Amiibo, &GMainWindow::OnLoadAmiibo);
     connect_menu(ui->action_Remove_Amiibo, &GMainWindow::OnRemoveAmiibo);
+    connect_menu(ui->action_Open_Citra_Folder, &GMainWindow::OnOpenCitraFolder);
+    connect_menu(ui->action_Open_NAND_Folder, &GMainWindow::OnOpenNANDFolder);
+    connect_menu(ui->action_Open_SDMC_Folder, &GMainWindow::OnOpenSDMCFolder);
 
     // Emulation
     connect_menu(ui->action_Pause, &GMainWindow::OnPauseContinueGame);
@@ -5690,7 +5693,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect_menu(ui->action_Decompress_ROM_File, &GMainWindow::OnDecompressFile);
 
     // Help
-    connect_menu(ui->action_Open_Citra_Folder, &GMainWindow::OnOpenCitraFolder);
     connect_menu(ui->action_Open_Log_Folder, []() {
         QString path = QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LogDir));
         QDesktopServices::openUrl(QUrl::fromLocalFile(path));
@@ -7788,6 +7790,16 @@ void GMainWindow::OnRemoveAmiibo() {
 void GMainWindow::OnOpenCitraFolder() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::UserDir))));
+}
+
+void GMainWindow::OnOpenNANDFolder() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir))));
+}
+
+void GMainWindow::OnOpenSDMCFolder() {
+    QDesktopServices::openUrl(QUrl::fromLocalFile(
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir))));
 }
 
 void GMainWindow::OnToggleFilterBar() {
