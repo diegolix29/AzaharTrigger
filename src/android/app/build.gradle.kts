@@ -247,6 +247,10 @@ tasks.named("preBuild") {
     dependsOn(unzipVulkanValidationLayers)
 }
 
+ktlint {
+    version = "1.8.0"
+}
+
 fun getGitVersion(): String {
     var versionName = "0.0"
 
