@@ -125,9 +125,16 @@ jobs:
       - name: Download ARM64 build from cache
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.OS }}-arm64
-          key: ${{ runner.os }}-arm64-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
-          fail-on-cache-miss: true
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-
+      - name: Install tools
+        run: brew install ccache ninja spirv-tools
+      - name: Build (arm64)
+        run: BUILD_ARCH=arm64 ./.ci/macos.sh
+      - name: Build (x86_64)
+        run: BUILD_ARCH=x86_64 ./.ci/macos.sh
       - name: Create universal app
         run: ./.ci/macos-universal.sh
         env:
