@@ -334,7 +334,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [source, linux, macos-universal, windows, android, docker]
-    if: github.event_name == 'push' && github.ref_name == 'AzaharTrigger'
+    if: github.event_name == 'push' && (github.ref_name == 'AzaharTrigger' || github.ref_type == 'tag')
     permissions:
       contents: write
     steps:
