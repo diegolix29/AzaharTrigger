@@ -233,6 +233,56 @@ class GamesFragment : Fragment() {
         setInsets()
     }
 
+    private fun getMajorVersion(version: String): Int? = version.split('.')[0].toIntOrNull()
+
+    private fun isPrereleaseBuild(): Boolean {
+        val version = BuildConfig.GIT_VERSION
+        return (
+            version.contains("alpha") ||
+                version.contains("beta") ||
+                version.contains("rc")
+            )
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        // Perform update check
+        @Suppress("SimplifyBooleanWithConstants", "RedundantSuppression")
+        if (!BuildConfig.DEBUG &&
+            !BuildUtil.isGooglePlayBuild &&
+            BooleanSetting.CHECK_FOR_UPDATES.boolean &&
+            !homeViewModel.updatePromptShown
+        ) {
+            Thread({
+                val checkForPrereleaseUpdates =
+                    isPrereleaseBuild() || (IntSetting.UPDATE_CHECK_CHANNEL.int == 1)
+                val latestReleaseTag = UpdateChecker.getLatestRelease(checkForPrereleaseUpdates)
+
+                if (!latestReleaseTag.isNullOrEmpty() &&
+                    latestReleaseTag != BuildConfig.GIT_VERSION
+                ) {
+                    val latestMajorVersion = getMajorVersion(latestReleaseTag)
+                    val currentMajorVersion = getMajorVersion(BuildConfig.GIT_VERSION)
+                    if (latestMajorVersion != null &&
+                        currentMajorVersion != null &&
+                        currentMajorVersion <= latestMajorVersion
+                    ) {
+                        UpdateAvailableNotificationFragment.newInstance(
+                            latestReleaseTag,
+                            checkForPrereleaseUpdates
+                        )
+                            .show(
+                                requireActivity().supportFragmentManager,
+                                UpdateAvailableNotificationFragment.TAG
+                            )
+                    }
+                }
+            }).start()
+            homeViewModel.updatePromptShown = true
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
