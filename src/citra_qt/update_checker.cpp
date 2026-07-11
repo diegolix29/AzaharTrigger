@@ -92,6 +92,8 @@ std::optional<UpdateChecker::ReleaseInfo> UpdateChecker::GetLatestReleaseInfo(
         if (include_prereleases) {
             // /releases returns all releases (including prereleases), newest first.
             const auto releases_path = base_path + "/releases";
+            LOG_INFO(Frontend, "Checking for updates including prereleases from: {}",
+                     releases_path);
             const auto releases_response = GetResponse(update_check_url, releases_path);
             if (!releases_response) {
                 return {};
@@ -103,17 +105,23 @@ std::optional<UpdateChecker::ReleaseInfo> UpdateChecker::GetLatestReleaseInfo(
             }
 
             // The first entry is the most recently published release or prerelease.
-            return ParseRelease(releases_json.at(0));
+            const auto release = ParseRelease(releases_json.at(0));
+            LOG_INFO(Frontend, "Found latest release: {} (prerelease: {})", release.tag_name,
+                     release.prerelease);
+            return release;
         } else {
             // /releases/latest only ever returns the latest *stable* (non-prerelease,
             // non-draft) release.
             const auto latest_path = base_path + "/releases/latest";
+            LOG_INFO(Frontend, "Checking for stable updates from: {}", latest_path);
             const auto response = GetResponse(update_check_url, latest_path);
             if (!response) {
                 return {};
             }
 
-            return ParseRelease(nlohmann::json::parse(response.value()));
+            const auto release = ParseRelease(nlohmann::json::parse(response.value()));
+            LOG_INFO(Frontend, "Found latest stable release: {}", release.tag_name);
+            return release;
         }
     } catch (nlohmann::detail::exception& e) {
         LOG_ERROR(Frontend, "Parsing JSON response from {}{} failed during update check: {}",

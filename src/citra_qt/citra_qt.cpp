@@ -4874,13 +4874,20 @@ GMainWindow::GMainWindow(Core::System& system_)
             auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
             if (!release || release->tag_name.empty() ||
                 release->tag_name == Common::g_build_fullname) {
+                LOG_INFO(Frontend, "Already on latest version: {}", Common::g_build_fullname);
                 return std::nullopt;
             }
             const int latest_major_version = GetMajorVersion(release->tag_name);
             const int current_major_version = GetMajorVersion(Common::g_build_fullname);
-            if (current_major_version <= latest_major_version) {
+            LOG_INFO(Frontend, "Current version: {} (major: {}), Latest version: {} (major: {})",
+                     Common::g_build_fullname, current_major_version, release->tag_name,
+                     latest_major_version);
+            if (current_major_version < latest_major_version) {
+                LOG_INFO(Frontend, "Update available: {} -> {}", Common::g_build_fullname,
+                         release->tag_name);
                 return release;
             }
+            LOG_INFO(Frontend, "No update needed (major versions equal or current is newer)");
             return std::nullopt;
         });
         QObject::connect(&update_watcher,
@@ -8932,6 +8939,11 @@ void GMainWindow::OnMoviePlaybackCompleted() {
 void GMainWindow::OnEmulatorUpdateAvailable() {
     const std::optional<UpdateChecker::ReleaseInfo> release = update_future.result();
     if (!release) {
+        return;
+    }
+    // Don't prompt if already on the latest version
+    if (!release->tag_name.empty() && release->tag_name == Common::g_build_fullname) {
+        LOG_INFO(Frontend, "Already on latest version: {}", release->tag_name);
         return;
     }
     PromptAndApplyUpdate(*release);
