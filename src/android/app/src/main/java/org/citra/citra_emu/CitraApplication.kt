@@ -44,6 +44,18 @@ class CitraApplication : Application() {
             ciaChannel.setSound(null, null)
             ciaChannel.vibrationPattern = null
             createNotificationChannel(ciaChannel)
+
+            // App update download notifications
+            val updateChannel = NotificationChannel(
+                getString(R.string.app_update_notification_channel_id),
+                getString(R.string.app_update_notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            updateChannel.description =
+                getString(R.string.app_update_notification_channel_description)
+            updateChannel.setSound(null, null)
+            updateChannel.vibrationPattern = null
+            createNotificationChannel(updateChannel)
         }
     }
 

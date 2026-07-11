@@ -4,5 +4,7 @@
     <!-- These permissions aren't allowed by Google. We asked, and they declined. -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:node="remove" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+    <!-- Play Store apps aren't allowed to install other APKs themselves. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
 
 </manifest>

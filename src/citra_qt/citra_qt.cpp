@@ -9,12 +9,14 @@
 #include <memory>
 #include <optional>
 #include <thread>
+#include <QAbstractButton>
 #include <QFileDialog>
 #include <QFutureWatcher>
 #include <QIcon>
 #include <QLabel>
 #include <QMessageBox>
 #include <QPalette>
+#include <QProgressDialog>
 #include <QSysInfo>
 #include <QtConcurrent/QtConcurrentMap>
 #include <QtConcurrent/QtConcurrentRun>
@@ -80,6 +82,7 @@
 #include "common/play_time_manager.h"
 #ifdef ENABLE_QT_UPDATE_CHECKER
 #include "citra_qt/update_checker.h"
+#include "citra_qt/updater/self_updater.h"
 #endif
 #include "citra_qt/util/clickable_label.h"
 #include "citra_qt/util/graphics_device_info.h"
@@ -4867,20 +4870,21 @@ GMainWindow::GMainWindow(Core::System& system_)
 
 #ifdef ENABLE_QT_UPDATE_CHECKER
     if (UISettings::values.check_for_update_on_start) {
-        update_future = QtConcurrent::run([]() -> QString {
-            const std::optional<std::string> latest_release_tag =
-                UpdateChecker::GetLatestRelease(ShouldCheckForPrereleaseUpdates());
-
-            if (latest_release_tag && latest_release_tag.value() != Common::g_build_fullname) {
-                const int latest_major_version = GetMajorVersion(latest_release_tag.value());
-                const int current_major_version = GetMajorVersion(Common::g_build_fullname);
-                if (current_major_version <= latest_major_version) {
-                    return QString::fromStdString(latest_release_tag.value());
-                }
+        update_future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
+            auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
+            if (!release || release->tag_name.empty() ||
+                release->tag_name == Common::g_build_fullname) {
+                return std::nullopt;
             }
-            return QString{};
+            const int latest_major_version = GetMajorVersion(release->tag_name);
+            const int current_major_version = GetMajorVersion(Common::g_build_fullname);
+            if (current_major_version <= latest_major_version) {
+                return release;
+            }
+            return std::nullopt;
         });
-        QObject::connect(&update_watcher, &QFutureWatcher<QString>::finished, this,
+        QObject::connect(&update_watcher,
+                         &QFutureWatcher<std::optional<UpdateChecker::ReleaseInfo>>::finished, this,
                          &GMainWindow::OnEmulatorUpdateAvailable);
         update_watcher.setFuture(update_future);
     }
@@ -5693,6 +5697,11 @@ void GMainWindow::ConnectMenuEvents() {
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://azahar-emu.org/pages/faq/")));
     });
     connect_menu(ui->action_libzip, &GMainWindow::OnMenuLibzipLicence);
+#ifdef ENABLE_QT_UPDATE_CHECKER
+    connect_menu(ui->action_Check_For_Updates, &GMainWindow::OnMenuCheckForUpdates);
+#else
+    ui->action_Check_For_Updates->setVisible(false);
+#endif
     connect_menu(ui->action_About, &GMainWindow::OnMenuAboutCitra, QAction::AboutRole);
 }
 
@@ -8895,27 +8904,131 @@ void GMainWindow::OnMoviePlaybackCompleted() {
 
 #ifdef ENABLE_QT_UPDATE_CHECKER
 void GMainWindow::OnEmulatorUpdateAvailable() {
-    QString version_string = update_future.result();
-    if (version_string.isEmpty())
+    const std::optional<UpdateChecker::ReleaseInfo> release = update_future.result();
+    if (!release) {
         return;
+    }
+    PromptAndApplyUpdate(*release);
+}
+
+void GMainWindow::OnMenuCheckForUpdates() {
+    ui->action_Check_For_Updates->setEnabled(false);
+    ui->action_Check_For_Updates->setText(tr("Checking for Updates..."));
+
+    auto* watcher = new QFutureWatcher<std::optional<UpdateChecker::ReleaseInfo>>(this);
+    connect(watcher, &QFutureWatcher<std::optional<UpdateChecker::ReleaseInfo>>::finished, this,
+            [this, watcher] {
+                ui->action_Check_For_Updates->setEnabled(true);
+                ui->action_Check_For_Updates->setText(tr("Check for Updates..."));
+
+                const std::optional<UpdateChecker::ReleaseInfo> release = watcher->result();
+                watcher->deleteLater();
+
+                if (!release) {
+                    QMessageBox::information(this, tr("No Updates Available"),
+                                             tr("You are already running the latest version of "
+                                                "Azahar."));
+                    return;
+                }
+                PromptAndApplyUpdate(*release);
+            });
+
+    const auto future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
+        auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
+        if (!release || release->tag_name.empty() ||
+            release->tag_name == Common::g_build_fullname) {
+            return std::nullopt;
+        }
+        return release;
+    });
+    watcher->setFuture(future);
+}
+
+void GMainWindow::PromptAndApplyUpdate(const UpdateChecker::ReleaseInfo& release) {
+    const QString version_string = QString::fromStdString(release.tag_name);
+    const auto asset =
+        Updater::CanSelfUpdate() ? Updater::PickAssetForThisPlatform(release.assets) : std::nullopt;
+
+    auto open_download_page = [release] {
+        const std::string update_page_url =
+            !release.html_url.empty()
+                ? release.html_url
+                : fmt::format("https://github.com/{}/{}/releases", UpdateChecker::RepoOwner,
+                              UpdateChecker::RepoName);
+        QDesktopServices::openUrl(QUrl(QString::fromStdString(update_page_url)));
+    };
 
     QMessageBox update_prompt(this);
     update_prompt.setWindowTitle(tr("Update Available"));
     update_prompt.setIcon(QMessageBox::Information);
-    update_prompt.addButton(QMessageBox::Yes);
-    update_prompt.addButton(QMessageBox::Ignore);
-    update_prompt.setText(tr("Update %1 for Azahar is available.\nWould you like to download it?")
-                              .arg(version_string));
-    update_prompt.exec();
-    if (update_prompt.button(QMessageBox::Yes) == update_prompt.clickedButton()) {
-        std::string update_page_url;
-        if (ShouldCheckForPrereleaseUpdates()) {
-            update_page_url = "https://github.com/azahar-emu/azahar/releases";
-        } else {
-            update_page_url = "https://azahar-emu.org/pages/download/";
-        }
-        QDesktopServices::openUrl(QUrl(QString::fromStdString(update_page_url)));
+    QAbstractButton* open_page_button = nullptr;
+    QAbstractButton* ignore_button = update_prompt.addButton(QMessageBox::Ignore);
+    if (asset) {
+        update_prompt.addButton(tr("Update Now"), QMessageBox::AcceptRole);
+        open_page_button =
+            update_prompt.addButton(tr("Open Download Page"), QMessageBox::ActionRole);
+        update_prompt.setText(
+            tr("Update %1 for Azahar is available.\nWould you like to update now?")
+                .arg(version_string));
+    } else {
+        open_page_button = update_prompt.addButton(QMessageBox::Yes);
+        update_prompt.setText(
+            tr("Update %1 for Azahar is available.\nWould you like to download it?")
+                .arg(version_string));
     }
+    update_prompt.exec();
+
+    QAbstractButton* clicked = update_prompt.clickedButton();
+    if (clicked == ignore_button || clicked == nullptr) {
+        return;
+    }
+    if (clicked == open_page_button) {
+        open_download_page();
+        return;
+    }
+
+    // "Update Now" was clicked and we have a matching asset for this platform:
+    // download it and apply it in place.
+    auto* progress = new QProgressDialog(tr("Downloading update..."), tr("Cancel"), 0, 100, this);
+    progress->setWindowModality(Qt::WindowModal);
+    progress->setMinimumDuration(0);
+    progress->setAutoClose(false);
+    progress->setValue(0);
+
+    self_updater = new Updater::SelfUpdater(this);
+
+    connect(self_updater, &Updater::SelfUpdater::DownloadProgress, progress,
+            [progress](qint64 received, qint64 total) {
+                if (total > 0) {
+                    progress->setMaximum(static_cast<int>(total));
+                    progress->setValue(static_cast<int>(received));
+                }
+            });
+    connect(progress, &QProgressDialog::canceled, self_updater, &Updater::SelfUpdater::Cancel);
+    connect(self_updater, &Updater::SelfUpdater::Failed, this,
+            [this, progress, open_download_page](const QString& message) {
+                progress->close();
+                progress->deleteLater();
+                QMessageBox failure_box(this);
+                failure_box.setWindowTitle(tr("Update Failed"));
+                failure_box.setIcon(QMessageBox::Warning);
+                failure_box.setText(message);
+                failure_box.addButton(tr("Open Download Page"), QMessageBox::AcceptRole);
+                failure_box.addButton(QMessageBox::Cancel);
+                failure_box.exec();
+                if (failure_box.clickedButton() != failure_box.button(QMessageBox::Cancel)) {
+                    open_download_page();
+                }
+            });
+    connect(self_updater, &Updater::SelfUpdater::ReadyToRestart, this, [progress] {
+        progress->close();
+        progress->deleteLater();
+        // The helper process/relaunch has already been kicked off; just quit
+        // so the update can finish being applied.
+        QApplication::quit();
+    });
+
+    self_updater->Start(*asset);
 }
 #endif
 

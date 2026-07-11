@@ -10,7 +10,9 @@
 #include "common/logging/log.h"
 #include "update_checker.h"
 
-std::optional<std::string> GetResponse(std::string url, std::string path) {
+namespace {
+
+std::optional<std::string> GetResponse(const std::string& url, const std::string& path) {
     constexpr std::size_t timeout_seconds = 15;
 
     std::unique_ptr<httplib::Client> client = std::make_unique<httplib::Client>(url);
@@ -23,15 +25,24 @@ std::optional<std::string> GetResponse(std::string url, std::string path) {
         return {};
     }
 
+    // GitHub requires a User-Agent header on API requests, or it will respond
+    // with 403 Forbidden.
+    httplib::Headers headers{
+        {"User-Agent", fmt::format("{}-updater", UpdateChecker::RepoName)},
+        {"Accept", "application/vnd.github+json"},
+    };
+
     httplib::Request request{
         .method = "GET",
         .path = path,
+        .headers = headers,
     };
 
     client->set_follow_location(true);
     const auto result = client->send(request);
     if (!result) {
-        LOG_ERROR(Frontend, "GET to {}{} returned null", url, path);
+        LOG_ERROR(Frontend, "GET to {}{} returned null (error: {})", url, path,
+                  httplib::to_string(result.error()));
         return {};
     }
 
@@ -49,56 +60,72 @@ std::optional<std::string> GetResponse(std::string url, std::string path) {
     return response.body;
 }
 
-std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases) {
-    constexpr auto update_check_url = "http://api.github.com";
-    std::string update_check_path = "/repos/azahar-emu/azahar";
-    try {
-        if (include_prereleases) { // This can return either a prerelease or a stable release,
-                                   // whichever is more recent.
-            const auto update_check_tags_path = update_check_path + "/tags";
-            const auto update_check_releases_path = update_check_path + "/releases";
+UpdateChecker::ReleaseInfo ParseRelease(const nlohmann::json& release_json) {
+    UpdateChecker::ReleaseInfo info;
+    info.tag_name = release_json.value("tag_name", std::string{});
+    info.html_url = release_json.value("html_url", std::string{});
+    info.prerelease = release_json.value("prerelease", false);
 
-            const auto tags_response = GetResponse(update_check_url, update_check_tags_path);
-            const auto releases_response =
-                GetResponse(update_check_url, update_check_releases_path);
-
-            if (!tags_response || !releases_response)
-                return {};
-
-            const std::string latest_tag =
-                nlohmann::json::parse(tags_response.value()).at(0).at("name");
-            const bool latest_tag_has_release =
-                releases_response.value().find(fmt::format("\"{}\"", latest_tag)) !=
-                std::string::npos;
-
-            // If there is a newer tag, but that tag has no associated release, don't prompt the
-            // user to update.
-            if (!latest_tag_has_release)
-                return {};
-
-            return latest_tag;
-        } else { // This is a stable release, only check for other stable releases.
-            update_check_path += "/releases/latest";
-            const auto response = GetResponse(update_check_url, update_check_path);
-
-            if (!response)
-                return {};
-
-            const std::string latest_tag = nlohmann::json::parse(response.value()).at("tag_name");
-            return latest_tag;
+    if (release_json.contains("assets") && release_json.at("assets").is_array()) {
+        for (const auto& asset_json : release_json.at("assets")) {
+            UpdateChecker::ReleaseAsset asset;
+            asset.name = asset_json.value("name", std::string{});
+            asset.browser_download_url = asset_json.value("browser_download_url", std::string{});
+            asset.size = asset_json.value("size", std::uint64_t{0});
+            if (!asset.name.empty() && !asset.browser_download_url.empty()) {
+                info.assets.push_back(std::move(asset));
+            }
         }
+    }
 
-    } catch (nlohmann::detail::out_of_range&) {
-        LOG_ERROR(Frontend,
-                  "Parsing JSON response from {}{} failed during update check: "
-                  "nlohmann::detail::out_of_range",
-                  update_check_url, update_check_path);
-        return {};
-    } catch (nlohmann::detail::type_error&) {
-        LOG_ERROR(Frontend,
-                  "Parsing JSON response from {}{} failed during update check: "
-                  "nlohmann::detail::type_error",
-                  update_check_url, update_check_path);
+    return info;
+}
+
+} // namespace
+
+std::optional<UpdateChecker::ReleaseInfo> UpdateChecker::GetLatestReleaseInfo(
+    bool include_prereleases) {
+    constexpr auto update_check_url = "https://api.github.com";
+    const std::string base_path = fmt::format("/repos/{}/{}", RepoOwner, RepoName);
+
+    try {
+        if (include_prereleases) {
+            // /releases returns all releases (including prereleases), newest first.
+            const auto releases_path = base_path + "/releases";
+            const auto releases_response = GetResponse(update_check_url, releases_path);
+            if (!releases_response) {
+                return {};
+            }
+
+            const auto releases_json = nlohmann::json::parse(releases_response.value());
+            if (!releases_json.is_array() || releases_json.empty()) {
+                return {};
+            }
+
+            // The first entry is the most recently published release or prerelease.
+            return ParseRelease(releases_json.at(0));
+        } else {
+            // /releases/latest only ever returns the latest *stable* (non-prerelease,
+            // non-draft) release.
+            const auto latest_path = base_path + "/releases/latest";
+            const auto response = GetResponse(update_check_url, latest_path);
+            if (!response) {
+                return {};
+            }
+
+            return ParseRelease(nlohmann::json::parse(response.value()));
+        }
+    } catch (nlohmann::detail::exception& e) {
+        LOG_ERROR(Frontend, "Parsing JSON response from {}{} failed during update check: {}",
+                  update_check_url, base_path, e.what());
         return {};
     }
+}
+
+std::optional<std::string> UpdateChecker::GetLatestRelease(bool include_prereleases) {
+    const auto release_info = GetLatestReleaseInfo(include_prereleases);
+    if (!release_info || release_info->tag_name.empty()) {
+        return {};
+    }
+    return release_info->tag_name;
 }

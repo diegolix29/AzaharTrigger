@@ -219,8 +219,17 @@ file(GLOB_RECURSE THEMES ${PROJECT_SOURCE_DIR}/dist/qt_themes/*)
 
 if (ENABLE_QT_UPDATE_CHECKER)
     target_link_libraries(citra_qt PRIVATE httplib json-headers)
-    target_sources(citra_qt PRIVATE update_checker.cpp)
-    target_compile_definitions(citra_qt PUBLIC ENABLE_QT_UPDATE_CHECKER)
+    target_sources(citra_qt PRIVATE
+        update_checker.cpp
+        update_checker.h
+        updater/self_updater.cpp
+        updater/self_updater.h
+    )
+    target_compile_definitions(citra_qt PUBLIC
+        ENABLE_QT_UPDATE_CHECKER
+        AZAHAR_UPDATE_REPO_OWNER="${AZAHAR_UPDATE_REPO_OWNER}"
+        AZAHAR_UPDATE_REPO_NAME="${AZAHAR_UPDATE_REPO_NAME}"
+    )
 endif()
 
 if (ENABLE_QT_TRANSLATION)

@@ -25,6 +25,10 @@
 #include "citra_qt/hotkeys.h"
 #include "citra_qt/notification_led.h"
 #include "citra_qt/user_data_migration.h"
+#ifdef ENABLE_QT_UPDATE_CHECKER
+#include "citra_qt/update_checker.h"
+#include "citra_qt/updater/self_updater.h"
+#endif
 #include "core/core.h"
 #include "core/savestate.h"
 #include "video_core/rasterizer_interface.h"
@@ -326,6 +330,8 @@ private slots:
     void OnMute();
 #ifdef ENABLE_QT_UPDATE_CHECKER
     void OnEmulatorUpdateAvailable();
+    /// Called whenever a user selects Help->Check for Updates
+    void OnMenuCheckForUpdates();
 #endif
     void OnSwitchDiskResources(VideoCore::LoadCallbackStage stage, std::size_t value,
                                std::size_t total, const std::string& object);
@@ -349,6 +355,9 @@ private:
     void UpdateVolumeUI();
     void UpdateAPIIndicator(bool update = false);
     void UpdateStatusButtons();
+#ifdef ENABLE_QT_UPDATE_CHECKER
+    void PromptAndApplyUpdate(const UpdateChecker::ReleaseInfo& release);
+#endif
 #ifdef __unix__
     void SetGamemodeEnabled(bool state);
 #endif
@@ -468,8 +477,9 @@ private:
 
 #ifdef ENABLE_QT_UPDATE_CHECKER
     // Prompt shown when update check succeeds
-    QFuture<QString> update_future;
-    QFutureWatcher<QString> update_watcher;
+    QFuture<std::optional<UpdateChecker::ReleaseInfo>> update_future;
+    QFutureWatcher<std::optional<UpdateChecker::ReleaseInfo>> update_watcher;
+    Updater::SelfUpdater* self_updater = nullptr;
 #endif
 
 #ifdef __unix__

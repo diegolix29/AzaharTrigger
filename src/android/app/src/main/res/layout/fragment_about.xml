@@ -8,22 +8,22 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <com.google.android.material.appbar.AppBarLayout
+	<com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appbar_about"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true">
 
-        <com.google.android.material.appbar.MaterialToolbar
+		<com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar_about"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="@string/about"
             app:navigationIcon="@drawable/ic_back" />
 
-    </com.google.android.material.appbar.AppBarLayout>
+	</com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
+	<androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_about"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -31,13 +31,13 @@
         android:fadeScrollbars="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
+		<LinearLayout
             android:id="@+id/content_about"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <ImageView
+			<ImageView
                 android:id="@+id/image_logo"
                 android:layout_width="104dp"
                 android:layout_height="104dp"
@@ -45,7 +45,7 @@
                 android:layout_gravity="center_horizontal"
                 android:src="@drawable/ic_citra_full" />
 
-            <com.google.android.material.divider.MaterialDivider
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
@@ -58,21 +58,21 @@
 				android:layout_marginHorizontal="24dp"
 				android:textAlignment="viewStart"
 				android:text="The Azahar logo is the property of PabloMK7 and angyartanddraw" />
-					
-            <com.google.android.material.divider.MaterialDivider
+
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="28dp" />
 
-            <LinearLayout
+			<LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="16dp"
                 android:paddingHorizontal="16dp"
                 android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
                     android:textAlignment="viewStart"
                     android:text="@string/about" />
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -89,14 +89,14 @@
                     android:textAlignment="viewStart"
                     android:text="@string/citra_description" />
 
-            </LinearLayout>
+			</LinearLayout>
 
-            <com.google.android.material.divider.MaterialDivider
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp" />
 
-            <LinearLayout
+			<LinearLayout
                 android:id="@+id/button_contributors"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +105,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -113,7 +113,7 @@
                     android:textAlignment="viewStart"
                     android:text="@string/contributors" />
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -122,14 +122,14 @@
                     android:textAlignment="viewStart"
                     android:text="@string/contributors_description" />
 
-            </LinearLayout>
+			</LinearLayout>
 
-            <com.google.android.material.divider.MaterialDivider
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp" />
 
-            <LinearLayout
+			<LinearLayout
                 android:id="@+id/button_licenses"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -146,7 +146,7 @@
                     android:textAlignment="viewStart"
                     android:text="@string/licenses" />
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -155,14 +155,14 @@
                     android:textAlignment="viewStart"
                     android:text="@string/licenses_description" />
 
-            </LinearLayout>
+			</LinearLayout>
 
-            <com.google.android.material.divider.MaterialDivider
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp" />
 
-            <LinearLayout
+			<LinearLayout
                 android:id="@+id/button_build_hash"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -171,7 +171,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:orientation="vertical">
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -179,7 +179,7 @@
                     android:textAlignment="viewStart"
                     android:text="@string/build" />
 
-                <com.google.android.material.textview.MaterialTextView
+				<com.google.android.material.textview.MaterialTextView
                     android:id="@+id/text_build_hash"
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="match_parent"
@@ -189,14 +189,47 @@
                     android:textAlignment="viewStart"
                     tools:text="abc123" />
 
-            </LinearLayout>
+			</LinearLayout>
 
-            <com.google.android.material.divider.MaterialDivider
+			<com.google.android.material.divider.MaterialDivider
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp" />
 
-            <LinearLayout
+			<LinearLayout
+                android:id="@+id/button_check_updates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="vertical">
+
+				<com.google.android.material.textview.MaterialTextView
+                    style="@style/TextAppearance.Material3.TitleMedium"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="24dp"
+                    android:textAlignment="viewStart"
+                    android:text="@string/app_update_check_for_updates" />
+
+				<com.google.android.material.textview.MaterialTextView
+                    style="@style/TextAppearance.Material3.BodyMedium"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="24dp"
+                    android:layout_marginTop="6dp"
+                    android:textAlignment="viewStart"
+                    android:text="@string/app_update_check_for_updates_description" />
+
+			</LinearLayout>
+
+			<com.google.android.material.divider.MaterialDivider
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp" />
+
+			<LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -205,7 +238,7 @@
                 android:layout_marginBottom="16dp"
                 android:layout_marginHorizontal="40dp">
 
-                <Button
+				<Button
                     style="?attr/materialIconButtonStyle"
                     android:id="@+id/button_discord"
                     android:layout_width="0dp"
@@ -216,7 +249,7 @@
                     app:iconSize="24dp"
                     app:iconGravity="textEnd" />
 
-                <Button
+				<Button
                     style="?attr/materialIconButtonStyle"
                     android:id="@+id/button_website"
                     android:layout_width="0dp"
@@ -227,7 +260,7 @@
                     app:iconSize="24dp"
                     app:iconGravity="textEnd" />
 
-                <Button
+				<Button
                     android:id="@+id/button_github"
                     style="?attr/materialIconButtonStyle"
                     android:layout_width="0dp"
@@ -238,10 +271,10 @@
                     app:iconSize="24dp"
                     app:iconGravity="textEnd" />
 
-            </LinearLayout>
+			</LinearLayout>
 
-        </LinearLayout>
+		</LinearLayout>
 
-    </androidx.core.widget.NestedScrollView>
+	</androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

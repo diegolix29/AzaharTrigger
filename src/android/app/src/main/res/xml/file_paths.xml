@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used by the FileProvider declared in AndroidManifest.xml so that the
+     downloaded update APK (stored under the app's own external-files
+     directory) can be handed to the system package installer via a
+     content:// URI. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="updates" path="updates/" />
+</paths>

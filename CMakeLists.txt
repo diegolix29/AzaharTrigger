@@ -122,7 +122,11 @@ option(USE_SYSTEM_SDL2 "Use the system SDL2 lib (instead of the bundled one)" OF
 # Set bundled qt as dependent options.
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
-option(ENABLE_QT_UPDATE_CHECKER "Enable built-in update checker for the Qt frontend" OFF)
+option(ENABLE_QT_UPDATE_CHECKER "Enable built-in update checker for the Qt frontend" ON)
+set(AZAHAR_UPDATE_REPO_OWNER "diegolix29" CACHE STRING
+    "GitHub user/org that owns the repo the built-in updater checks for releases")
+set(AZAHAR_UPDATE_REPO_NAME "AzaharTrigger" CACHE STRING
+    "GitHub repo name that the built-in updater checks for releases")
 
 CMAKE_DEPENDENT_OPTION(ENABLE_TESTS "Enable generating tests executable" ON "NOT IOS" OFF)
 CMAKE_DEPENDENT_OPTION(ENABLE_ROOM "Enable dedicated room functionality" ON "NOT ANDROID AND NOT IOS" OFF)
