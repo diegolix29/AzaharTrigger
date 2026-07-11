@@ -16,7 +16,7 @@
 		</property>
 		<property name="windowIcon">
 			<iconset>
-				<normaloff>dist/azahar.png</normaloff>dist/azahar.png
+				<normaloff>dist/azahar.png</normaloff>
 			</iconset>
 		</property>
 		<property name="tabShape">
@@ -156,7 +156,18 @@
 				<addaction name="menu_ZipPass"/>
 				<addaction name="menu_Amiibo"/>
 				<addaction name="separator"/>
-				<addaction name="action_Open_Citra_Folder"/>
+
+				<widget class="QMenu" name="menu_Open_Folder">
+					<property name="title">
+						<string>Open Azahar Folder</string>
+					</property>
+					<addaction name="action_Open_Citra_Folder"/>
+					<addaction name="action_Open_NAND_Folder"/>
+					<addaction name="action_Open_SDMC_Folder"/>
+				</widget>
+
+				<addaction name="menu_Open_Folder"/>
+
 				<addaction name="separator"/>
 				<addaction name="action_Exit"/>
 			</widget>
@@ -894,7 +905,17 @@
 		</action>
 		<action name="action_Open_Citra_Folder">
 			<property name="text">
-				<string>Open Azahar Folder</string>
+				<string>User Folder</string>
+			</property>
+		</action>
+		<action name="action_Open_NAND_Folder">
+			<property name="text">
+				<string>NAND Folder</string>
+			</property>
+		</action>
+		<action name="action_Open_SDMC_Folder">
+			<property name="text">
+				<string>SDMC Folder</string>
 			</property>
 		</action>
 		<action name="action_Configure_Current_Game">
