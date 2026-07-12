@@ -249,6 +249,14 @@ tasks.named("preBuild") {
 fun getGitVersion(): String {
     var versionName = "0.0"
 
+    // Check for GIT-TAG file first (manual version control)
+    val gitTagFile = File(project.rootDir, "GIT-TAG")
+    if (gitTagFile.exists()) {
+        versionName = gitTagFile.readText().trim()
+        logger.lifecycle("Using version from GIT-TAG file: $versionName")
+        return versionName
+    }
+
     try {
         versionName = ProcessBuilder("git", "describe", "--always", "--long")
             .directory(project.rootDir)
@@ -257,6 +265,7 @@ fun getGitVersion(): String {
             .start().inputStream.bufferedReader().use { it.readText() }
             .trim()
             .replace(Regex("(-0)?-[^-]+$"), "")
+        logger.lifecycle("Using version from git describe: $versionName")
     } catch (e: Exception) {
         logger.error("Cannot find git, defaulting to dummy version number")
     }
@@ -264,6 +273,7 @@ fun getGitVersion(): String {
     if (System.getenv("GITHUB_ACTIONS") != null) {
         val gitTag = System.getenv("GIT_TAG_NAME")
         versionName = gitTag ?: versionName
+        logger.lifecycle("Using version from GITHUB_ACTIONS env: $versionName")
     }
 
     return versionName
