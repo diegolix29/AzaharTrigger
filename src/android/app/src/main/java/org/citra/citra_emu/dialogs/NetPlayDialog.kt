@@ -47,8 +47,6 @@ import org.citra.citra_emu.utils.WifiDirectManager
 
 class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var adapter: NetPlayAdapter
-    private val gameNameList: MutableList<Array<String>> = mutableListOf()
-    private val gameIdList: MutableList<Array<Long>> = mutableListOf()
 
     companion object {
         // Kept alive across NetPlayDialog instances: the Wi-Fi Direct group must remain up
@@ -169,19 +167,19 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                     })
 
                     // Prepare the game list in case a user tries to create a room
+
+                    preferredGameList.add(PreferredGame("%none%", -1))
+
                     // Prepare the game list in case a user tries to create a room.
                     // Always seed with a "None" option first so the dropdown is never empty.
                     gameNameList.add(arrayOf(context.getString(R.string.multiplayer_no_preferred_game)))
                     gameIdList.add(arrayOf(-1L))
                     for (game in GameHelper.cachedGameList) {
                         val gameName = game.title
-                        if (gameNameList.none { it[0] == gameName }) {
-                            gameNameList.add(arrayOf(gameName))
-                        }
-
                         val gameId = game.titleId
-                        if (gameIdList.none { it[0] == gameId }) {
-                            gameIdList.add((arrayOf(gameId)))
+
+                        if (preferredGameList.none { it.id == gameId }) {
+                            preferredGameList.add(PreferredGame(gameName, gameId))
                         }
                     }
 
@@ -310,9 +308,9 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         // On cancel/error: tear down the group immediately and clear the reference.
-        // On success: leave the group alive — the multiplayer session runs over it.
+        // On success: leave the group alive � the multiplayer session runs over it.
         // On cancel/error: tear down the group immediately and clear the reference.
-        // On success: leave the group alive — the multiplayer session runs over it.
+        // On success: leave the group alive � the multiplayer session runs over it.
         //             The reference is kept in activeWifiDirectManager until the lobby is left.
         dialog.setOnDismissListener {
             if (!connectionSucceeded) {
@@ -514,6 +512,15 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 setText(gameNameList[selectedIndex][0], false)
             }
         }
+        selectedPreferredGame = 0
+        binding.dropdownPreferedGameName.setText(
+            (
+                binding.dropdownPreferedGameName.adapter.getItem(
+                    selectedPreferredGame
+                ) as PreferredGame
+                ).toString(),
+            false
+        )
 
         binding.preferedGameName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
         binding.roomName.visibility = if (isCreateRoom) View.VISIBLE else View.GONE
