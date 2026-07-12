@@ -8,7 +8,9 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <thread>
+#include <vector>
 #include <QAbstractButton>
 #include <QFileDialog>
 #include <QFutureWatcher>
@@ -254,13 +256,46 @@ static bool ShouldCheckForPrereleaseUpdates() {
     return (IsPrereleaseBuild() || using_prerelease_channel);
 }
 
-static int GetMajorVersion(const std::string& version) {
-    size_t dot = version.find('.');
-    try {
-        return std::stoi(version.substr(0, dot));
-    } catch (...) {
-        return 0;
+// Parses a version string like "v1.2.3" (or "1.2.3", "1.2.3-rc1", a bare
+// git hash, etc.) into its numeric dot-separated components. Any leading
+// non-digit characters (e.g. a "v" prefix) are skipped first, since
+// std::stoi throws on those and previously caused every parse to silently
+// collapse to {0}. Non-numeric trailing garbage (e.g. "-rc1") just stops
+// the parse at that component rather than failing the whole string.
+static std::vector<int> ParseVersionComponents(const std::string& version) {
+    std::vector<int> parts;
+    const auto start = version.find_first_of("0123456789");
+    if (start == std::string::npos) {
+        return parts;
     }
+    std::stringstream ss(version.substr(start));
+    std::string segment;
+    while (std::getline(ss, segment, '.')) {
+        try {
+            parts.push_back(std::stoi(segment));
+        } catch (...) {
+            break;
+        }
+    }
+    return parts;
+}
+
+// Returns true if `latest` is a strictly newer version than `current`,
+// comparing components numerically (major, then minor, then patch, ...)
+// instead of only the (previously broken) major version. Missing trailing
+// components are treated as 0, so "1.2" < "1.2.1".
+static bool IsVersionNewer(const std::string& current, const std::string& latest) {
+    const auto current_parts = ParseVersionComponents(current);
+    const auto latest_parts = ParseVersionComponents(latest);
+    const std::size_t count = std::max(current_parts.size(), latest_parts.size());
+    for (std::size_t i = 0; i < count; ++i) {
+        const int c = i < current_parts.size() ? current_parts[i] : 0;
+        const int l = i < latest_parts.size() ? latest_parts[i] : 0;
+        if (c != l) {
+            return c < l;
+        }
+    }
+    return false;
 }
 #endif
 
@@ -4877,17 +4912,14 @@ GMainWindow::GMainWindow(Core::System& system_)
                 LOG_INFO(Frontend, "Already on latest version: {}", Common::g_build_fullname);
                 return std::nullopt;
             }
-            const int latest_major_version = GetMajorVersion(release->tag_name);
-            const int current_major_version = GetMajorVersion(Common::g_build_fullname);
-            LOG_INFO(Frontend, "Current version: {} (major: {}), Latest version: {} (major: {})",
-                     Common::g_build_fullname, current_major_version, release->tag_name,
-                     latest_major_version);
-            if (current_major_version < latest_major_version) {
+            LOG_INFO(Frontend, "Current version: {}, Latest version: {}", Common::g_build_fullname,
+                     release->tag_name);
+            if (IsVersionNewer(Common::g_build_fullname, release->tag_name)) {
                 LOG_INFO(Frontend, "Update available: {} -> {}", Common::g_build_fullname,
                          release->tag_name);
                 return release;
             }
-            LOG_INFO(Frontend, "No update needed (major versions equal or current is newer)");
+            LOG_INFO(Frontend, "No update needed (latest is not newer than current)");
             return std::nullopt;
         });
         QObject::connect(&update_watcher,
@@ -8975,6 +9007,16 @@ void GMainWindow::OnMenuCheckForUpdates() {
         auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
         if (!release || release->tag_name.empty() ||
             release->tag_name == Common::g_build_fullname) {
+            return std::nullopt;
+        }
+        // Previously this only checked for an exact string match against
+        // g_build_fullname, with no fallback. If the running build's
+        // embedded version string isn't literally identical to the latest
+        // release tag (e.g. it's a raw commit hash because it wasn't built
+        // from a tagged ref - see the CI pipeline), this used to report an
+        // "update" unconditionally, even when already on the newest
+        // release. Gate on an actual version comparison instead.
+        if (!IsVersionNewer(Common::g_build_fullname, release->tag_name)) {
             return std::nullopt;
         }
         return release;

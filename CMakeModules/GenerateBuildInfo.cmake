@@ -10,11 +10,9 @@ macro(generate_build_info)
 
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/cmake-modules")
 
-    if (EXISTS "${CMAKE_SOURCE_DIR}/GIT-COMMIT" AND EXISTS "${CMAKE_SOURCE_DIR}/GIT-TAG")
-        file(READ "${CMAKE_SOURCE_DIR}/GIT-COMMIT" GIT_REV_RAW LIMIT 64)
-        string(STRIP "${GIT_REV_RAW}" GIT_REV)
-        string(SUBSTRING "${GIT_REV_RAW}" 0 9 GIT_DESC)
+    if (EXISTS "${CMAKE_SOURCE_DIR}/GIT-TAG")
         set(GIT_BRANCH "HEAD")
+        # Will use git for commit info below
     elseif (EXISTS "${CMAKE_SOURCE_DIR}/.git/objects")
         # Find the package here with the known path so that the GetGit commands can find it as well
         find_package(Git QUIET PATHS "${GIT_EXECUTABLE}")

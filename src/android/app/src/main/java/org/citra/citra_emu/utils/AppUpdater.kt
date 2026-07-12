@@ -55,6 +55,47 @@ object AppUpdater {
     )
 
     /**
+     * Parses a version string like "v1.2.3" (or "1.2.3", "1.2.3-rc1", a bare
+     * git hash, etc.) into its numeric dot-separated components. Any leading
+     * non-digit characters (e.g. a "v" prefix) are skipped first. Non-numeric
+     * trailing garbage (e.g. "-rc1") just stops the parse at that component.
+     */
+    private fun parseVersionComponents(version: String): List<Int> {
+        val parts = mutableListOf<Int>()
+        val start = version.indexOfFirst { it.isDigit() }
+        if (start == -1) return parts
+        val ss = version.substring(start)
+        for (segment in ss.split('.')) {
+            try {
+                parts.add(segment.toInt())
+            } catch (e: NumberFormatException) {
+                break
+            }
+        }
+        return parts
+    }
+
+    /**
+     * Returns true if `latest` is a strictly newer version than `current`,
+     * comparing components numerically (major, then minor, then patch, ...)
+     * instead of only an exact string match. Missing trailing components are
+     * treated as 0, so "1.2" < "1.2.1".
+     */
+    private fun isVersionNewer(current: String, latest: String): Boolean {
+        val currentParts = parseVersionComponents(current)
+        val latestParts = parseVersionComponents(latest)
+        val count = maxOf(currentParts.size, latestParts.size)
+        for (i in 0 until count) {
+            val c = if (i < currentParts.size) currentParts[i] else 0
+            val l = if (i < latestParts.size) latestParts[i] else 0
+            if (c != l) {
+                return c < l
+            }
+        }
+        return false
+    }
+
+    /**
      * Returns information about the newest available update, or null if the
      * current build is already up to date, no matching release/asset could
      * be found, or the check failed (e.g. no network connection).
@@ -64,6 +105,17 @@ object AppUpdater {
             try {
                 val release = fetchLatestRelease(includePrereleases) ?: return@withContext null
                 if (release.tag_name.isBlank() || release.tag_name == BuildConfig.VERSION_NAME) {
+                    return@withContext null
+                }
+
+                // Previously this only checked for an exact string match against
+                // VERSION_NAME, with no fallback. If the running build's embedded
+                // version string isn't literally identical to the latest release tag
+                // (e.g. it's a raw commit hash because it wasn't built from a
+                // tagged ref), this used to report an "update" unconditionally,
+                // even when already on the newest release. Gate on an actual
+                // version comparison instead.
+                if (!isVersionNewer(BuildConfig.VERSION_NAME, release.tag_name)) {
                     return@withContext null
                 }
 

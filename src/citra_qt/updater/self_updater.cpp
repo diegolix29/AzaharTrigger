@@ -96,14 +96,34 @@ std::optional<UpdateChecker::ReleaseAsset> PickAssetForThisPlatform(
     // executable name.
     const QString self_path = QString::fromLocal8Bit(std::getenv("APPIMAGE"));
     const bool is_wayland_build = self_path.contains(QStringLiteral("wayland"));
+
+    // Releases can ship the AppImage two different ways depending on how it
+    // was packaged: either wrapped in a "*linux-appimage*.tar.gz" archive
+    // (via .ci/pack.sh), or as a bare "*.AppImage" file uploaded directly
+    // (the current "linux" CI job does this - it never calls pack.sh for
+    // the appimage targets). Recognize both so self-update doesn't silently
+    // fall back to "open the download page" just because of how a given
+    // release happened to be packaged.
+    const UpdateChecker::ReleaseAsset* fallback_asset = nullptr;
     for (const auto& asset : assets) {
-        if (!contains(asset.name, "linux-appimage") || !ends_with(asset.name, ".tar.gz")) {
+        const bool is_archived =
+            contains(asset.name, "linux-appimage") && ends_with(asset.name, ".tar.gz");
+        const bool is_bare_appimage = ends_with(asset.name, ".AppImage");
+        if (!is_archived && !is_bare_appimage) {
             continue;
         }
         const bool asset_is_wayland = contains(asset.name, "wayland");
         if (asset_is_wayland == is_wayland_build) {
             return asset;
         }
+        // Keep the first plausible asset around in case nothing matches the
+        // Wayland/non-Wayland split exactly (e.g. naming drifts again).
+        if (fallback_asset == nullptr) {
+            fallback_asset = &asset;
+        }
+    }
+    if (fallback_asset != nullptr) {
+        return *fallback_asset;
     }
     return std::nullopt;
 #else
@@ -348,29 +368,38 @@ bool SelfUpdater::ApplyLinuxAppImage(const QString& downloaded_path, QString& er
         return false;
     }
 
-    const QString staging_dir = downloaded_path + QStringLiteral(".extracted");
-    QDir().mkpath(staging_dir);
+    QString new_appimage_path;
+    QString staging_dir;
+    if (downloaded_path.endsWith(QStringLiteral(".AppImage"), Qt::CaseInsensitive)) {
+        // The asset was a bare AppImage (not wrapped in a tar.gz), so there's
+        // nothing to extract - use it as-is.
+        new_appimage_path = downloaded_path;
+    } else {
+        staging_dir = downloaded_path + QStringLiteral(".extracted");
+        QDir().mkpath(staging_dir);
 
-    QProcess extract;
-    extract.start(QStringLiteral("tar"),
-                  {QStringLiteral("-xzf"), downloaded_path, QStringLiteral("-C"), staging_dir});
-    if (!extract.waitForStarted() || !extract.waitForFinished(120000) || extract.exitCode() != 0) {
-        error = tr("Failed to extract the downloaded update archive.");
-        return false;
-    }
+        QProcess extract;
+        extract.start(QStringLiteral("tar"),
+                      {QStringLiteral("-xzf"), downloaded_path, QStringLiteral("-C"), staging_dir});
+        if (!extract.waitForStarted() || !extract.waitForFinished(120000) ||
+            extract.exitCode() != 0) {
+            error = tr("Failed to extract the downloaded update archive.");
+            return false;
+        }
 
-    const auto payload_dir = FindSoleSubdirectory(staging_dir);
-    if (!payload_dir) {
-        error = tr("The downloaded update archive did not have the expected layout.");
-        return false;
-    }
+        const auto payload_dir = FindSoleSubdirectory(staging_dir);
+        if (!payload_dir) {
+            error = tr("The downloaded update archive did not have the expected layout.");
+            return false;
+        }
 
-    QDirIterator it(*payload_dir, QStringList{QStringLiteral("*.AppImage")}, QDir::Files);
-    if (!it.hasNext()) {
-        error = tr("The downloaded update archive did not contain an AppImage.");
-        return false;
+        QDirIterator it(*payload_dir, QStringList{QStringLiteral("*.AppImage")}, QDir::Files);
+        if (!it.hasNext()) {
+            error = tr("The downloaded update archive did not contain an AppImage.");
+            return false;
+        }
+        new_appimage_path = it.next();
     }
-    const QString new_appimage_path = it.next();
 
     QFile new_appimage(new_appimage_path);
     // Make it executable.
@@ -400,7 +429,12 @@ bool SelfUpdater::ApplyLinuxAppImage(const QString& downloaded_path, QString& er
                            QFileDevice::ExeOther);
 
     QFile::remove(target_path + QStringLiteral(".old"));
-    QDir(staging_dir).removeRecursively();
+    // staging_dir is empty when the asset was a bare AppImage (nothing was
+    // extracted); QDir("") resolves to the current working directory, so
+    // guard against recursively deleting that.
+    if (!staging_dir.isEmpty()) {
+        QDir(staging_dir).removeRecursively();
+    }
     QFile::remove(downloaded_path);
 
     // Relaunch the new AppImage in place of this process.

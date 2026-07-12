@@ -48,6 +48,15 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-
+      - name: Set tag for build
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              echo "$GITHUB_REF_NAME" > GIT-TAG
+          elif [ -f GIT-TAG ]; then
+              echo "Using existing GIT-TAG file"
+          else
+              echo "dev" > GIT-TAG
+          fi
       - name: Build
         run: ./.ci/linux.sh
       - name: Move AppImage to artifacts directory
@@ -89,6 +98,15 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-
+      - name: Set tag for build
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              echo "$GITHUB_REF_NAME" > GIT-TAG
+          elif [ -f GIT-TAG ]; then
+              echo "Using existing GIT-TAG file"
+          else
+              echo "dev" > GIT-TAG
+          fi
       - name: Install tools
         run: brew install ccache ninja spirv-tools
       - name: Build
@@ -166,6 +184,16 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.target }}-
+      - name: Set tag for build
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              echo "$GITHUB_REF_NAME" > GIT-TAG
+          elif [ -f GIT-TAG ]; then
+              echo "Using existing GIT-TAG file"
+          else
+              echo "dev" > GIT-TAG
+          fi
+        shell: bash
       - name: Set up MSVC
         if: ${{ matrix.target == 'msvc' }}
         uses: ilammy/msvc-dev-cmd@v1
@@ -240,12 +268,15 @@ jobs:
           key: ${{ runner.os }}-android-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-android-
-      - name: Set tag name
+      - name: Set tag for build
         run: |
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-              echo "GIT_TAG_NAME=$GITHUB_REF_NAME" >> $GITHUB_ENV
+              echo "$GITHUB_REF_NAME" > GIT-TAG
+          elif [ -f GIT-TAG ]; then
+              echo "Using existing GIT-TAG file"
+          else
+              echo "dev" > GIT-TAG
           fi
-          echo $GIT_TAG_NAME
       - name: Deps
         run: |
           sudo apt-get update -y
@@ -279,6 +310,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Set tag for build
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+              echo "$GITHUB_REF_NAME" > GIT-TAG
+          elif [ -f GIT-TAG ]; then
+              echo "Using existing GIT-TAG file"
+          else
+              echo "dev" > GIT-TAG
+          fi
       - name: Build Docker image
         run: ./.ci/docker.sh
       - name: Move Docker image to artifacts directory
