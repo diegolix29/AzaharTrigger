@@ -25,6 +25,7 @@
 #include "citra_qt/hotkeys.h"
 #include "citra_qt/notification_led.h"
 #include "citra_qt/user_data_migration.h"
+#include "citra_qt/virtual_touch_pointer.h"
 #ifdef ENABLE_QT_UPDATE_CHECKER
 #include "citra_qt/update_checker.h"
 #include "citra_qt/updater/self_updater.h"
@@ -369,6 +370,7 @@ private:
     Core::Movie& movie;
 
     GRenderWindow* render_window;
+    std::unique_ptr<VirtualTouchPointer> virtual_touch_pointer;
     GRenderWindow* secondary_window;
 
     GameListPlaceholder* game_list_placeholder;

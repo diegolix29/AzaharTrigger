@@ -207,6 +207,8 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     util/spinbox.h
     util/util.cpp
     util/util.h
+    virtual_touch_pointer.cpp
+    virtual_touch_pointer.h
 )
 
 target_include_directories(citra_qt PUBLIC ${CMAKE_BINARY_DIR}/src)

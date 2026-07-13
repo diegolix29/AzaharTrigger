@@ -4846,6 +4846,9 @@ GMainWindow::GMainWindow(Core::System& system_)
     InitializeHotkeys();
     InitializeAmiibos();
 
+    virtual_touch_pointer =
+        std::make_unique<VirtualTouchPointer>(render_window, secondary_window, this);
+
     SetDefaultUIGeometry();
     RestoreUIState();
 
@@ -5440,6 +5443,22 @@ void GMainWindow::InitializeHotkeys() {
     connect_shortcut(QStringLiteral("Audio Mute/Unmute"), &GMainWindow::OnMute);
     connect_shortcut(QStringLiteral("Audio Volume Down"), &GMainWindow::OnDecreaseVolume);
     connect_shortcut(QStringLiteral("Audio Volume Up"), &GMainWindow::OnIncreaseVolume);
+
+    connect_shortcut(QStringLiteral("Toggle Virtual Touchpad (C-Stick)"), [&] {
+        if (virtual_touch_pointer) {
+            virtual_touch_pointer->ToggleTouchMode();
+        }
+    });
+    connect_shortcut(QStringLiteral("Virtual Touchpad Tap"), [&] {
+        if (virtual_touch_pointer) {
+            virtual_touch_pointer->QuickTap();
+        }
+    });
+    connect_shortcut(QStringLiteral("Virtual Touchpad Drag/Drop"), [&] {
+        if (virtual_touch_pointer) {
+            virtual_touch_pointer->ToggleTap();
+        }
+    });
 
     // We use "static" here in order to avoid capturing by lambda due to a MSVC bug, which makes the
     // variable hold a garbage value after this function exits

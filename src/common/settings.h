@@ -480,6 +480,11 @@ struct Values {
     std::vector<TouchFromButtonMap> touch_from_button_maps;
     Setting<bool> use_artic_base_controller{false, Keys::use_artic_base_controller};
 
+    /// Runtime-only (not saved to config) flag. When true, the right analog stick (c-stick /
+    /// Circle Pad Pro stick) is redirected to drive a virtual pointer over the touch screen
+    /// instead of being sent to games as circle pad input. Toggled at runtime via a hotkey,
+    std::atomic_bool cstick_touch_mode{false};
+
     SwitchableSetting<bool> enable_gamemode{true, Keys::enable_gamemode};
 
     // Core
