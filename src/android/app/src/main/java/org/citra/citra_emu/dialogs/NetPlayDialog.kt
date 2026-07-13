@@ -48,6 +48,11 @@ import org.citra.citra_emu.utils.WifiDirectManager
 class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
     private lateinit var adapter: NetPlayAdapter
 
+    private val preferredGameList = mutableListOf<PreferredGame>()
+    private val gameNameList = mutableListOf<String>()
+    private val gameIdList = mutableListOf<Long>()
+    private var selectedPreferredGame = 0
+
     companion object {
         // Kept alive across NetPlayDialog instances: the Wi-Fi Direct group must remain up
         // for the duration of the multiplayer session, which outlasts the connection dialog.
@@ -61,6 +66,10 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         var thisDeviceName = "This Device"
+    }
+
+    data class PreferredGame(val name: String, val id: Long) {
+        override fun toString(): String = name
     }
 
     class WifiDirectBroadcastRcv : BroadcastReceiver() {
@@ -172,8 +181,8 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
 
                     // Prepare the game list in case a user tries to create a room.
                     // Always seed with a "None" option first so the dropdown is never empty.
-                    gameNameList.add(arrayOf(context.getString(R.string.multiplayer_no_preferred_game)))
-                    gameIdList.add(arrayOf(-1L))
+                    gameNameList.add(context.getString(R.string.multiplayer_no_preferred_game))
+                    gameIdList.add(-1L)
                     for (game in GameHelper.cachedGameList) {
                         val gameName = game.title
                         val gameId = game.titleId
@@ -496,7 +505,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 ArrayAdapter(
                     activity,
                     R.layout.dropdown_item,
-                    gameNameList.map { it[0] }
+                    gameNameList
                 )
             )
             if (isCreateRoom) {
@@ -505,20 +514,16 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                 if (NativeLibrary.isRunning()) {
                     val runningTitleId = NativeLibrary.getRunningTitleId()
                     if (runningTitleId != 0L) {
-                        val idx = gameIdList.indexOfFirst { it[0] == runningTitleId }
+                        val idx = gameIdList.indexOfFirst { it == runningTitleId }
                         if (idx != -1) selectedIndex = idx
                     }
                 }
-                setText(gameNameList[selectedIndex][0], false)
+                setText(gameNameList[selectedIndex], false)
             }
         }
         selectedPreferredGame = 0
         binding.dropdownPreferedGameName.setText(
-            (
-                binding.dropdownPreferedGameName.adapter.getItem(
-                    selectedPreferredGame
-                ) as PreferredGame
-                ).toString(),
+            binding.dropdownPreferedGameName.adapter.getItem(selectedPreferredGame) as String,
             false
         )
 
@@ -543,8 +548,8 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
             val portStr = binding.ipPort.text.toString()
             val preferedGameName = binding.dropdownPreferedGameName.text.toString()
             val preferedGameId = run {
-                val index = gameNameList.indexOfFirst { it[0] == preferedGameName }
-                val id = if (index != -1) gameIdList[index][0] else -1L
+                val index = gameNameList.indexOfFirst { it == preferedGameName }
+                val id = if (index != -1) gameIdList[index] else -1L
                 if (id == -1L) 0L else id  // convert "None" sentinel to 0 (no preference)
             }
             val password = binding.password.text.toString()
