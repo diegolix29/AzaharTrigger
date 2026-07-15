@@ -764,6 +764,15 @@
 	<string name="cia_install_error_encrypted">\"%s\" must be decrypted before being used with Azahar.\n A real 3DS is required</string>
 	<string name="cia_install_error_unknown">An unknown error occurred while installing \"%s\".\n Please see the log for more details</string>
 
+	<!-- Network Settings-->
+	<string name="preferences_network">Network</string>
+	<string name="web_api_url">Web API URL</string>
+	<string name="web_api_url_description">Web API URL for public lobby functionality</string>
+	<string name="network_token">Network Token</string>
+	<string name="network_token_description">Token for public lobby functionality</string>
+	<string name="username_uses_system">This property is linked to the 3DS system username.</string>
+	<string name="username_invalid">Username is not valid. It must be 4 to 20 alphanumeric characters.</string>
+
 	<!-- App Updates -->
 	<string name="app_update_notification_channel_name" translatable="false">Azahar Updates</string>
 	<string name="app_update_notification_channel_id" translatable="false">citra-update</string>
