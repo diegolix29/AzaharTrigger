@@ -22,6 +22,20 @@ plugins {
 val autoVersion = (((System.currentTimeMillis() / 1000) - 1451606400) / 10).toInt()
 val abiFilter = listOf("arm64-v8a", "x86_64")
 
+
+fun getFixedVersionCode(versionName: String): Int {
+    val parts = versionName.split(".")
+    val major = if (parts.size > 0) parts[0].toIntOrNull() ?: 0 else 0
+    val minor = if (parts.size > 1) parts[1].toIntOrNull() ?: 0 else 0
+    val patch = if (parts.size > 2) parts[2].toIntOrNull() ?: 0 else 0
+
+    if (major == 0 && minor == 0 && patch == 0) {
+        return autoVersion
+    }
+    
+    return major * 1000000 + minor * 10000 + patch * 100
+}
+
 val downloadedJniLibsPath = "${layout.buildDirectory.get().asFile.path}/downloadedJniLibs"
 
 android {
@@ -67,8 +81,9 @@ android {
 
         minSdk = 28
         targetSdk = 35
-        versionCode = autoVersion
-        versionName = getGitVersion()
+        val versionNameValue = getGitVersion()
+        versionName = versionNameValue
+        versionCode = getFixedVersionCode(versionNameValue)
 
         ndk {
             //noinspection ChromeOsAbiSupport
@@ -264,7 +279,9 @@ fun getGitVersion(): String {
             .redirectError(ProcessBuilder.Redirect.PIPE)
             .start().inputStream.bufferedReader().use { it.readText() }
             .trim()
-            .replace(Regex("(-0)?-[^-]+$"), "")
+        if (versionName.startsWith("v") && versionName.length > 1 && versionName[1].isDigit()) {
+            versionName = versionName.substring(1)
+        }
         logger.lifecycle("Using version from git describe: $versionName")
     } catch (e: Exception) {
         logger.error("Cannot find git, defaulting to dummy version number")

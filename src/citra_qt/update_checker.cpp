@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 #include <httplib.h>
 #include <json.hpp>
+#include "citra_qt/updater/self_updater.h"
 #include "common/logging/log.h"
 #include "update_checker.h"
 
@@ -82,6 +83,54 @@ UpdateChecker::ReleaseInfo ParseRelease(const nlohmann::json& release_json) {
 }
 
 } // namespace
+
+std::string UpdateChecker::ExtractBuildVersionFromAsset(const std::string& asset_name) {
+    size_t version_start = std::string::npos;
+    for (int i = asset_name.size() - 1; i >= 0; --i) {
+        if (std::isdigit(asset_name[i])) {
+            version_start = i;
+        } else if (version_start != std::string::npos && !std::isdigit(asset_name[i]) &&
+                   asset_name[i] != '.' && asset_name[i] != '-') {
+            break;
+        }
+    }
+
+    if (version_start == std::string::npos) {
+        return {};
+    }
+
+    std::string version;
+    for (size_t i = version_start; i < asset_name.size(); ++i) {
+        if (std::isdigit(asset_name[i]) || asset_name[i] == '.' || asset_name[i] == '-') {
+            version += asset_name[i];
+        } else {
+            break;
+        }
+    }
+
+    return version;
+}
+
+std::optional<std::string> UpdateChecker::GetLatestBuildVersion(bool include_prereleases) {
+    const auto release_info = GetLatestReleaseInfo(include_prereleases);
+    if (!release_info || release_info->assets.empty()) {
+        return {};
+    }
+
+    const auto asset = Updater::PickAssetForThisPlatform(release_info->assets);
+    if (!asset) {
+        return {};
+    }
+
+    const std::string build_version = ExtractBuildVersionFromAsset(asset->name);
+    if (build_version.empty()) {
+        LOG_ERROR(Frontend, "Failed to extract build version from asset: {}", asset->name);
+        return {};
+    }
+
+    LOG_INFO(Frontend, "Extracted build version {} from asset: {}", build_version, asset->name);
+    return build_version;
+}
 
 std::optional<UpdateChecker::ReleaseInfo> UpdateChecker::GetLatestReleaseInfo(
     bool include_prereleases) {

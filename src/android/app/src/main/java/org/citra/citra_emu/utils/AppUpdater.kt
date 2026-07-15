@@ -13,19 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.citra.citra_emu.BuildConfig
 
-/**
- * Checks the GitHub repository this build was produced from for newer
- * releases, and (if one is found) picks out the Android APK attached to it.
- *
- * This intentionally mirrors the logic in src/citra_qt/update_checker.cpp /
- * src/citra_qt/updater/self_updater.cpp used by the desktop frontend, so
- * that both frontends agree on what "a newer release" means.
- *
- * Not used at all in the googlePlay flavor; see [BuildUtil.isGooglePlayBuild].
- */
 object AppUpdater {
-    // Keep this in sync with UpdateChecker::RepoOwner / RepoName in
-    // src/citra_qt/update_checker.h.
     private const val REPO_OWNER = "diegolix29"
     private const val REPO_NAME = "AzaharTrigger"
 
@@ -54,12 +42,33 @@ object AppUpdater {
         val apkAsset: ReleaseAsset
     )
 
-    /**
-     * Parses a version string like "v1.2.3" (or "1.2.3", "1.2.3-rc1", a bare
-     * git hash, etc.) into its numeric dot-separated components. Any leading
-     * non-digit characters (e.g. a "v" prefix) are skipped first. Non-numeric
-     * trailing garbage (e.g. "-rc1") just stops the parse at that component.
-     */
+    private fun extractBuildVersionFromAsset(assetName: String): String {
+        var versionStart = -1
+        for (i in assetName.indices.reversed()) {
+            if (assetName[i].isDigit()) {
+                versionStart = i
+            } else if (versionStart != -1 && !assetName[i].isDigit() && 
+                       assetName[i] != '.' && assetName[i] != '-') {
+                break
+            }
+        }
+        
+        if (versionStart == -1) {
+            return ""
+        }
+        
+        val version = StringBuilder()
+        for (i in versionStart until assetName.length) {
+            if (assetName[i].isDigit() || assetName[i] == '.' || assetName[i] == '-') {
+                version.append(assetName[i])
+            } else {
+                break
+            }
+        }
+        
+        return version.toString()
+    }
+
     private fun parseVersionComponents(version: String): List<Int> {
         val parts = mutableListOf<Int>()
         val start = version.indexOfFirst { it.isDigit() }
@@ -75,12 +84,9 @@ object AppUpdater {
         return parts
     }
 
-    /**
-     * Returns true if `latest` is a strictly newer version than `current`,
-     * comparing components numerically (major, then minor, then patch, ...)
-     * instead of only an exact string match. Missing trailing components are
-     * treated as 0, so "1.2" < "1.2.1".
-     */
+    private fun sanitizeVersion(version: String): String =
+        Regex("^\\d+(?:\\.\\d+)*").find(version)?.value ?: version
+
     private fun isVersionNewer(current: String, latest: String): Boolean {
         val currentParts = parseVersionComponents(current)
         val latestParts = parseVersionComponents(latest)
@@ -95,34 +101,39 @@ object AppUpdater {
         return false
     }
 
-    /**
-     * Returns information about the newest available update, or null if the
-     * current build is already up to date, no matching release/asset could
-     * be found, or the check failed (e.g. no network connection).
-     */
     suspend fun checkForUpdate(includePrereleases: Boolean = false): UpdateInfo? =
         withContext(Dispatchers.IO) {
             try {
                 val release = fetchLatestRelease(includePrereleases) ?: return@withContext null
-                if (release.tag_name.isBlank() || release.tag_name == BuildConfig.VERSION_NAME) {
+                if (release.tag_name.isBlank()) {
                     return@withContext null
                 }
 
-                // Previously this only checked for an exact string match against
-                // VERSION_NAME, with no fallback. If the running build's embedded
-                // version string isn't literally identical to the latest release tag
-                // (e.g. it's a raw commit hash because it wasn't built from a
-                // tagged ref), this used to report an "update" unconditionally,
-                // even when already on the newest release. Gate on an actual
-                // version comparison instead.
-                if (!isVersionNewer(BuildConfig.VERSION_NAME, release.tag_name)) {
-                    return@withContext null
-                }
-
+                // Compare build versions instead of git tags to avoid conflicts across platforms
                 val apkAsset = release.assets.firstOrNull {
                     it.name.contains("android") && it.name.endsWith(".apk")
                 } ?: return@withContext null
 
+                val latestBuildVersion = extractBuildVersionFromAsset(apkAsset.name)
+                if (latestBuildVersion.isEmpty()) {
+                    Log.w(TAG, "Failed to extract build version from asset: ${apkAsset.name}")
+                    return@withContext null
+                }
+
+                val currentBuildVersion = sanitizeVersion(BuildConfig.VERSION_NAME)
+                Log.i(TAG, "Current build version: $currentBuildVersion, Latest build version: $latestBuildVersion")
+
+                if (latestBuildVersion == currentBuildVersion) {
+                    Log.i(TAG, "Already on latest build version: $currentBuildVersion")
+                    return@withContext null
+                }
+
+                if (!isVersionNewer(currentBuildVersion, latestBuildVersion)) {
+                    Log.i(TAG, "No update needed (latest build is not newer than current)")
+                    return@withContext null
+                }
+
+                Log.i(TAG, "Update available: $currentBuildVersion -> $latestBuildVersion")
                 UpdateInfo(release.tag_name, release.html_url, apkAsset)
             } catch (e: Exception) {
                 Log.w(TAG, "Update check failed: ${e.message}")

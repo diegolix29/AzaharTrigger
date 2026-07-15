@@ -4910,19 +4910,33 @@ GMainWindow::GMainWindow(Core::System& system_)
     if (UISettings::values.check_for_update_on_start) {
         update_future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
             auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
-            if (!release || release->tag_name.empty() ||
-                release->tag_name == Common::g_build_fullname) {
-                LOG_INFO(Frontend, "Already on latest version: {}", Common::g_build_fullname);
+            if (!release || release->tag_name.empty()) {
+                LOG_INFO(Frontend, "No release found");
                 return std::nullopt;
             }
-            LOG_INFO(Frontend, "Current version: {}, Latest version: {}", Common::g_build_fullname,
-                     release->tag_name);
-            if (IsVersionNewer(Common::g_build_fullname, release->tag_name)) {
-                LOG_INFO(Frontend, "Update available: {} -> {}", Common::g_build_fullname,
-                         release->tag_name);
+
+            auto latest_build_version =
+                UpdateChecker::GetLatestBuildVersion(ShouldCheckForPrereleaseUpdates());
+            if (!latest_build_version) {
+                LOG_INFO(Frontend, "Could not extract build version from release assets");
+                return std::nullopt;
+            }
+
+            const std::string current_build_version = Common::g_build_version;
+            LOG_INFO(Frontend, "Current build version: {}, Latest build version: {}",
+                     current_build_version, *latest_build_version);
+
+            if (*latest_build_version == current_build_version) {
+                LOG_INFO(Frontend, "Already on latest build version: {}", current_build_version);
+                return std::nullopt;
+            }
+
+            if (IsVersionNewer(current_build_version, *latest_build_version)) {
+                LOG_INFO(Frontend, "Update available: {} -> {}", current_build_version,
+                         *latest_build_version);
                 return release;
             }
-            LOG_INFO(Frontend, "No update needed (latest is not newer than current)");
+            LOG_INFO(Frontend, "No update needed (latest build is not newer than current)");
             return std::nullopt;
         });
         QObject::connect(&update_watcher,
@@ -8992,11 +9006,7 @@ void GMainWindow::OnEmulatorUpdateAvailable() {
     if (!release) {
         return;
     }
-    // Don't prompt if already on the latest version
-    if (!release->tag_name.empty() && release->tag_name == Common::g_build_fullname) {
-        LOG_INFO(Frontend, "Already on latest version: {}", release->tag_name);
-        return;
-    }
+    // The update check already compared build versions, so if we got here, an update is available
     PromptAndApplyUpdate(*release);
 }
 
@@ -9024,21 +9034,34 @@ void GMainWindow::OnMenuCheckForUpdates() {
 
     const auto future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
         auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
-        if (!release || release->tag_name.empty() ||
-            release->tag_name == Common::g_build_fullname) {
+        if (!release || release->tag_name.empty()) {
             return std::nullopt;
         }
-        // Previously this only checked for an exact string match against
-        // g_build_fullname, with no fallback. If the running build's
-        // embedded version string isn't literally identical to the latest
-        // release tag (e.g. it's a raw commit hash because it wasn't built
-        // from a tagged ref - see the CI pipeline), this used to report an
-        // "update" unconditionally, even when already on the newest
-        // release. Gate on an actual version comparison instead.
-        if (!IsVersionNewer(Common::g_build_fullname, release->tag_name)) {
+
+        // Compare build versions instead of git tags to avoid conflicts across platforms
+        auto latest_build_version =
+            UpdateChecker::GetLatestBuildVersion(ShouldCheckForPrereleaseUpdates());
+        if (!latest_build_version) {
+            LOG_INFO(Frontend, "Could not extract build version from release assets");
             return std::nullopt;
         }
-        return release;
+
+        const std::string current_build_version = Common::g_build_version;
+        LOG_INFO(Frontend, "Current build version: {}, Latest build version: {}",
+                 current_build_version, *latest_build_version);
+
+        if (*latest_build_version == current_build_version) {
+            LOG_INFO(Frontend, "Already on latest build version: {}", current_build_version);
+            return std::nullopt;
+        }
+
+        if (IsVersionNewer(current_build_version, *latest_build_version)) {
+            LOG_INFO(Frontend, "Update available: {} -> {}", current_build_version,
+                     *latest_build_version);
+            return release;
+        }
+        LOG_INFO(Frontend, "No update needed (latest build is not newer than current)");
+        return std::nullopt;
     });
     watcher->setFuture(future);
 }

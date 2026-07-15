@@ -172,7 +172,9 @@ void SelfUpdater::DownloadAndApply(UpdateChecker::ReleaseAsset asset) {
                                                                  ? std::string::npos
                                                                  : path_start - scheme_end - 3);
     const std::string path = path_start == std::string::npos ? "/" : full_url.substr(path_start);
-    LOG_INFO(Frontend, "Host: {}, Path: {}", host, path);
+    const std::string scheme = full_url.substr(0, scheme_end);
+    bool use_https = (scheme == "https");
+    LOG_INFO(Frontend, "Scheme: {}, Host: {}, Path: {}", scheme, host, path);
 
     QFile out_file(download_path);
     if (!out_file.open(QIODevice::WriteOnly)) {
@@ -180,30 +182,73 @@ void SelfUpdater::DownloadAndApply(UpdateChecker::ReleaseAsset asset) {
         return;
     }
 
-    httplib::Client client(host);
-    client.set_connection_timeout(15);
-    client.set_read_timeout(60);
-    client.set_write_timeout(60);
-    client.set_follow_location(true);
-
+    httplib::Result result;
     bool write_error = false;
-    const auto result = client.Get(
-        path,
-        [&](const char* data, std::size_t data_length) {
-            if (cancel_requested) {
-                return false;
-            }
-            const auto written = out_file.write(data, static_cast<qint64>(data_length));
-            if (written != static_cast<qint64>(data_length)) {
-                write_error = true;
-                return false;
-            }
-            return true;
-        },
-        [&](std::uint64_t current, std::uint64_t total) {
-            emit DownloadProgress(static_cast<qint64>(current), static_cast<qint64>(total));
-            return !cancel_requested;
-        });
+
+    LOG_INFO(Frontend, "Downloading from: {}{}", host, path);
+
+    if (use_https) {
+        httplib::SSLClient ssl_client(host);
+        ssl_client.set_connection_timeout(15);
+        ssl_client.set_read_timeout(60);
+        ssl_client.set_write_timeout(60);
+        ssl_client.set_follow_location(true);
+        ssl_client.enable_server_certificate_verification(false);
+        ssl_client.set_default_headers(
+            {{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+                            "like Gecko) Chrome/91.0.4472.124 Safari/537.36"},
+             {"Accept", "*/*"},
+             {"Accept-Encoding", "gzip, deflate, br"},
+             {"Connection", "keep-alive"}});
+
+        result = ssl_client.Get(
+            path,
+            [&](const char* data, std::size_t data_length) {
+                if (cancel_requested) {
+                    return false;
+                }
+                const auto written = out_file.write(data, static_cast<qint64>(data_length));
+                if (written != static_cast<qint64>(data_length)) {
+                    write_error = true;
+                    return false;
+                }
+                return true;
+            },
+            [&](std::uint64_t current, std::uint64_t total) {
+                emit DownloadProgress(static_cast<qint64>(current), static_cast<qint64>(total));
+                return !cancel_requested;
+            });
+    } else {
+        httplib::Client http_client(host);
+        http_client.set_connection_timeout(15);
+        http_client.set_read_timeout(60);
+        http_client.set_write_timeout(60);
+        http_client.set_follow_location(true);
+        http_client.set_default_headers(
+            {{"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+                            "like Gecko) Chrome/91.0.4472.124 Safari/537.36"},
+             {"Accept", "*/*"},
+             {"Accept-Encoding", "gzip, deflate, br"},
+             {"Connection", "keep-alive"}});
+
+        result = http_client.Get(
+            path,
+            [&](const char* data, std::size_t data_length) {
+                if (cancel_requested) {
+                    return false;
+                }
+                const auto written = out_file.write(data, static_cast<qint64>(data_length));
+                if (written != static_cast<qint64>(data_length)) {
+                    write_error = true;
+                    return false;
+                }
+                return true;
+            },
+            [&](std::uint64_t current, std::uint64_t total) {
+                emit DownloadProgress(static_cast<qint64>(current), static_cast<qint64>(total));
+                return !cancel_requested;
+            });
+    }
 
     out_file.close();
 
@@ -211,11 +256,29 @@ void SelfUpdater::DownloadAndApply(UpdateChecker::ReleaseAsset asset) {
         QFile::remove(download_path);
         return;
     }
-    if (write_error || !result || result->status >= 400) {
-        LOG_ERROR(Frontend, "Failed to download update asset from {}", full_url);
+    if (write_error) {
+        LOG_ERROR(Frontend, "Write error while downloading update asset from {}", full_url);
         QFile::remove(download_path);
-        emit Failed(tr("Failed to download the update. Please check your internet connection "
-                       "and try again."));
+        emit Failed(tr("Failed to write the update file to disk. Please check your disk space and "
+                       "permissions."));
+        return;
+    }
+    if (!result) {
+        LOG_ERROR(Frontend, "No response from server while downloading from {}", full_url);
+        QFile::remove(download_path);
+        emit Failed(tr("Failed to connect to the download server. Please check your internet "
+                       "connection and try again."));
+        return;
+    }
+    if (result->status >= 400) {
+        LOG_ERROR(Frontend, "Server returned error {} while downloading from {}", result->status,
+                  full_url);
+        LOG_ERROR(Frontend, "Response body: {}", result->body);
+        QFile::remove(download_path);
+        QString error_msg =
+            QString::fromLatin1("Download server returned error %1. Please try again later.")
+                .arg(result->status);
+        emit Failed(error_msg);
         return;
     }
 

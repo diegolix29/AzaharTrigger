@@ -9,6 +9,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import androidx.work.Data
@@ -22,16 +23,27 @@ import java.net.HttpURLConnection
 import java.net.URL
 import org.citra.citra_emu.R
 
-/**
- * Downloads an update APK (found by [AppUpdater]) in the background, showing
- * progress via a notification, then hands it off to the system package
- * installer.
- *
- * Only used in the vanilla (non-googlePlay) flavor; see
- * [BuildUtil.isGooglePlayBuild].
- */
 class AppUpdateWorker(private val context: Context, params: WorkerParameters) :
     Worker(context, params) {
+
+    companion object {
+        private const val TAG = "AppUpdateWorker"
+        private const val KEY_DOWNLOAD_URL = "DOWNLOAD_URL"
+        private const val KEY_FILE_NAME = "FILE_NAME"
+        private const val KEY_PROGRESS_CURRENT = "PROGRESS_CURRENT"
+        private const val KEY_PROGRESS_TOTAL = "PROGRESS_TOTAL"
+
+        fun enqueue(context: Context, downloadUrl: String, fileName: String) {
+            val data = Data.Builder()
+                .putString(KEY_DOWNLOAD_URL, downloadUrl)
+                .putString(KEY_FILE_NAME, fileName)
+                .build()
+            val request = OneTimeWorkRequestBuilder<AppUpdateWorker>()
+                .setInputData(data)
+                .build()
+            WorkManager.getInstance(context).enqueue(request)
+        }
+    }
 
     private val notificationManager = context.getSystemService(NotificationManager::class.java)
     private val notificationId = 0xA9DA7E
@@ -76,11 +88,13 @@ class AppUpdateWorker(private val context: Context, params: WorkerParameters) :
     private fun downloadTo(downloadUrl: String, outputFile: File): Boolean {
         val connection = URL(downloadUrl).openConnection() as HttpURLConnection
         connection.instanceFollowRedirects = true
+        connection.setRequestProperty("User-Agent", "Azahar-Emulator-Updater")
         connection.connectTimeout = 15_000
         connection.readTimeout = 30_000
         try {
             connection.connect()
             if (connection.responseCode !in 200..299) {
+                Log.e(TAG, "Download failed with status code: ${connection.responseCode}")
                 return false
             }
 
@@ -99,7 +113,11 @@ class AppUpdateWorker(private val context: Context, params: WorkerParameters) :
                     }
                 }
             }
+            Log.i(TAG, "Download completed: $bytesRead bytes")
             return !isStopped
+        } catch (e: Exception) {
+            Log.e(TAG, "Download failed: ${e.message}", e)
+            return false
         } finally {
             connection.disconnect()
         }
@@ -107,8 +125,6 @@ class AppUpdateWorker(private val context: Context, params: WorkerParameters) :
 
     private fun reportProgress(current: Long, total: Long) {
         val now = System.currentTimeMillis()
-        // Notification updates are rate-limited by the system if posted too
-        // frequently; avoid spamming them.
         if (now - lastNotifiedTime < 500) return
         lastNotifiedTime = now
 
@@ -189,23 +205,4 @@ class AppUpdateWorker(private val context: Context, params: WorkerParameters) :
 
     override fun getForegroundInfo(): ForegroundInfo =
         ForegroundInfo(notificationId, progressBuilder.build())
-
-    companion object {
-        private const val KEY_DOWNLOAD_URL = "DOWNLOAD_URL"
-        private const val KEY_FILE_NAME = "FILE_NAME"
-        private const val KEY_PROGRESS_CURRENT = "PROGRESS_CURRENT"
-        private const val KEY_PROGRESS_TOTAL = "PROGRESS_TOTAL"
-
-        /** Enqueues a background download+install of the given update APK. */
-        fun enqueue(context: Context, downloadUrl: String, fileName: String) {
-            val data = Data.Builder()
-                .putString(KEY_DOWNLOAD_URL, downloadUrl)
-                .putString(KEY_FILE_NAME, fileName)
-                .build()
-            val request = OneTimeWorkRequestBuilder<AppUpdateWorker>()
-                .setInputData(data)
-                .build()
-            WorkManager.getInstance(context).enqueue(request)
-        }
-    }
 }

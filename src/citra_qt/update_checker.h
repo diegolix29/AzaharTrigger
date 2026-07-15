@@ -11,10 +11,6 @@
 
 namespace UpdateChecker {
 
-// The GitHub repository ("owner/name") that release information and update
-// assets are pulled from. This defaults to the upstream Azahar repository,
-// but can be overridden at compile time (e.g. by forks) with
-// -DAZAHAR_UPDATE_REPO_OWNER=... -DAZAHAR_UPDATE_REPO_NAME=...
 #if !defined(AZAHAR_UPDATE_REPO_OWNER)
 #define AZAHAR_UPDATE_REPO_OWNER "diegolix29"
 #endif
@@ -25,14 +21,14 @@ namespace UpdateChecker {
 constexpr char RepoOwner[] = AZAHAR_UPDATE_REPO_OWNER;
 constexpr char RepoName[] = AZAHAR_UPDATE_REPO_NAME;
 
-/// A single downloadable file attached to a GitHub release.
+std::string ExtractBuildVersionFromAsset(const std::string& asset_name);
+
 struct ReleaseAsset {
-    std::string name;                 ///< e.g. "azahar-windows-msvc-v2100.zip"
-    std::string browser_download_url; ///< direct download URL
-    std::uint64_t size = 0;           ///< size in bytes, as reported by GitHub
+    std::string name;
+    std::string browser_download_url;
+    std::uint64_t size = 0;
 };
 
-/// A GitHub release, with the assets attached to it.
 struct ReleaseInfo {
     std::string tag_name;
     std::string html_url;
@@ -40,13 +36,10 @@ struct ReleaseInfo {
     std::vector<ReleaseAsset> assets;
 };
 
-/// Returns just the tag name of the latest applicable release, preserving the
-/// pre-existing behavior used by the "check for updates" prompt.
 std::optional<std::string> GetLatestRelease(bool include_prereleases);
 
-/// Returns full information (tag, assets, etc.) about the latest applicable
-/// release. This is what the self-updater uses to find a download for the
-/// current platform.
 std::optional<ReleaseInfo> GetLatestReleaseInfo(bool include_prereleases);
+
+std::optional<std::string> GetLatestBuildVersion(bool include_prereleases);
 
 } // namespace UpdateChecker
