@@ -2,6 +2,7 @@
 [Bb]uild*/
 doc-build/
 build-*/
+vanilla/
 
 # NSIS built executables
 src/installer/*.exe
