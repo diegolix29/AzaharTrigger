@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 import android.databinding.tool.ext.capitalizeUS
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import de.undercouch.gradle.tasks.download.Download
 
 plugins {
@@ -109,14 +110,16 @@ android {
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
     }
 
-    val keystoreFile = System.getenv("ANDROID_KEYSTORE_FILE")
+    val localProps = gradleLocalProperties(rootDir, providers)
+    val keystoreFile = localProps["ANDROID_KEYSTORE"] as String?
     if (keystoreFile != null) {
         signingConfigs {
             create("release") {
                 storeFile = file(keystoreFile)
-                storePassword = System.getenv("ANDROID_KEYSTORE_PASS")
-                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
-                keyPassword = System.getenv("ANDROID_KEYSTORE_PASS")
+                storePassword = localProps["ANDROID_KEYSTORE_PASSWORD"] as String? ?: ""
+                keyAlias = localProps["ANDROID_KEY_ALIAS"] as String? ?: ""
+                keyPassword = (localProps["ANDROID_KEY_PASSWORD"] as String?)
+                    ?: (localProps["ANDROID_KEYSTORE_PASSWORD"] as String? ?: "")
             }
         }
     }
