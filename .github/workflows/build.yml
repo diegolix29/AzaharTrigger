@@ -334,7 +334,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [source, linux, macos-universal, windows, android, docker]
-    if: github.event_name == 'push' && (github.ref_name == 'AzaharTrigger' || github.ref_type == 'tag')
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     permissions:
       contents: write
     steps:
@@ -368,37 +368,7 @@ jobs:
           
       - name: Determine Tag and Release Name
         run: |
-          git fetch --tags --force
-          
-          # First check if GIT-TAG file exists and use it
-          if [ -f GIT-TAG ]; then
-            TAG_VERSION=$(cat GIT-TAG | tr -d '\n\r')
-            # Add 'v' prefix if not present
-            if [[ ! $TAG_VERSION =~ ^v ]]; then
-              TAG_VERSION="v${TAG_VERSION}"
-            fi
-            NEW_VERSION="$TAG_VERSION"
-            echo "Using version from GIT-TAG file: $NEW_VERSION"
-          else
-            # Fall back to auto-generation from git tags
-            LATEST_TAG=$(git tag -l "v[0-9]*.[0-9]*.[0-9]*" | sort -V | tail -n 1)
-            
-            if [ -z "$LATEST_TAG" ]; then
-              NEW_VERSION="v1.0.4"
-            else
-              if [[ $LATEST_TAG =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                MAJOR="${BASH_REMATCH[1]}"
-                MINOR="${BASH_REMATCH[2]}"
-                PATCH="${BASH_REMATCH[3]}"
-                NEW_PATCH=$((PATCH + 1))
-                NEW_VERSION="v${MAJOR}.${MINOR}.${NEW_PATCH}"
-              else
-                NEW_VERSION="v1.0.4"
-              fi
-            fi
-            echo "Auto-generated version: $NEW_VERSION"
-          fi
-          
+          NEW_VERSION="$GITHUB_REF_NAME"
           COMMIT_MSG=$(git log -1 --pretty=format:"%s")
           
           echo "TAG_NAME=$NEW_VERSION" >> $GITHUB_ENV
