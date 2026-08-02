@@ -31,6 +31,37 @@ protected:
     /// Sync vertex and framgent uniforms from PICA registers
     void SyncDrawUniforms();
 
+    /// Sync all rarely-changing state once at startup
+    void SyncEntireState() override;
+
+    /// Sync per-draw fixed-function state (called by SyncEntireState)
+    virtual void SyncFixedState() = 0;
+
+    // Individual state sync helpers
+    void SyncDepthScale();
+    void SyncDepthOffset();
+    void SyncFogColor();
+    void SyncProcTexNoise();
+    void SyncProcTexBias();
+    void SyncAlphaTest();
+    void SyncCombinerColor();
+    void SyncTevConstColor(std::size_t tev_index,
+                           const Pica::TexturingRegs::TevStageConfig& tev_stage);
+    void SyncGlobalAmbient();
+    void SyncLightSpecular0(int light_index);
+    void SyncLightSpecular1(int light_index);
+    void SyncLightDiffuse(int light_index);
+    void SyncLightAmbient(int light_index);
+    void SyncLightPosition(int light_index);
+    void SyncLightSpotDirection(int light_index);
+    void SyncLightDistanceAttenuationBias(int light_index);
+    void SyncLightDistanceAttenuationScale(int light_index);
+    void SyncShadowBias();
+    void SyncShadowTextureBias();
+    void SyncTextureLodBias(int tex_index);
+    void SyncTextureBorderColor(int tex_index);
+    void SyncClipPlane();
+
 protected:
     /// Structure that the hardware rendered vertices are composed of
     struct HardwareVertex {

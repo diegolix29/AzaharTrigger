@@ -70,6 +70,9 @@ public:
     virtual bool AccelerateFill(const Pica::MemoryFillConfig&) {
         return false;
     }
+    /// Sync rarely-changing state once at startup
+    virtual void SyncEntireState() {}
+
 
     /// Attempt to draw using hardware shaders
     virtual bool AccelerateDrawBatch([[maybe_unused]] bool is_indexed) {

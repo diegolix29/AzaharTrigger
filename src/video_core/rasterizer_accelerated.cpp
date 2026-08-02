@@ -141,72 +141,51 @@ RasterizerAccelerated::VertexArrayInfo RasterizerAccelerated::AnalyzeVertexArray
     return {vertex_min, vertex_max, vs_input_size};
 }
 
-void RasterizerAccelerated::SyncDrawUniforms() {
-    auto& dirty = pica.dirty_regs;
+void RasterizerAccelerated::SyncEntireState() {
+    // Sync all rarely-changing state once at startup.
+    // Per-draw SyncDrawUniforms only handles rapidly-changing state.
 
-    // The register that contains the flip bit also contains the framebuffer dimentions
-    // that we don't depend on. So avoid the dirty table and check manually
-    const bool is_flipped = regs.framebuffer.framebuffer.IsFlipped();
-    const bool prev_flipped = std::exchange(vs_data.flip_viewport, is_flipped);
-    vs_data_dirty = is_flipped != prev_flipped;
+    // Sync clip plane
+    const auto raw_clip_coef = regs.rasterizer.GetClipCoef();
+    vs_data.enable_clip1 = regs.rasterizer.clip_enable != 0;
+    vs_data.clip_coef = {raw_clip_coef.x.ToFloat32(), raw_clip_coef.y.ToFloat32(),
+                         raw_clip_coef.z.ToFloat32(), raw_clip_coef.w.ToFloat32()};
+    vs_data_dirty = true;
 
-    // Sync clip plane uniforms
-    if (dirty.CheckClipping()) {
-        const auto raw_clip_coef = regs.rasterizer.GetClipCoef();
-        vs_data.enable_clip1 = regs.rasterizer.clip_enable != 0;
-        vs_data.clip_coef = {raw_clip_coef.x.ToFloat32(), raw_clip_coef.y.ToFloat32(),
-                             raw_clip_coef.z.ToFloat32(), raw_clip_coef.w.ToFloat32()};
-        vs_data_dirty = true;
+    // Sync depth
+    fs_data.depth_scale = f24::FromRaw(regs.rasterizer.viewport_depth_range).ToFloat32();
+    fs_data.depth_offset = f24::FromRaw(regs.rasterizer.viewport_depth_near_plane).ToFloat32();
+    fs_data_dirty = true;
+
+    // Sync alpha test and blend
+    fs_data.alphatest_ref = regs.framebuffer.output_merger.alpha_test.ref;
+    fs_data.blend_color = ColorRGBA8(regs.framebuffer.output_merger.blend_const.raw);
+    fs_data_dirty = true;
+
+    // Sync texture units
+    const auto pica_textures = regs.texturing.GetTextures();
+    for (u32 tex_index = 0; tex_index < 3; tex_index++) {
+        const auto& config = pica_textures[tex_index].config;
+        fs_data.tex_lod_bias[tex_index] = config.lod.bias / 256.0f;
+        fs_data.tex_border_color[tex_index] = ColorRGBA8(config.border_color.raw);
     }
+    fs_data_dirty = true;
 
-    // Sync depth testing uniforms
-    if (dirty.CheckDepth()) {
-        fs_data.depth_scale = f24::FromRaw(regs.rasterizer.viewport_depth_range).ToFloat32();
-        fs_data.depth_offset = f24::FromRaw(regs.rasterizer.viewport_depth_near_plane).ToFloat32();
-        fs_data_dirty = true;
+    // Sync texenv
+    const auto tev_stages = regs.texturing.GetTevStages();
+    for (std::size_t index = 0; index < tev_stages.size(); ++index) {
+        fs_data.const_color[index] = ColorRGBA8(tev_stages[index].const_color);
     }
+    fs_data.tev_combiner_buffer_color =
+        ColorRGBA8(regs.texturing.tev_combiner_buffer_color.raw);
+    fs_data_dirty = true;
 
-    // Sync alpha testing and blending uniforms
-    if (dirty.CheckBlend()) {
-        fs_data.alphatest_ref = regs.framebuffer.output_merger.alpha_test.ref;
-        fs_data.blend_color = ColorRGBA8(regs.framebuffer.output_merger.blend_const.raw);
-        fs_data_dirty = true;
-    }
+    // Sync global ambient
+    fs_data.lighting_global_ambient = LightColor(regs.lighting.global_ambient);
+    fs_data_dirty = true;
 
-    // Sync texture unit uniforms
-    if (dirty.CheckTexUnits()) {
-        const auto pica_textures = regs.texturing.GetTextures();
-        for (u32 tex_index = 0; tex_index < 3; tex_index++) {
-            const auto& config = pica_textures[tex_index].config;
-            fs_data.tex_lod_bias[tex_index] = config.lod.bias / 256.0f;
-            fs_data.tex_border_color[tex_index] = ColorRGBA8(config.border_color.raw);
-        }
-        fs_data_dirty = true;
-    }
-
-    // Sync texenv uniforms
-    if (dirty.CheckTexEnv()) {
-        const auto tev_stages = regs.texturing.GetTevStages();
-        for (std::size_t index = 0; index < tev_stages.size(); ++index) {
-            fs_data.const_color[index] = ColorRGBA8(tev_stages[index].const_color);
-        }
-        fs_data.tev_combiner_buffer_color =
-            ColorRGBA8(regs.texturing.tev_combiner_buffer_color.raw);
-        fs_data_dirty = true;
-    }
-
-    // Sync global lighting uniforms
-    if (dirty.CheckLightingAmbient()) {
-        fs_data.lighting_global_ambient = LightColor(regs.lighting.global_ambient);
-        fs_data_dirty = true;
-    }
-
-    // Sync light uniforms
+    // Sync all 8 lights
     for (u32 light_index = 0; light_index < 8; light_index++) {
-        if (!dirty.CheckLight(light_index)) {
-            continue;
-        }
-
         const auto& light = regs.lighting.light[light_index];
         fs_data.light_src[light_index].specular_0 = LightColor(light.specular_0);
         fs_data.light_src[light_index].specular_1 = LightColor(light.specular_1);
@@ -223,49 +202,76 @@ void RasterizerAccelerated::SyncDrawUniforms() {
             Pica::f20::FromRaw(light.dist_atten_bias).ToFloat32();
         fs_data.light_src[light_index].dist_atten_scale =
             Pica::f20::FromRaw(light.dist_atten_scale).ToFloat32();
+    }
+    fs_data_dirty = true;
+
+    // Sync fog
+    fs_data.fog_color = {
+        regs.texturing.fog_color.r.Value() / 255.0f,
+        regs.texturing.fog_color.g.Value() / 255.0f,
+        regs.texturing.fog_color.b.Value() / 255.0f,
+    };
+    fs_data_dirty = true;
+
+    // Sync proctex
+    fs_data.proctex_noise_f = {
+        Pica::f16::FromRaw(regs.texturing.proctex_noise_frequency.u).ToFloat32(),
+        Pica::f16::FromRaw(regs.texturing.proctex_noise_frequency.v).ToFloat32(),
+    };
+    fs_data.proctex_noise_a = {
+        regs.texturing.proctex_noise_u.amplitude / 4095.0f,
+        regs.texturing.proctex_noise_v.amplitude / 4095.0f,
+    };
+    fs_data.proctex_noise_p = {
+        Pica::f16::FromRaw(regs.texturing.proctex_noise_u.phase).ToFloat32(),
+        Pica::f16::FromRaw(regs.texturing.proctex_noise_v.phase).ToFloat32(),
+    };
+    fs_data.proctex_bias = Pica::f16::FromRaw(regs.texturing.proctex.bias_low |
+                                              (regs.texturing.proctex_lut.bias_high << 8))
+                               .ToFloat32();
+    fs_data_dirty = true;
+
+    // Sync shadow
+    const auto& shadow = regs.framebuffer.shadow;
+    fs_data.shadow_bias_constant = Pica::f16::FromRaw(shadow.constant).ToFloat32();
+    fs_data.shadow_bias_linear = Pica::f16::FromRaw(shadow.linear).ToFloat32();
+    fs_data.shadow_texture_bias = regs.texturing.shadow.bias << 1;
+    fs_data_dirty = true;
+}
+
+void RasterizerAccelerated::SyncDrawUniforms() {
+    // Only sync rapidly-changing per-draw state.
+    // Rarely-changing state (lighting, fog, textures, etc.) is synced once in SyncEntireState.
+
+    // Flip viewport
+    const bool is_flipped = regs.framebuffer.framebuffer.IsFlipped();
+    const bool prev_flipped = std::exchange(vs_data.flip_viewport, is_flipped);
+    vs_data_dirty = is_flipped != prev_flipped;
+
+    // Clip plane can change per-draw
+    if (pica.dirty_regs.CheckClipping()) {
+        const auto raw_clip_coef = regs.rasterizer.GetClipCoef();
+        vs_data.enable_clip1 = regs.rasterizer.clip_enable != 0;
+        vs_data.clip_coef = {raw_clip_coef.x.ToFloat32(), raw_clip_coef.y.ToFloat32(),
+                             raw_clip_coef.z.ToFloat32(), raw_clip_coef.w.ToFloat32()};
+        vs_data_dirty = true;
+    }
+
+    // Depth can change per-draw
+    if (pica.dirty_regs.CheckDepth()) {
+        fs_data.depth_scale = f24::FromRaw(regs.rasterizer.viewport_depth_range).ToFloat32();
+        fs_data.depth_offset = f24::FromRaw(regs.rasterizer.viewport_depth_near_plane).ToFloat32();
         fs_data_dirty = true;
     }
 
-    // Sync fog uniforms
-    if (dirty.CheckFogColor()) {
-        fs_data.fog_color = {
-            regs.texturing.fog_color.r.Value() / 255.0f,
-            regs.texturing.fog_color.g.Value() / 255.0f,
-            regs.texturing.fog_color.b.Value() / 255.0f,
-        };
+    // Blend/alpha test can change per-draw
+    if (pica.dirty_regs.CheckBlend()) {
+        fs_data.alphatest_ref = regs.framebuffer.output_merger.alpha_test.ref;
+        fs_data.blend_color = ColorRGBA8(regs.framebuffer.output_merger.blend_const.raw);
         fs_data_dirty = true;
     }
 
-    // Sync proctex uniforms
-    if (dirty.CheckProctex()) {
-        fs_data.proctex_noise_f = {
-            Pica::f16::FromRaw(regs.texturing.proctex_noise_frequency.u).ToFloat32(),
-            Pica::f16::FromRaw(regs.texturing.proctex_noise_frequency.v).ToFloat32(),
-        };
-        fs_data.proctex_noise_a = {
-            regs.texturing.proctex_noise_u.amplitude / 4095.0f,
-            regs.texturing.proctex_noise_v.amplitude / 4095.0f,
-        };
-        fs_data.proctex_noise_p = {
-            Pica::f16::FromRaw(regs.texturing.proctex_noise_u.phase).ToFloat32(),
-            Pica::f16::FromRaw(regs.texturing.proctex_noise_v.phase).ToFloat32(),
-        };
-        fs_data.proctex_bias = Pica::f16::FromRaw(regs.texturing.proctex.bias_low |
-                                                  (regs.texturing.proctex_lut.bias_high << 8))
-                                   .ToFloat32();
-        fs_data_dirty = true;
-    }
-
-    // Sync shadow uniforms
-    if (dirty.CheckShadow()) {
-        const auto& shadow = regs.framebuffer.shadow;
-        fs_data.shadow_bias_constant = Pica::f16::FromRaw(shadow.constant).ToFloat32();
-        fs_data.shadow_bias_linear = Pica::f16::FromRaw(shadow.linear).ToFloat32();
-        fs_data.shadow_texture_bias = regs.texturing.shadow.bias << 1;
-        fs_data_dirty = true;
-    }
-
-    // We have synched all uniforms, reset dirty state.
+    // Reset dirty state for the things we checked
     pica.dirty_regs.Reset();
 }
 
