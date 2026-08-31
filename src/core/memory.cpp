@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/atomic_ops.h"
 #include "common/common_types.h"
+#include "common/fastmem_arena.h"
 #include "common/logging/log.h"
 #include "common/optional_helper.h"
 #include "common/settings.h"
@@ -99,17 +100,39 @@ private:
 
 class MemorySystem::Impl {
 public:
-    // Visual Studio would try to allocate these on compile time
-    // if they are std::array which would exceed the memory limit.
-    std::unique_ptr<u8[]> fcram = std::make_unique<u8[]>(Memory::FCRAM_N3DS_SIZE);
-    std::unique_ptr<u8[]> vram = std::make_unique<u8[]>(Memory::VRAM_SIZE);
-    std::unique_ptr<u8[]> n3ds_extra_ram = std::make_unique<u8[]>(Memory::N3DS_EXTRA_RAM_SIZE);
-    std::unique_ptr<u8[]> dsp_ram = std::make_unique<u8[]>(Memory::DSP_RAM_SIZE);
+    // Layout: FCRAM | VRAM | N3DS_EXTRA_RAM | DSP_RAM in one backing file
+    static constexpr std::size_t FCRAM_BACKING_OFFSET = 0;
+    static constexpr std::size_t VRAM_BACKING_OFFSET = Memory::FCRAM_N3DS_SIZE;
+    static constexpr std::size_t N3DS_EXTRA_RAM_BACKING_OFFSET =
+        VRAM_BACKING_OFFSET + Memory::VRAM_SIZE;
+    static constexpr std::size_t DSP_RAM_BACKING_OFFSET =
+        N3DS_EXTRA_RAM_BACKING_OFFSET + Memory::N3DS_EXTRA_RAM_SIZE;
+    static constexpr std::size_t BACKING_TOTAL_SIZE =
+        DSP_RAM_BACKING_OFFSET + Memory::DSP_RAM_SIZE;
+
+#if defined(__ANDROID__) && defined(__aarch64__)
+    Common::FastmemArena arena{BACKING_TOTAL_SIZE};
+#endif
+
+    // Fallback heap allocations used when fastmem arena is unavailable
+    std::unique_ptr<u8[]> fcram_fallback;
+    std::unique_ptr<u8[]> vram_fallback;
+    std::unique_ptr<u8[]> n3ds_extra_ram_fallback;
+    std::unique_ptr<u8[]> dsp_ram_fallback;
+
+    // Pointers to guest RAM - either into arena backing or fallback heap
+    u8* fcram_ptr = nullptr;
+    u8* vram_ptr = nullptr;
+    u8* n3ds_extra_ram_ptr = nullptr;
+    u8* dsp_ram_ptr = nullptr;
 
     Core::System& system;
     std::shared_ptr<PageTable> current_page_table = nullptr;
     RasterizerCacheMarker cache_marker;
     std::vector<std::shared_ptr<PageTable>> page_table_list;
+
+    /// The address space mirrored into the fastmem arena (first registered = application process)
+    std::shared_ptr<PageTable> fastmem_page_table = nullptr;
 
     std::shared_ptr<BackingMem> fcram_mem;
     std::shared_ptr<BackingMem> vram_mem;
@@ -123,13 +146,13 @@ public:
     const u8* GetPtr(Region r) const {
         switch (r) {
         case Region::VRAM:
-            return vram.get();
+            return vram_ptr;
         case Region::DSP:
-            return dsp_ram.get();
+            return dsp_ram_ptr;
         case Region::FCRAM:
-            return fcram.get();
+            return fcram_ptr;
         case Region::N3DS:
-            return n3ds_extra_ram.get();
+            return n3ds_extra_ram_ptr;
         default:
             UNREACHABLE();
         }
@@ -138,13 +161,13 @@ public:
     u8* GetPtr(Region r) {
         switch (r) {
         case Region::VRAM:
-            return vram.get();
+            return vram_ptr;
         case Region::DSP:
-            return dsp_ram.get();
+            return dsp_ram_ptr;
         case Region::FCRAM:
-            return fcram.get();
+            return fcram_ptr;
         case Region::N3DS:
-            return n3ds_extra_ram.get();
+            return n3ds_extra_ram_ptr;
         default:
             UNREACHABLE();
         }
@@ -163,6 +186,20 @@ public:
         default:
             UNREACHABLE();
         }
+    }
+
+    /// True when `host` points into the arena-backed guest RAM.
+    bool ResolveBackingOffset(const u8* host, std::size_t size, std::size_t& backing_offset) const {
+#if defined(__ANDROID__) && defined(__aarch64__)
+        if (!arena.IsValid() || host == nullptr)
+            return false;
+        const u8* base = arena.BackingBase();
+        if (host >= base && host + size <= base + BACKING_TOTAL_SIZE) {
+            backing_offset = static_cast<std::size_t>(host - base);
+            return true;
+        }
+#endif
+        return false;
     }
 
     u32 GetPC() const noexcept {
@@ -348,12 +385,12 @@ private:
     void serialize(Archive& ar, const unsigned int file_version) {
         bool save_n3ds_ram = Settings::values.is_new_3ds.GetValue();
         ar & save_n3ds_ram;
-        ar& boost::serialization::make_binary_object(vram.get(), Memory::VRAM_SIZE);
+        ar& boost::serialization::make_binary_object(vram_ptr, Memory::VRAM_SIZE);
         ar& boost::serialization::make_binary_object(
-            fcram.get(), save_n3ds_ram ? Memory::FCRAM_N3DS_SIZE : Memory::FCRAM_SIZE);
+            fcram_ptr, save_n3ds_ram ? Memory::FCRAM_N3DS_SIZE : Memory::FCRAM_SIZE);
         ar& boost::serialization::make_binary_object(
-            n3ds_extra_ram.get(), save_n3ds_ram ? Memory::N3DS_EXTRA_RAM_SIZE : 0);
-        ar& boost::serialization::make_binary_object(dsp_ram.get(), Memory::DSP_RAM_SIZE);
+            n3ds_extra_ram_ptr, save_n3ds_ram ? Memory::N3DS_EXTRA_RAM_SIZE : 0);
+        ar& boost::serialization::make_binary_object(dsp_ram_ptr, Memory::DSP_RAM_SIZE);
         ar & cache_marker;
         ar & page_table_list;
         // dsp is set from Core::System at startup
@@ -397,7 +434,26 @@ MemorySystem::Impl::Impl(Core::System& system_)
     : system{system_}, fcram_mem(std::make_shared<BackingMemImpl<Region::FCRAM>>(*this)),
       vram_mem(std::make_shared<BackingMemImpl<Region::VRAM>>(*this)),
       n3ds_extra_ram_mem(std::make_shared<BackingMemImpl<Region::N3DS>>(*this)),
-      dsp_mem(std::make_shared<BackingMemImpl<Region::DSP>>(*this)) {}
+      dsp_mem(std::make_shared<BackingMemImpl<Region::DSP>>(*this)) {
+#if defined(__ANDROID__) && defined(__aarch64__)
+    if (arena.IsValid()) {
+        fcram_ptr = arena.BackingBase() + FCRAM_BACKING_OFFSET;
+        vram_ptr = arena.BackingBase() + VRAM_BACKING_OFFSET;
+        n3ds_extra_ram_ptr = arena.BackingBase() + N3DS_EXTRA_RAM_BACKING_OFFSET;
+        dsp_ram_ptr = arena.BackingBase() + DSP_RAM_BACKING_OFFSET;
+    } else
+#endif
+    {
+        fcram_fallback = std::make_unique<u8[]>(Memory::FCRAM_N3DS_SIZE);
+        vram_fallback = std::make_unique<u8[]>(Memory::VRAM_SIZE);
+        n3ds_extra_ram_fallback = std::make_unique<u8[]>(Memory::N3DS_EXTRA_RAM_SIZE);
+        dsp_ram_fallback = std::make_unique<u8[]>(Memory::DSP_RAM_SIZE);
+        fcram_ptr = fcram_fallback.get();
+        vram_ptr = vram_fallback.get();
+        n3ds_extra_ram_ptr = n3ds_extra_ram_fallback.get();
+        dsp_ram_ptr = dsp_ram_fallback.get();
+    }
+}
 
 MemorySystem::MemorySystem(Core::System& system) : impl(std::make_unique<Impl>(system)) {}
 MemorySystem::~MemorySystem() = default;
@@ -517,6 +573,26 @@ void MemorySystem::MapPages(PageTable& page_table, u32 base, u32 size, MemoryRef
                                      FlushMode::FlushAndInvalidate);
     }
 
+#if defined(__ANDROID__) && defined(__aarch64__)
+    const bool mirror = impl->arena.IsValid() &&
+                        (impl->fastmem_page_table.get() == &page_table);
+    std::size_t backing_offset = 0;
+    const bool mappable =
+        type == PageType::Memory && memory.GetPtr() != nullptr &&
+        impl->ResolveBackingOffset(memory.GetPtr(),
+                                   static_cast<std::size_t>(size) * CITRA_PAGE_SIZE,
+                                   backing_offset);
+    if (mirror) {
+        const u64 guest_addr = static_cast<u64>(base) * CITRA_PAGE_SIZE;
+        const std::size_t byte_size = static_cast<std::size_t>(size) * CITRA_PAGE_SIZE;
+        if (mappable) {
+            impl->arena.Map(guest_addr, backing_offset, byte_size);
+        } else {
+            impl->arena.Unmap(guest_addr, byte_size);
+        }
+    }
+#endif
+
     u32 end = base + size;
     while (base != end) {
         ASSERT_MSG(base < PAGE_TABLE_NUM_ENTRIES, "out of range mapping at {:08X}", base);
@@ -528,6 +604,11 @@ void MemorySystem::MapPages(PageTable& page_table, u32 base, u32 size, MemoryRef
         if (type == PageType::Memory && impl->cache_marker.IsCached(base * CITRA_PAGE_SIZE)) {
             page_table.attributes[base] = PageType::RasterizerCachedMemory;
             page_table.pointers[base] = nullptr;
+#if defined(__ANDROID__) && defined(__aarch64__)
+            if (mirror && mappable) {
+                impl->arena.Unmap(static_cast<u64>(base) * CITRA_PAGE_SIZE, CITRA_PAGE_SIZE);
+            }
+#endif
         }
 
         base += 1;
@@ -555,6 +636,11 @@ MemoryRef MemorySystem::GetPointerForRasterizerCache(VAddr addr) const {
 
 void MemorySystem::RegisterPageTable(std::shared_ptr<PageTable> page_table) {
     impl->page_table_list.push_back(page_table);
+#if defined(__ANDROID__) && defined(__aarch64__)
+    if (impl->arena.IsValid() && impl->fastmem_page_table == nullptr) {
+        impl->fastmem_page_table = page_table;
+    }
+#endif
 }
 
 void MemorySystem::UnregisterPageTable(std::shared_ptr<PageTable> page_table) {
@@ -562,6 +648,24 @@ void MemorySystem::UnregisterPageTable(std::shared_ptr<PageTable> page_table) {
     if (it != impl->page_table_list.end()) {
         impl->page_table_list.erase(it);
     }
+#if defined(__ANDROID__) && defined(__aarch64__)
+    if (impl->fastmem_page_table == page_table) {
+        impl->fastmem_page_table = nullptr;
+        impl->arena.UnmapAll();
+    }
+#endif
+}
+
+uintptr_t MemorySystem::GetFastmemArenaBase(const std::shared_ptr<PageTable>& page_table) const {
+#if defined(__ANDROID__) && defined(__aarch64__)
+    if (!impl->arena.IsValid() || page_table == nullptr ||
+        page_table != impl->fastmem_page_table) {
+        return 0;
+    }
+    return reinterpret_cast<uintptr_t>(impl->arena.ArenaBase());
+#else
+    return 0;
+#endif
 }
 
 template <typename T>
@@ -1011,6 +1115,11 @@ void MemorySystem::RasterizerMarkRegionCached(PAddr start, u32 size, bool cached
                                         ? PageType::RasterizerCachedMemory
                                         : PageType::RasterizerCachedMemoryWatchpoint;
                         page_table->pointers[vaddr >> CITRA_PAGE_BITS] = nullptr;
+#if defined(__ANDROID__) && defined(__aarch64__)
+                        if (page_table == impl->fastmem_page_table) {
+                            impl->arena.Unmap(vaddr & ~CITRA_PAGE_MASK, CITRA_PAGE_SIZE);
+                        }
+#endif
                         break;
                     default:
                         UNREACHABLE();
@@ -1029,8 +1138,16 @@ void MemorySystem::RasterizerMarkRegionCached(PAddr start, u32 size, bool cached
                                         : PageType::MemoryWatchpoint;
 
                         if (page_type == PageType::Memory) {
-                            page_table->pointers[vaddr >> CITRA_PAGE_BITS] =
-                                GetPointerForRasterizerCache(vaddr & ~CITRA_PAGE_MASK);
+                            auto mem_ref = GetPointerForRasterizerCache(vaddr & ~CITRA_PAGE_MASK);
+                            page_table->pointers[vaddr >> CITRA_PAGE_BITS] = mem_ref;
+#if defined(__ANDROID__) && defined(__aarch64__)
+                            if (page_table == impl->fastmem_page_table) {
+                                std::size_t backing_offset = 0;
+                                if (impl->ResolveBackingOffset(mem_ref.GetPtr(), CITRA_PAGE_SIZE, backing_offset)) {
+                                    impl->arena.Map(vaddr & ~CITRA_PAGE_MASK, backing_offset, CITRA_PAGE_SIZE);
+                                }
+                            }
+#endif
                         }
                         break;
                     }
@@ -1268,18 +1385,18 @@ void MemorySystem::CopyBlock(const Kernel::Process& dest_process,
 }
 
 u32 MemorySystem::GetFCRAMOffset(const u8* pointer) const {
-    ASSERT(pointer >= impl->fcram.get() && pointer <= impl->fcram.get() + Memory::FCRAM_N3DS_SIZE);
-    return static_cast<u32>(pointer - impl->fcram.get());
+    ASSERT(pointer >= impl->fcram_ptr && pointer <= impl->fcram_ptr + Memory::FCRAM_N3DS_SIZE);
+    return static_cast<u32>(pointer - impl->fcram_ptr);
 }
 
 u8* MemorySystem::GetFCRAMPointer(std::size_t offset) {
     ASSERT(offset <= Memory::FCRAM_N3DS_SIZE);
-    return impl->fcram.get() + offset;
+    return impl->fcram_ptr + offset;
 }
 
 const u8* MemorySystem::GetFCRAMPointer(std::size_t offset) const {
     ASSERT(offset <= Memory::FCRAM_N3DS_SIZE);
-    return impl->fcram.get() + offset;
+    return impl->fcram_ptr + offset;
 }
 
 MemoryRef MemorySystem::GetFCRAMRef(std::size_t offset) const {
@@ -1289,7 +1406,7 @@ MemoryRef MemorySystem::GetFCRAMRef(std::size_t offset) const {
 
 u8* MemorySystem::GetDspMemory(std::size_t offset) const {
     ASSERT(offset <= Memory::DSP_RAM_SIZE);
-    return impl->dsp_ram.get() + offset;
+    return impl->dsp_ram_ptr + offset;
 }
 
 } // namespace Memory

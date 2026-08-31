@@ -26,9 +26,20 @@
                 android:paddingHorizontal="16dp"
                 android:gravity="center_vertical">
 
-                <Space
-                    android:layout_width="48dp"
-                    android:layout_height="0dp" />
+                <com.google.android.material.textfield.TextInputLayout
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:hint="@string/multiplayer_username"
+    android:paddingHorizontal="4dp">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/username_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:maxLines="1"
+        android:imeOptions="actionDone" />
+</com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
                     android:id="@+id/title"
