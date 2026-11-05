@@ -1,11 +1,14 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #pragma once
 
+#include <chrono>
+#include <condition_variable>
 #include <future>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -20,6 +23,7 @@
 #include <boost/serialization/weak_ptr.hpp>
 #include <httplib.h>
 #include "common/thread.h"
+#include "common/web_util.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/service.h"
@@ -90,13 +94,6 @@ enum class PostDataType : u8 {
 
 enum class ClientCertID : u32 {
     Default = 0x40, // Default client cert
-};
-
-struct URLInfo {
-    bool is_https;
-    std::string host;
-    int port;
-    std::string path;
 };
 
 /// Represents a client certificate along with its private key, stored as a byte array of DER data.
@@ -191,6 +188,7 @@ public:
     using Handle = u32;
 
     Context() = default;
+    ~Context();
     Context(const Context&) = delete;
     Context& operator=(const Context&) = delete;
 
@@ -296,7 +294,6 @@ public:
     std::optional<Proxy> proxy;
     std::optional<BasicAuth> basic_auth;
     SSLConfig ssl_config{};
-    u32 socket_buffer_size;
     std::vector<RequestHeader> headers;
     const ClCertAData* clcert_data;
     const URLReplacer* url_replacer;
@@ -311,25 +308,68 @@ public:
     bool chunked_request = false;
     u32 chunked_content_length;
 
+    /// Maximum data buffered for HTTP body responses.
+    static constexpr std::size_t MaxBufferedBodySize = 16 * 1024 * 1024;
+
+    struct ReceiveResult {
+        bool timed_out = false;
+        bool completed = false;
+    };
+
     std::future<void> request_future;
-    std::atomic<u64> current_download_size_bytes;
-    std::atomic<u64> total_download_size_bytes;
-    std::size_t current_copied_data;
+    std::atomic<u64> current_download_size_bytes{};
+    std::atomic<u64> total_download_size_bytes{};
+    std::size_t current_copied_data{};
     bool uses_default_client_cert{};
     httplib::Response response;
     Common::Event finish_post_data;
 
+    std::mutex body_mutex;
+    std::condition_variable body_cv;
+
+    /// Body data that has been received but not handed to the application yet.
+    std::vector<u8> body_buffer;
+    std::size_t body_buffer_pos = 0;
+
+    bool headers_received = false;
+    bool transfer_finished = false;
+    bool cancelled = false;
+
+    /// How much data a pending ReceiveData is waiting for.
+    /// NOTE: The receive buffer is allowed to grow past MaxBufferedBodySize when an application
+    /// asks for more than that in a single call.
+    std::size_t requested_body_size = 0;
+
     void ParseAsciiPostData();
     std::string ParseMultipartFormData();
     void MakeRequest();
-    void MakeRequestNonSSL(httplib::Request& request, const URLInfo& url_info,
+    void MakeRequestNonSSL(httplib::Request& request, const Common::URLInfo& url_info,
                            std::vector<Context::RequestHeader>& pending_headers);
-    void MakeRequestSSL(httplib::Request& request, const URLInfo& url_info,
+    void MakeRequestSSL(httplib::Request& request, const Common::URLInfo& url_info,
                         std::vector<Context::RequestHeader>& pending_headers);
     bool ContentProvider(size_t offset, size_t length, httplib::DataSink& sink);
     bool ChunkedContentProvider(size_t offset, httplib::DataSink& sink);
     std::size_t HandleHeaderWrite(std::vector<Context::RequestHeader>& pending_headers,
                                   httplib::Stream& strm, httplib::Headers& httplib_headers);
+
+    /// Called by httplib once the response status line and headers have been received.
+    bool OnResponseHeaders();
+    /// Called by httplib for every chunk of body data received from connection.
+    /// Blocks if the receive buffer is full.
+    bool OnBodyData(const char* data, std::size_t size);
+    /// Called when the request thread is done.
+    void FinishTransfer();
+
+    void Cancel();
+
+    /// Blocks until the response headers are available, the request fails or timeout.
+    bool WaitForResponseHeaders(std::optional<std::chrono::nanoseconds> timeout);
+    bool ResponseHeadersAvailable();
+
+    /// Gets up to size bytes out of the receive buffer into out, blocking until either
+    /// that many bytes are available, the full body has been received or timeout.
+    ReceiveResult ReceiveBody(std::size_t size, std::optional<std::chrono::nanoseconds> timeout,
+                              std::vector<u8>& out);
 };
 
 struct SessionData : public Kernel::SessionRequestHandler::SessionDataBase {
@@ -365,6 +405,7 @@ private:
 class HTTP_C final : public ServiceFramework<HTTP_C, SessionData> {
 public:
     HTTP_C();
+    ~HTTP_C();
 
     const ClCertAData& GetClCertA() const {
         return ClCertA;
@@ -914,13 +955,13 @@ private:
     ClientCertContext::Handle client_certs_counter = 0;
 
     /// Global list of HTTP contexts currently opened.
-    std::unordered_map<Context::Handle, Context> contexts;
+    std::unordered_map<Context::Handle, std::shared_ptr<Context>> contexts;
 
     // Get context from its handle
     inline Context& GetContext(const Context::Handle& handle) {
         auto it = contexts.find(handle);
         ASSERT(it != contexts.end());
-        return it->second;
+        return *it->second;
     }
 
     /// Global list of  ClientCert contexts currently opened.

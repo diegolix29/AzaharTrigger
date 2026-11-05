@@ -88,9 +88,9 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     configuration/configure_ui.cpp
     configuration/configure_ui.h
     configuration/configure_ui.ui
-    configuration/configure_web.cpp
-    configuration/configure_web.h
-    configuration/configure_web.ui
+    configuration/configure_network.cpp
+    configuration/configure_network.h
+    configuration/configure_network.ui
     configuration/configure_cheats.cpp
     configuration/configure_cheats.h
     configuration/configure_cheats.ui
@@ -127,15 +127,6 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     debugger/wait_tree.cpp
     debugger/wait_tree.h
     discord.h
-    dumping/dumping_dialog.cpp
-    dumping/dumping_dialog.h
-    dumping/dumping_dialog.ui
-    dumping/option_set_dialog.cpp
-    dumping/option_set_dialog.h
-    dumping/option_set_dialog.ui
-    dumping/options_dialog.cpp
-    dumping/options_dialog.h
-    dumping/options_dialog.ui
     game_list.cpp
     game_list.h
     game_list_p.h
@@ -212,6 +203,20 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
 )
 
 target_include_directories(citra_qt PUBLIC ${CMAKE_BINARY_DIR}/src)
+
+if(ENABLE_FFMPEG)
+    target_sources(citra_qt PRIVATE
+        dumping/dumping_dialog.cpp
+        dumping/dumping_dialog.h
+        dumping/dumping_dialog.ui
+        dumping/option_set_dialog.cpp
+        dumping/option_set_dialog.h
+        dumping/option_set_dialog.ui
+        dumping/options_dialog.cpp
+        dumping/options_dialog.h
+        dumping/options_dialog.ui
+    )
+endif()
 
 if (APPLE)
   target_sources(citra_qt PUBLIC
@@ -312,7 +317,8 @@ endif()
 create_target_directory_groups(citra_qt)
 
 target_link_libraries(citra_qt PRIVATE audio_core citra_common citra_core input_common network video_core)
-target_link_libraries(citra_qt PRIVATE Boost::boost nihstro-headers Qt6::Widgets Qt6::Multimedia Qt6::Concurrent)
+target_link_libraries(citra_qt PUBLIC Boost::boost Qt6::Widgets)
+target_link_libraries(citra_qt PRIVATE nihstro-headers Qt6::Multimedia Qt6::Concurrent)
 target_link_libraries(citra_qt PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (MINGW)
@@ -330,8 +336,9 @@ endif()
 if (NOT WIN32)
     find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
     if(Qt6_VERSION VERSION_GREATER_EQUAL "6.10.0")
+        set(QT_NO_PRIVATE_MODULE_WARNING ON)
         find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
-        target_link_libraries(citra_qt PRIVATE Qt6::GuiPrivate)
+        target_link_libraries(citra_qt PUBLIC Qt6::GuiPrivate)
     else()
         target_include_directories(citra_qt PRIVATE ${Qt6Gui_PRIVATE_INCLUDE_DIRS})
     endif()
@@ -340,7 +347,7 @@ endif()
 if (APPLE)
     target_link_libraries(citra_qt PRIVATE Qt6::QDarwinCameraPermissionPlugin)
 elseif (UNIX)
-    target_link_libraries(citra_qt PRIVATE Qt6::DBus gamemode)
+    target_link_libraries(citra_qt PUBLIC Qt6::DBus gamemode)
 endif()
 
 target_compile_definitions(citra_qt PRIVATE
@@ -374,6 +381,12 @@ endif()
 if (ENABLE_WEB_SERVICE)
     target_link_libraries(citra_qt PRIVATE web_service)
 endif()
+
+if (ENABLE_FFMPEG)
+    target_link_libraries(citra_qt PRIVATE ${FFMPEG_LIBRARIES})
+    target_include_directories(citra_qt PRIVATE ${FFMPEG_INCLUDE_DIRS})
+endif()
+
 
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(citra_qt PRIVATE precompiled_headers.h)

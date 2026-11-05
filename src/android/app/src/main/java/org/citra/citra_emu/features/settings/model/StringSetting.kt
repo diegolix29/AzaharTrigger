@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 package org.citra.citra_emu.features.settings.model
 
@@ -25,7 +25,9 @@ enum class StringSetting(
         SettingKeys.camera_outer_right_config(),
         Settings.SECTION_CAMERA,
         "_back"
-    );
+    ),
+    WEB_API_URL(SettingKeys.web_api_url(), Settings.SECTION_NETWORK, "http://88.198.47.46:5000"),
+    NETWORK_TOKEN(SettingKeys.network_token(), Settings.SECTION_NETWORK, "");
 
     override var string: String = defaultValue
 

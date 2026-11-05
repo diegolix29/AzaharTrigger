@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 package org.citra.citra_emu.features.settings
 
@@ -11,6 +11,7 @@ object SettingKeys {
     // Shared
     external fun use_artic_base_controller(): String
     external fun use_cpu_jit(): String
+    external fun use_fastinterp(): String
     external fun cpu_clock_percentage(): String
     external fun is_new_3ds(): String
     external fun lle_applets(): String
@@ -127,6 +128,10 @@ object SettingKeys {
     external fun udp_input_port(): String
     external fun udp_pad_index(): String
     external fun record_frame_times(): String
+    external fun web_api_url(): String
+    external fun network_token(): String
+    external fun check_for_update_on_start(): String
+    external fun update_check_channel(): String
 
     // Android
     external fun expand_to_cutout_area(): String

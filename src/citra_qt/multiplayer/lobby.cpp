@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2017-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #include <QInputDialog>
 #include <QLineEdit>
@@ -18,7 +18,6 @@
 #include "common/logging/log.h"
 #include "core/hle/service/cfg/cfg.h"
 #include "network/network.h"
-#include "network/network_settings.h"
 #include "ui_lobby.h"
 #ifdef ENABLE_WEB_SERVICE
 #include "web_service/web_backend.h"
@@ -59,9 +58,9 @@ Lobby::Lobby(Core::System& system_, QWidget* parent, QStandardItemModel* list,
 
     ui->nickname->setValidator(validation.GetNickname());
     ui->nickname->setText(UISettings::values.nickname);
-    if (ui->nickname->text().isEmpty() && !NetSettings::values.citra_username.empty()) {
-        // Use Citra Web Service user name as nickname by default
-        ui->nickname->setText(QString::fromStdString(NetSettings::values.citra_username));
+    if (ui->nickname->text().isEmpty()) {
+        // Use system user name as nickname by default
+        ui->nickname->setText(QString::fromStdString(Service::CFG::GetUsername(system)));
     }
 
     // UI Buttons
@@ -152,6 +151,11 @@ void Lobby::RetranslateUi() {
     ui->retranslateUi(this);
 }
 
+void Lobby::showEvent(QShowEvent* event) {
+//    ui->nickname->setText(QString::fromStdString(Service::CFG::GetUsername(system)));
+    QDialog::showEvent(event);
+}
+
 QString Lobby::PasswordPrompt() {
     bool ok;
     const QString text =
@@ -207,11 +211,9 @@ void Lobby::OnJoinRoom(const QModelIndex& source) {
     QFuture<void> f = QtConcurrent::run([this, nickname, ip, port, password, verify_UID] {
         std::string token;
 #ifdef ENABLE_WEB_SERVICE
-        if (!NetSettings::values.citra_username.empty() &&
-            !NetSettings::values.citra_token.empty()) {
-            WebService::Client client(NetSettings::values.web_api_url,
-                                      NetSettings::values.citra_username,
-                                      NetSettings::values.citra_token);
+        if (!nickname.empty() && !Settings::values.network_token.GetValue().empty()) {
+            WebService::Client client(Settings::values.web_api_url.GetValue(), nickname,
+                                      Settings::values.network_token.GetValue());
             token = client.GetExternalJWT(verify_UID).returned_data;
             if (token.empty()) {
                 LOG_ERROR(WebService, "Could not get external JWT, verification may fail");

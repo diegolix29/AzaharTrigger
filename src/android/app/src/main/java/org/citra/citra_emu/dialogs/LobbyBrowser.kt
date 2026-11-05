@@ -1,6 +1,6 @@
-// Copyright 2025 Azahar Project
+// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included
+// Refer to the misc/licenses/gplv2.txt file included.
 
 package org.citra.citra_emu.dialogs
 
@@ -22,12 +22,12 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import info.debatty.java.stringsimilarity.Jaccard
 import info.debatty.java.stringsimilarity.JaroWinkler
+import java.util.Locale
 import org.citra.citra_emu.R
 import org.citra.citra_emu.databinding.DialogLobbyBrowserBinding
 import org.citra.citra_emu.databinding.ItemLobbyRoomBinding
 import org.citra.citra_emu.utils.CompatUtils
 import org.citra.citra_emu.utils.NetPlayManager
-import java.util.Locale
 
 class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
     private lateinit var binding: DialogLobbyBrowserBinding
@@ -53,7 +53,6 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
         setupRefreshButton()
         refreshRoomList()
         setupSearchBar()
-
         setOnDismissListener {
             NetPlayDialog(context).show()
         }
@@ -121,14 +120,12 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_password_input, null)
         val passwordInput = dialogView.findViewById<TextInputEditText>(R.id.password_input)
 
-        MaterialAlertDialogBuilder(context)
-            .setTitle(context.getString(R.string.multiplayer_password_required))
-            .setView(dialogView)
-            .setPositiveButton(R.string.multiplayer_join_room) { _, _ ->
+        MaterialAlertDialogBuilder(
+            context
+        ).setTitle(context.getString(R.string.multiplayer_password_required))
+            .setView(dialogView).setPositiveButton(R.string.multiplayer_join_room) { _, _ ->
                 joinRoom(room, passwordInput.text.toString())
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            }.setNegativeButton(android.R.string.cancel, null).show()
     }
 
     private fun joinRoom(room: NetPlayManager.RoomInfo, password: String) {
@@ -224,19 +221,18 @@ class LobbyBrowser(context: Context) : BottomSheetDialog(context) {
             val searchTerm = binding.searchText.text.toString().lowercase(Locale.getDefault())
             val searchAlgorithm = if (searchTerm.length > 1) Jaccard(2) else JaroWinkler()
             val sortedList: List<NetPlayManager.RoomInfo> = filteredList.mapNotNull { room ->
-                    val roomName = room.name.lowercase(Locale.getDefault())
+                val roomName = room.name.lowercase(Locale.getDefault())
 
-                    val score = searchAlgorithm.similarity(roomName, searchTerm)
-                    if (score > 0.03) {
-                        ScoreItem(score, room)
-                    } else {
-                        null
-                    }
-                }.sortedByDescending { it ->
-                    it.score
-                }.map { it.item }
+                val score = searchAlgorithm.similarity(roomName, searchTerm)
+                if (score > 0.03) {
+                    ScoreItem(score, room)
+                } else {
+                    null
+                }
+            }.sortedByDescending { it ->
+                it.score
+            }.map { it.item }
             adapter.updateRooms(sortedList)
-
         }
     }
 

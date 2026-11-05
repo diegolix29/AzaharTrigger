@@ -35,6 +35,7 @@ class AmiiboDatabase {
             "1c" to "My Mario Wooden Blocks",
             "1d" to "Street Fighter 6",
             "1e" to "Kirby Air Riders",
+            "20" to "Resident Evil",
             "21" to "Pragmata",
         )
 
@@ -983,6 +984,12 @@ class AmiiboDatabase {
             "@1f03010004c91e03" to "Bandana Waddle Dee (& Winged Star)",
             "@010d000004a70902" to "Mineru's Construct",
             "@1f02000004c71e03" to "King Dedede (& Tank Star)",
+            "@0807000004f70402" to "Shiver (Splatoon Raiders)",
+            "@0808000004f80402" to "Frye (Splatoon Raiders)",
+            "@0809000004f90402" to "Big Man (Splatoon Raiders)",
+            "@3540000005032002" to "Grace Ashcroft",
+            "@3541000005042002" to "Leon S. Kennedy",
+            "@1f04000004ca1e03" to "Chef Kawasaki (& Hop Star)",
         )
     }
 }

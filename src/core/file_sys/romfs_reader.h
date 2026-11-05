@@ -1,8 +1,6 @@
-// FILE MODIFIED BY AzaharPlus APRIL 2025
-
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2018-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #pragma once
 
@@ -47,21 +45,18 @@ private:
  */
 class DirectRomFSReader : public RomFSReader {
 public:
-    DirectRomFSReader(std::unique_ptr<FileUtil::IOFile>&& file, std::size_t file_offset,
-                      std::size_t data_size)
-        : is_encrypted(false), file(std::move(file)), file_offset(file_offset),
-          data_size(data_size) {}
+    DirectRomFSReader(std::unique_ptr<FileUtil::IOFileBase>&& file) : is_encrypted(false), file(std::move(file)) {}
 
-    DirectRomFSReader(std::unique_ptr<FileUtil::IOFile>&& file, std::size_t file_offset,
-                      std::size_t data_size, const std::array<u8, 16>& key,
-                      const std::array<u8, 16>& ctr, std::size_t crypto_offset)
-        : is_encrypted(true), file(std::move(file)), key(key), ctr(ctr), file_offset(file_offset),
-          crypto_offset(crypto_offset), data_size(data_size) {}
+    DirectRomFSReader(std::unique_ptr<FileUtil::IOFileBase>&& file,
+                      const std::array<u8, 16>& key, const std::array<u8, 16>& ctr,
+                      std::size_t crypto_offset)
+        : is_encrypted(true), file(std::move(file)), key(key), ctr(ctr),
+          crypto_offset(crypto_offset) {}
 
     ~DirectRomFSReader() override = default;
 
     std::size_t GetSize() const override {
-        return data_size;
+        return file->GetSize();
     }
 
     std::size_t ReadFile(std::size_t offset, std::size_t length, u8* buffer) override;
@@ -72,12 +67,10 @@ public:
 
 private:
     bool is_encrypted;
-    std::unique_ptr<FileUtil::IOFile> file;
+    std::unique_ptr<FileUtil::IOFileBase> file;
     std::array<u8, 16> key;
     std::array<u8, 16> ctr;
-    u64 file_offset;
     u64 crypto_offset;
-    u64 data_size;
 
     // Total cache size: 128KB
     static constexpr std::size_t cache_line_size = (1 << 13); // About 8KB
@@ -103,9 +96,7 @@ private:
         ar & file;
         ar & key;
         ar & ctr;
-        ar & file_offset;
         ar & crypto_offset;
-        ar & data_size;
     }
     friend class boost::serialization::access;
 };

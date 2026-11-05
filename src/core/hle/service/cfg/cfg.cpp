@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #include <algorithm>
 #include <array>
@@ -1341,6 +1341,11 @@ void InstallInterfaces(Core::System& system) {
     std::make_shared<CFG_S>(cfg)->InstallAsService(service_manager);
     std::make_shared<CFG_U>(cfg)->InstallAsService(service_manager);
     std::make_shared<CFG_NOR>()->InstallAsService(service_manager);
+}
+
+std::string GetUsername(Core::System& system) {
+    auto username = GetModule(system)->GetUsername();
+    return Common::UTF16ToUTF8(username);
 }
 
 std::string GetConsoleIdHash(Core::System& system) {

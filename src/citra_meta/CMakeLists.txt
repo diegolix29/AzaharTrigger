@@ -72,20 +72,10 @@ target_link_libraries(citra_meta PRIVATE citra_cli citra_common fmt)
 
 if (ENABLE_QT)
     target_link_libraries(citra_meta PRIVATE citra_qt)
-    target_link_libraries(citra_meta PRIVATE Boost::boost Qt6::Widgets)
 endif()
 
 if (ENABLE_ROOM)
     target_link_libraries(citra_meta PRIVATE citra_room)
-endif()
-
-if (ENABLE_QT AND UNIX AND NOT APPLE)
-    target_link_libraries(citra_meta PRIVATE Qt6::DBus gamemode)
-endif()
-
-if (ENABLE_QT AND APPLE)
-    find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
-    target_link_libraries(citra_meta PRIVATE Qt6::GuiPrivate)
 endif()
 
 if (ENABLE_QT AND USE_DISCORD_PRESENCE)
@@ -103,10 +93,6 @@ endif()
 
 if (CITRA_USE_PRECOMPILED_HEADERS)
     target_precompile_headers(citra_meta PRIVATE precompiled_headers.h)
-endif()
-
-if (SSE42_COMPILE_OPTION)
-    target_compile_definitions(citra_meta PRIVATE CITRA_HAS_SSE42)
 endif()
 
 # Bundle in-place on MSVC so dependencies can be resolved by builds.

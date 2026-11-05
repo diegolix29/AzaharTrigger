@@ -1,8 +1,6 @@
-//FILE MODIFIED BY AzaharPlus APRIL 2025
-
-// Copyright 2023 Citra Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 package org.citra.citra_emu.fragments
 
@@ -345,7 +343,7 @@ class HomeSettingsFragment : Fragment() {
 
         binding.linearLayoutSettings.updatePadding(bottom = spacingNavigation)
 
-        if (ViewCompat.getLayoutDirection(view) == ViewCompat.LAYOUT_DIRECTION_LTR) {
+        if (view.layoutDirection == View.LAYOUT_DIRECTION_LTR) {
             binding.linearLayoutSettings.updatePadding(left = spacingNavigationRail)
         } else {
             binding.linearLayoutSettings.updatePadding(right = spacingNavigationRail)

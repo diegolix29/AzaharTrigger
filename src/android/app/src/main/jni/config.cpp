@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #include <iomanip>
 #include <memory>
@@ -24,7 +24,6 @@
 #include "jni/config.h"
 #include "jni/default_ini.h"
 #include "jni/input_manager.h"
-#include "network/network_settings.h"
 
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
@@ -136,6 +135,7 @@ void Config::ReadValues() {
 
     // Core
     ReadSetting("Core", Settings::values.use_cpu_jit);
+    ReadSetting("Core", Settings::values.use_fastinterp);
     ReadSetting("Core", Settings::values.cpu_clock_percentage);
 
     // Renderer
@@ -321,7 +321,7 @@ void Config::ReadValues() {
     ReadSetting("Debugging", Settings::values.instant_debug_log);
     ReadSetting("Debugging", Settings::values.enable_rpc_server);
     ReadSetting("Debugging", Settings::values.toggle_unique_data_console_type);
-    ReadSetting("Debugging", Settings::values.break_on_unmapped_memory_access);
+    ReadSetting("Debugging", Settings::values.enable_exception_handler);
 
     for (const auto& service_module : Service::service_module_map) {
         bool use_lle =
@@ -330,24 +330,18 @@ void Config::ReadValues() {
     }
 
     // Web Service
-    NetSettings::values.web_api_url =
-        android_config->GetString("WebService", "web_api_url", "http://88.198.47.46:5000");
-    if (NetSettings::values.web_api_url == "https://api.citra-emu.org") {
-        NetSettings::values.web_api_url = "http://88.198.47.46:5000";
-    }
-    NetSettings::values.citra_username =
-        android_config->GetString("WebService", "citra_username", "");
-    NetSettings::values.citra_token = android_config->GetString("WebService", "citra_token", "");
+    ReadSetting("WebService", Settings::values.web_api_url);
+    ReadSetting("WebService", Settings::values.network_token);
 }
 
 void Config::Reload() {
     for (auto key = Settings::Keys::keys_array.begin(); key != Settings::Keys::keys_array.end();
          ++key) {
         const auto key_declaration_string = std::string(*key) + " =";
-        if ((std::ranges::find(DefaultINI::android_config_omitted_keys, *key) ==
+        if ((std::ranges::find(DefaultINI::android_config_omitted_keys, std::string_view(*key)) ==
              std::end(DefaultINI::android_config_omitted_keys)) &&
-            (std::string(DefaultINI::android_config_default_file_content)
-                 .find(key_declaration_string) == std::string::npos)) {
+            (std::string_view(DefaultINI::android_config_default_file_content)
+                 .find(key_declaration_string) == std::string_view::npos)) {
             ASSERT_MSG(false,
                        "Validation of default config content (jni/default_ini.h) failed: Missing "
                        "declaration for key '{}'",

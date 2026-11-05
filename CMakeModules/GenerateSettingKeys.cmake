@@ -9,6 +9,7 @@ foreach(KEY IN ITEMS
     "use_artic_base_controller"
     "enable_gamemode"
     "use_cpu_jit"
+    "use_fastinterp"
     "cpu_clock_percentage"
     "is_new_3ds"
     "lle_applets"
@@ -120,7 +121,7 @@ foreach(KEY IN ITEMS
     "log_filter"
     "log_regex_filter"
     "toggle_unique_data_console_type"
-    "break_on_unmapped_memory_access"
+    "enable_exception_handler"
     "use_integer_scaling"
     "layouts_to_cycle"
     "camera_inner_flip"
@@ -147,8 +148,9 @@ foreach(KEY IN ITEMS
     "record_frame_times"
     "language" # FIXME: DUPLICATE KEY (libretro equivalent: language_value)
     "web_api_url"
-    "citra_username"
-    "citra_token"
+    "network_token"
+    "check_for_update_on_start"
+    "update_check_channel"
 )
     set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")
     set(SETTING_KEY_DEFINITIONS "${SETTING_KEY_DEFINITIONS}\nDEFINE_KEY(${KEY})")
@@ -222,6 +224,35 @@ if (ENABLE_QT)
         "libvorbis"
         "Context"
         "favorites"
+        "microProfileDialogVisible"
+        "singleWindowMode"
+        "fullscreen"
+        "displayTitleBars"
+        "showFilterBar"
+        "showStatusBar"
+        "show_advanced_frametime_info"
+        "confirmClose"
+        "saveStateWarning"
+        "firstStart"
+        "pauseWhenInBackground"
+        "muteWhenInBackground"
+        "hideInactiveMouse"
+        "inserted_cartridge"
+        "enable_discord_presence"
+        "iconSize"
+        "row1" # The keys for this and...
+        "row2" # this suck ass.
+        "hideNoIcon"
+        "singleLineMode"
+        "show_compat_column"
+        "show_region_column"
+        "show_type_column"
+        "show_size_column"
+        "show_play_time_column"
+        "screenshot_resolution_factor"
+        "screenshotPath"
+        "calloutFlags"
+        "showConsole"
     )
         set(SETTING_KEY_LIST "${SETTING_KEY_LIST}\n\"${KEY}\",")
         set(SETTING_KEY_DEFINITIONS "${SETTING_KEY_DEFINITIONS}\nDEFINE_KEY(${KEY})")

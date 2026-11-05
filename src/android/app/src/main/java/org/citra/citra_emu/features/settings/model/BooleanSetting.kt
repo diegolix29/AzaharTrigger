@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 package org.citra.citra_emu.features.settings.model
 
@@ -94,6 +94,7 @@ enum class BooleanSetting(
         false
     ),
     CPU_JIT(SettingKeys.use_cpu_jit(), Settings.SECTION_CORE, true),
+    USE_FASTINTERP(SettingKeys.use_fastinterp(), Settings.SECTION_CORE, true),
     HW_SHADER(SettingKeys.use_hw_shader(), Settings.SECTION_RENDERER, true),
     SHADER_JIT(SettingKeys.use_shader_jit(), Settings.SECTION_RENDERER, true),
     VSYNC(SettingKeys.use_vsync(), Settings.SECTION_RENDERER, false),
@@ -129,7 +130,8 @@ enum class BooleanSetting(
         SettingKeys.simulate_3ds_gpu_timings(),
         Settings.SECTION_RENDERER,
         false
-    );
+    ),
+    CHECK_FOR_UPDATES(SettingKeys.check_for_update_on_start(), Settings.SECTION_MISC, true);
 
     override var boolean: Boolean = defaultValue
 
@@ -160,6 +162,7 @@ enum class BooleanSetting(
             VSYNC,
             DEBUG_RENDERER,
             CPU_JIT,
+            USE_FASTINTERP,
             ASYNC_CUSTOM_LOADING,
             SHADERS_ACCURATE_MUL,
             USE_ARTIC_BASE_CONTROLLER,
@@ -167,7 +170,8 @@ enum class BooleanSetting(
             ASYNC_FS_OPERATIONS,
             ANDROID_HIDE_IMAGES,
             PERF_OVERLAY_ENABLE, // Works in overlay options, but not from the settings menu
-            APPLY_REGION_FREE_PATCH
+            APPLY_REGION_FREE_PATCH,
+            EXPAND_TO_CUTOUT_AREA
         )
 
         fun from(key: String): BooleanSetting? =

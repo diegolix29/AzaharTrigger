@@ -1,6 +1,6 @@
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2017-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #include <QComboBox>
 #include <QFuture>
@@ -15,7 +15,6 @@
 #include "citra_qt/uisettings.h"
 #include "core/hle/service/cfg/cfg.h"
 #include "network/network.h"
-#include "network/network_settings.h"
 #include "ui_direct_connect.h"
 
 enum class ConnectionType : u8 { TraversalServer, IP };
@@ -32,9 +31,9 @@ DirectConnectWindow::DirectConnectWindow(Core::System& system_, QWidget* parent)
 
     ui->nickname->setValidator(validation.GetNickname());
     ui->nickname->setText(UISettings::values.nickname);
-    if (ui->nickname->text().isEmpty() && !NetSettings::values.citra_username.empty()) {
-        // Use Citra Web Service user name as nickname by default
-        ui->nickname->setText(QString::fromStdString(NetSettings::values.citra_username));
+    if (ui->nickname->text().isEmpty()) {
+        // Use system user name as nickname by default
+        ui->nickname->setText(QString::fromStdString(Service::CFG::GetUsername(system)));
     }
     ui->ip->setValidator(validation.GetIP());
     ui->ip->setText(UISettings::values.ip);
@@ -50,6 +49,11 @@ DirectConnectWindow::~DirectConnectWindow() = default;
 
 void DirectConnectWindow::RetranslateUi() {
     ui->retranslateUi(this);
+}
+
+void DirectConnectWindow::showEvent(QShowEvent* event) {
+//    ui->nickname->setText(QString::fromStdString(Service::CFG::GetUsername(system)));
+    QDialog::showEvent(event);
 }
 
 void DirectConnectWindow::Connect() {

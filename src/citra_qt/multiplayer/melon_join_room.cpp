@@ -11,7 +11,8 @@
 #include "citra_qt/multiplayer/validation.h"
 #include "citra_qt/uisettings.h"
 #include "common/logging/log.h"
-#include "network/network_settings.h"
+#include "core/core.h"
+#include "core/hle/service/cfg/cfg.h"
 #include "ui_melon_join_room.h"
 
 MelonJoinRoom::MelonJoinRoom(QWidget* parent)
@@ -34,8 +35,9 @@ MelonJoinRoom::MelonJoinRoom(QWidget* parent)
 
     // Load default nickname
     ui->nickname->setText(UISettings::values.nickname);
-    if (ui->nickname->text().isEmpty() && !NetSettings::values.citra_username.empty()) {
-        ui->nickname->setText(QString::fromStdString(NetSettings::values.citra_username));
+    if (ui->nickname->text().isEmpty()) {
+        ui->nickname->setText(
+            QString::fromStdString(Service::CFG::GetUsername(Core::System::GetInstance())));
     }
 
     // Set up discovery model

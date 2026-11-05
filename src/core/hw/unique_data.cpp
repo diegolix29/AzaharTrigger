@@ -1,8 +1,6 @@
-// FILE MODIFIED BY AzaharPlus APRIL 2025
-
-// Copyright Citra Emulator Project / Azahar Emulator Project
+// Copyright 2025-2026 Citra Emulator Project / Azahar Emulator Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 #include <algorithm>
 #include <cstdlib>
@@ -18,6 +16,7 @@
 #include <cryptopp/sha.h>
 #include <fmt/format.h>
 #include "common/common_paths.h"
+#include "common/file_derived.h"
 #include "common/logging/log.h"
 #include "common/settings.h"
 #include "core/file_sys/archive_systemsavedata.h"
@@ -460,19 +459,22 @@ static std::array<u8, 32> hexToBin(const std::string& hex) {
     return bytes;
 }
 
-static bool isHeaderReadable(NCCH_Header ncch_header) {
-    bool ret = true;
-
-    if (Loader::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic &&
-        Loader::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic &&
-        memcmp("NDHT", ncch_header.signature, 4) != 0 &&
-        memcmp("dlplay", ncch_header.signature, 6) != 0 &&
-        memcmp("NARC", ncch_header.signature + 128, 4) != 0 &&
-        memcmp("DS INTERNET", ncch_header.signature, 11) != 0) {
-        ret = false;
-    }
-
-    return ret;
+static bool isHeaderReadable(NCCH_Header ncch_header)
+{
+	bool ret = true;
+	
+	if (FileUtil::MakeMagic('N', 'C', 'S', 'D') != ncch_header.magic
+	&&  FileUtil::MakeMagic('N', 'C', 'C', 'H') != ncch_header.magic
+	&&  memcmp("Z3DS", ncch_header.signature, 4) != 0
+	&&  memcmp("NDHT", ncch_header.signature, 4) != 0
+	&&  memcmp("dlplay", ncch_header.signature, 6) != 0
+	&&  memcmp("NARC", ncch_header.signature + 128, 4) != 0
+	&&  memcmp("DS INTERNET", ncch_header.signature, 11) != 0)
+	{
+		ret = false;
+	}
+	
+	return ret;
 }
 
 static bool testDigest(std::string sdigest, const std::string& filename) {
@@ -597,10 +599,39 @@ static std::string findDigest(std::string filename) {
     return ret;
 }
 
-std::unique_ptr<FileUtil::IOFile> OpenUniqueCryptoFile(const std::string& filename,
-                                                       const char openmode[], UniqueCryptoFileID id,
-                                                       int flags) {
-    std::string sdigest = findDigest(filename);
+bool IsUniqueCryptoFile(FileUtil::IOFileBase* file, UniqueCryptoFileID id) {
+	std::string sdigest = findDigest(file->Filename());
+	
+	return sdigest.length() == 64;
+}
+
+std::unique_ptr<FileUtil::IOFileBase> OpenUniqueCryptoFile(
+	std::unique_ptr<FileUtil::IOFileBase>&& underlying_file, const char openmode[],
+    UniqueCryptoFileID id) {
+	std::string sdigest = findDigest(underlying_file->Filename());
+
+	if(sdigest.length() == 64)
+	{
+		u8 digest[CryptoPP::SHA256::DIGESTSIZE];
+		memcpy(digest, hexToBin(sdigest).data(), 32);
+		
+		std::vector<u8> key(0x10);
+		std::vector<u8> ctr(0x10);
+		memcpy(key.data(), digest, 0x10);
+		memcpy(ctr.data(), digest + 0x10, 12);
+
+//		LOG_ERROR(HW, "digest dump {}", binToHex(digest));
+
+		return std::make_unique<FileUtil::CryptoIOFile>(std::move(underlying_file), openmode, key, ctr);
+	}
+	
+	return std::make_unique<FileUtil::NullIOFile>();
+}
+
+std::unique_ptr<FileUtil::IOFileBase> OpenUniqueCryptoFile(const std::string& filename,
+                                                           const char openmode[],
+                                                           UniqueCryptoFileID id, int flags) {
+	std::string sdigest = findDigest(filename);
 
     if (sdigest.length() == 64) {
         u8 digest[CryptoPP::SHA256::DIGESTSIZE];

@@ -1,6 +1,10 @@
+// Copyright 2026 Citra Emulator Project / Azahar Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the misc/licenses/gplv2.txt file included.
+
 // Copyright 2024 Mandarine Project
 // Licensed under GPLv2 or any later version
-// Refer to the license.txt file included.
+// Refer to the misc/licenses/gplv2.txt file included.
 
 package org.citra.citra_emu.utils
 
@@ -9,11 +13,9 @@ import android.content.Context
 import android.content.ContextWrapper
 
 object CompatUtils {
-    fun findActivity(context: Context): Activity {
-        return when (context) {
-            is Activity -> context
-            is ContextWrapper -> findActivity(context.baseContext)
-            else -> throw IllegalArgumentException("Context is not an Activity")
-        }
+    fun findActivity(context: Context): Activity = when (context) {
+        is Activity -> context
+        is ContextWrapper -> findActivity(context.baseContext)
+        else -> throw IllegalArgumentException("Context is not an Activity")
     }
 }

@@ -8,8 +8,6 @@ add_library(network STATIC EXCLUDE_FROM_ALL
     lan_melon.h
     network.cpp
     network.h
-    network_settings.cpp
-    network_settings.h
     packet.cpp
     packet.h
     precompiled_headers.h
