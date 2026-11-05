@@ -98,6 +98,7 @@ void PerfStats::EndSystemFrame() {
             std::chrono::duration<double, std::milli>(frame_time).count();
     }
     accumulated_frametime += frame_time;
+    last_system_frame_time = frame_time;
     system_frames += 1;
 
     // TODO: Track previous frame times in a less stupid way. -OS
@@ -111,6 +112,7 @@ void PerfStats::EndGameFrame() {
     std::scoped_lock lock{object_mutex};
 
     game_frames += 1;
+    total_game_frames += 1;
     PerfStats::game_frames_updated = true;
 }
 
@@ -124,6 +126,16 @@ double PerfStats::GetMeanFrametime() const {
     const double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
                                        perf_history.begin() + current_index, 0.0);
     return sum / static_cast<double>(current_index - IgnoreFrames);
+}
+
+PerfStats::Clock::duration PerfStats::GetLastSystemFrameTime() const {
+    std::scoped_lock lock{object_mutex};
+    return last_system_frame_time;
+}
+
+u64 PerfStats::GetGameFrameCount() const {
+    std::scoped_lock lock{object_mutex};
+    return total_game_frames;
 }
 
 PerfStats::Results PerfStats::GetAndResetStats(microseconds current_system_time_us) {

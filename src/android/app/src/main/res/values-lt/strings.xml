@@ -11,7 +11,6 @@
     <string name="share_log">Dalintis žurnalu</string>
     <string name="share_log_not_found">Žurnalas nerastas</string>
     <string name="about">Apie</string>
-    <string name="citra_description">Atviro kodo 3DS emulatorius</string>
     <string name="select_gpu_driver_install">Instaliuoti</string>
     <string name="licenses">Licencijos</string>
     <!-- Setup strings -->
@@ -64,7 +63,6 @@
     <string name="layout_screen_orientation_auto_sensor">Automatinis</string>
     <string name="learn_more">Sužinoti daugiau</string>
     <string name="close">Uždaryti</string>
-    <string name="reset_all_settings">Atstatyti visus nustatymus?</string>
     <string name="start">Pradėti</string>
     <string name="cancelling">Atšaukiama...</string>
     <!-- Preferences Screen -->
@@ -75,7 +73,6 @@
     <string name="preferences_audio">Garsas</string>
     <string name="preferences_theme">Tema ir Spalva</string>
     <string name="preferences_layout">Išdėstymas</string>
-
     <string name="emulation_show_fps">Rodyti FPS</string>
     <string name="emulation_edit_layout">Redaguoti išdėstymą</string>
     <string name="emulation_done">Baigta</string>

@@ -25,12 +25,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.core.os.BundleCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
@@ -42,9 +43,12 @@ import org.citra.citra_emu.display.ScreenAdjustmentUtil
 import org.citra.citra_emu.display.SecondaryDisplay
 import org.citra.citra_emu.features.hotkeys.HotkeyUtility
 import org.citra.citra_emu.features.settings.model.BooleanSetting
+import org.citra.citra_emu.features.settings.model.CitraSettings
+import org.citra.citra_emu.features.settings.model.GraphicsAPI
 import org.citra.citra_emu.features.settings.model.IntSetting
-import org.citra.citra_emu.features.settings.model.SettingsViewModel
+import org.citra.citra_emu.features.settings.model.TextureFilter
 import org.citra.citra_emu.features.settings.model.view.InputBindingSetting
+import org.citra.citra_emu.features.settings.utils.SettingsFile
 import org.citra.citra_emu.fragments.EmulationFragment
 import org.citra.citra_emu.fragments.MessageDialogFragment
 import org.citra.citra_emu.model.Game
@@ -57,6 +61,7 @@ import org.citra.citra_emu.utils.EmulationLifecycleUtil
 import org.citra.citra_emu.utils.EmulationMenuSettings
 import org.citra.citra_emu.utils.FileBrowserHelper
 import org.citra.citra_emu.utils.FileUtil
+import org.citra.citra_emu.utils.GameHelper
 import org.citra.citra_emu.utils.Log
 import org.citra.citra_emu.utils.NetPlayManager
 import org.citra.citra_emu.utils.PermissionsHandler
@@ -68,16 +73,14 @@ class EmulationActivity : AppCompatActivity() {
     private val preferences: SharedPreferences
         get() = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
     var isActivityRecreated = false
-    private val emulationViewModel: EmulationViewModel by viewModels()
-    val settingsViewModel: SettingsViewModel by viewModels()
-
+    val emulationViewModel: EmulationViewModel by viewModels()
     private lateinit var binding: ActivityEmulationBinding
     private lateinit var screenAdjustmentUtil: ScreenAdjustmentUtil
     private lateinit var hotkeyUtility: HotkeyUtility
     lateinit var secondaryDisplayManager: SecondaryDisplay
 
     private val onShutdown = Runnable {
-        if (intent.getBooleanExtra("launched_from_shortcut", false)) {
+        if (intent.getBooleanExtra("launchedFromShortcut", false)) {
             finishAffinity()
         } else {
             this.finish()
@@ -123,9 +126,7 @@ class EmulationActivity : AppCompatActivity() {
             return
         }
 
-        settingsViewModel.settings.loadSettings()
-
-        screenAdjustmentUtil = ScreenAdjustmentUtil(this, windowManager, settingsViewModel.settings)
+        screenAdjustmentUtil = ScreenAdjustmentUtil(this, windowManager)
 
         // Block orientation until emulation is ready to prevent unneccesary
         // surface recreation until the renderer is ready.
@@ -133,10 +134,19 @@ class EmulationActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
 
         super.onCreate(savedInstanceState)
-        NativeLibrary.initMultiplayer()
+
+        isActivityRecreated = savedInstanceState != null
+        if (!isActivityRecreated) processGame = null
+
+        processGame = processGame ?: GameHelper.getGameFromIntent(this, intent)
+        val game = processGame
+
+        loadGameSettings(game)
 
         secondaryDisplayManager = SecondaryDisplay(this)
         secondaryDisplayManager.updateDisplay()
+
+        NativeLibrary.initMultiplayer()
 
         binding = ActivityEmulationBinding.inflate(layoutInflater)
         hotkeyUtility = HotkeyUtility(screenAdjustmentUtil, this)
@@ -146,8 +156,6 @@ class EmulationActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
         navController.setGraph(R.navigation.emulation_navigation, intent.extras)
-
-        isActivityRecreated = savedInstanceState != null
 
         // Set these options now so that the SurfaceView the game renders into is the right size.
         enableFullscreenImmersive()
@@ -169,23 +177,21 @@ class EmulationActivity : AppCompatActivity() {
         isEmulationRunning = true
         instance = this
 
-        val game = try {
-            intent.extras?.let { extras ->
-                BundleCompat.getParcelable(extras, "game", Game::class.java)
-            } ?: run {
-                Log.error("[EmulationActivity] Missing game data in intent extras")
-                return
-            }
-        } catch (e: Exception) {
-            Log.error("[EmulationActivity] Failed to retrieve game data: ${e.message}")
-            return
-        }
+        applyOrientationSettings() // Check for orientation settings at startup
 
-        NativeLibrary.playTimeManagerStart(game.titleId)
+        // TODO: all 3dsx homebrew will have titleId = 0, so make this use something different
+        if (game != null && game.titleId != 0L) NativeLibrary.playTimeManagerStart(game.titleId)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        val launchUri = GameHelper.getLaunchUri(intent)
+        if (launchUri != null && launchUri != Uri.EMPTY &&
+            launchUri == GameHelper.getLaunchUri(this.intent)
+        ) {
+            Log.info("[EmulationActivity] Ignoring relaunch of the running game")
+            return
+        }
         setIntent(intent)
 
         NativeLibrary.stopEmulation()
@@ -196,16 +202,78 @@ class EmulationActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         emulationViewModel.setEmulationStarted(false)
 
-        val game = intent.extras?.let { extras ->
-            BundleCompat.getParcelable(extras, "game", Game::class.java)
-        }
-        if (game != null) {
+        processGame = GameHelper.getGameFromIntent(this, intent)
+        val game = processGame
+        loadGameSettings(game)
+
+        if (game != null && game.titleId != 0L) {
             NativeLibrary.playTimeManagerStart(game.titleId)
         }
 
+        enableFullscreenImmersive()
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment
-        navHostFragment.navController.setGraph(R.navigation.emulation_navigation, intent.extras)
+        navHostFragment.navController.navigate(
+            R.id.emulationFragment,
+            intent.extras,
+            NavOptions.Builder().setPopUpTo(R.id.emulationFragment, true).build()
+        )
+        isEmulationRunning = true
+        instance = this
+    }
+
+    private fun loadGameSettings(game: Game?) {
+        if (!CitraSettings.defaultsSynced) {
+            CitraSettings.syncDefaultsToNative()
+            NativeLibrary.reloadSettings()
+        }
+
+        // load global settings from file if this is a fresh launch from a launcher
+        if (CitraSettings.activeSettings.getAllGlobal().isEmpty()) {
+            SettingsFile.loadSettings(CitraSettings.activeSettings)
+        }
+        val gameId = if (game == null ||
+            game.titleId == 0L
+        ) {
+            null
+        } else {
+            String.format("%016X", game.titleId)
+        }
+
+        // if activeSettings already matches our current game, skip this
+        if (CitraSettings.activeSettings.gameId != gameId) {
+            CitraSettings.activeSettings.changeToGlobalContext()
+            if (gameId != null) {
+                CitraSettings.activeSettings.gameId = gameId
+                SettingsFile.loadSettings(
+                    CitraSettings.activeSettings,
+                    gameId
+                )
+            }
+        }
+
+        if (CitraSettings.activeSettings.get(IntSetting.GRAPHICS_API) == GraphicsAPI.VULKAN.int &&
+            CitraSettings.activeSettings.get(IntSetting.TEXTURE_FILTER) == TextureFilter.ANIME4K.int
+        ) {
+            if (CitraSettings.activeSettings.hasOverride(IntSetting.GRAPHICS_API)) {
+                // in this case vulkan is a per-app override, so update the per-app setting
+                // which will happen because the settings context is per-app at this point.
+                CitraSettings.activeSettings.setBySettingsContext(
+                    IntSetting.TEXTURE_FILTER,
+                    TextureFilter.NOFILTER.int
+                )
+            } else {
+                // otherwise write global if texture filter is global, override if override
+                CitraSettings.activeSettings.setByCurrentState(
+                    IntSetting.TEXTURE_FILTER,
+                    TextureFilter.NOFILTER.int
+                )
+            }
+            SettingsFile.saveSetting(IntSetting.TEXTURE_FILTER, CitraSettings.activeSettings)
+            NativeLibrary.reloadSettings()
+            showAnime4kDialog()
+        }
     }
 
     // On some devices, the system bars will not disappear on first boot or after some
@@ -268,6 +336,12 @@ class EmulationActivity : AppCompatActivity() {
         secondaryDisplayManager.releasePresentation()
         secondaryDisplayManager.releaseVD()
         NetPlayDialog.stopWifiDirect()
+
+        if (isFinishing) {
+            CitraSettings.activeSettings.changeToGlobalContext()
+            processGame = null
+            NativeLibrary.stopEmulation()
+        }
 
         super.onDestroy()
     }
@@ -337,7 +411,7 @@ class EmulationActivity : AppCompatActivity() {
         val attributes = window.attributes
 
         attributes.layoutInDisplayCutoutMode =
-            if (BooleanSetting.EXPAND_TO_CUTOUT_AREA.boolean) {
+            if (CitraSettings.activeSettings.get(BooleanSetting.EXPAND_TO_CUTOUT_AREA)) {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             } else {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER
@@ -354,9 +428,8 @@ class EmulationActivity : AppCompatActivity() {
         }
     }
 
-    private fun applyOrientationSettings() {
-        val orientationOption = IntSetting.ORIENTATION_OPTION.int
-        screenAdjustmentUtil.changeActivityOrientation(orientationOption)
+    fun applyOrientationSettings() {
+        requestedOrientation = CitraSettings.activeSettings.get(IntSetting.ORIENTATION_OPTION)
     }
 
     // Gets button presses
@@ -673,6 +746,15 @@ class EmulationActivity : AppCompatActivity() {
         }
     }
 
+    fun showAnime4kDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.incompatible_texture_filter)
+            .setMessage(R.string.incompatible_texture_filter_description)
+            .setPositiveButton(android.R.string.ok, null)
+            .setCancelable(false)
+            .show()
+    }
+
     val openAmiiboFileLauncher =
         registerForActivityResult(OpenFileResultContract()) { result: Intent? ->
             if (result == null) return@registerForActivityResult
@@ -701,7 +783,7 @@ class EmulationActivity : AppCompatActivity() {
 
     companion object {
         private var instance: EmulationActivity? = null
-
+        var processGame: Game? = null
         fun isRunning(): Boolean = instance?.isEmulationRunning ?: false
     }
 }

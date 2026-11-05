@@ -1,10 +1,11 @@
-// Copyright 2017-2025 Citra Emulator Project / Azahar Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Copyright 2017-2026 Citra Emulator Project / Azahar Emulator Project
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 #pragma once
 
 #include <array>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -103,6 +104,24 @@ public:
     bool GetContentOptional(std::size_t index) const;
     std::array<u8, 16> GetContentCTRByIndex(std::size_t index) const;
     bool HasEncryptedContent(const CIAHeader* header = nullptr) const;
+    std::array<u8, 0x20> GetContentHashByIndex(std::size_t index) const;
+
+    u32 GetSignatureType() const {
+        return signature_type;
+    }
+    const std::vector<u8>& GetSignature() const {
+        return tmd_signature;
+    }
+    u8 GetFormatVersion() const {
+        return tmd_body.version;
+    }
+    std::string GetIssuer() const;
+
+    std::span<const u8> GetSignedData() const;
+
+    /// Checks the hash of the content info records and the hashes of the content chunk records
+    /// covered by them.
+    bool VerifyContentInfoHashes() const;
 
     void SetTitleID(u64 title_id);
     void SetTitleType(u32 type);
@@ -111,12 +130,15 @@ public:
     void AddContentChunk(const ContentChunk& chunk);
 
     void Print() const;
+    /// Result of the last Load, Error if nothing was loaded.
+    Loader::ResultStatus LoadResult() const;
 
 private:
     Body tmd_body;
     u32_be signature_type;
     std::vector<u8> tmd_signature;
     std::vector<ContentChunk> tmd_chunks;
+    std::optional<Loader::ResultStatus> load_result;
 };
 
 } // namespace FileSys

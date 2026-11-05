@@ -1,13 +1,16 @@
 // Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <boost/serialization/access.hpp>
 
+#include "core/hle/result.h"
 #include "core/hle/service/gsp/gsp_interrupt.h"
 
 namespace Service::GSP {
@@ -61,7 +64,7 @@ public:
     void ClearAll(bool flush);
 
     /// Executes the provided GSP command.
-    void Execute(const Service::GSP::Command& command);
+    Result Execute(const Service::GSP::Command& command);
 
     /// Updates GPU display framebuffer configuration using the specified parameters.
     void SetBufferSwap(u32 screen_id, const Service::GSP::FrameBufferInfo& info);
@@ -93,6 +96,13 @@ public:
 
     void ApplyPerProgramSettings(u64 program_ID);
 
+#ifdef ENABLE_FREECAM
+    /// Sets the free camera transform, a transform matrix applied to the position
+    /// of every vertex.
+    /// skip_2d leaves vertices with w == ~1 (most 2D elements) untouched.
+    void SetFreeCam(const std::array<f32, 16>& matrix, bool skip_2d);
+#endif
+
     /// Recreates the renderer (for GL context reset in libretro)
     void RecreateRenderer(Frontend::EmuWindow& emu_window, Frontend::EmuWindow* secondary_window);
 
@@ -120,7 +130,9 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl;
 
-    PAddr VirtualToPhysicalAddress(VAddr addr);
+    /// Translates the address of a GPU buffer as the GSP module does, or returns std::nullopt when
+    /// the buffer is not in GPU visible memory.
+    std::optional<PAddr> VirtualToPhysicalAddress(VAddr addr, u32 size);
 };
 
 } // namespace VideoCore

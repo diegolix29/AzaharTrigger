@@ -25,7 +25,6 @@
     <string name="select_games_folder">Wybierz folder aplikacji</string>
     <string name="select_games_folder_description">Pozwala Azahar rozszerzyć listę aplikacji.</string>
     <string name="about">O</string>
-    <string name="citra_description">Emulator 3DS na licencji open source</string>
     <string name="about_description">Wersja kompilacji, kredyty i nie tylko</string>
     <string name="games_dir_selected">Wybrano katalog z aplikacjami</string>
     <string name="select_citra_user_folder_home_description">Zmienia pliki, których Azahar używa do ładowania aplikacji</string>
@@ -140,7 +139,6 @@
     <string name="button_turbo">Turbo</string>
     <string name="input_message_analog_only">Ten kontroler musi być powiązany z drążkiem analogowym gamepada lub z krzyżakiem!</string>
     <string name="input_message_button_only">Ten kontroler musi być powiązany z przyciskiem gamepada!</string>
-    <string name="turbo_limit_hotkey">Prędkość Turbo</string>
     <string name="turbo_enabled_toast">Prędkość Turbo włączona</string>
     <string name="turbo_disabled_toast">Prędkość Turbo wyłączona</string>
     <!-- System files strings -->
@@ -376,8 +374,6 @@
     <string name="off">Wyłączone</string>
     <string name="install">Zainstaluj</string>
     <string name="delete">Usuń</string>
-    <string name="reset_all_settings">Przywrócić wszystkie ustawienia?</string>
-    <string name="reset_all_settings_description">Wszystkie ustawienia zaawansowane zostaną przywrócone do konfiguracji domyślnej. Nie będzie można tego cofnąć.</string>
     <string name="settings_reset">Przywracanie ustawień</string>
     <string name="select_rtc_date">Wybierz datę RTC</string>
     <string name="select_rtc_time">Wybierz czas RTC</string>
@@ -408,11 +404,9 @@
     <string name="preferences_debug">Debug</string>
     <string name="preferences_theme">Motyw i kolor</string>
     <string name="preferences_layout">Układ</string>
-
     <!-- ROM loading errors -->
     <string name="loader_error_generic_title">Wystąpił błąd podczas ładowania aplikacji</string>
     <string name="loader_error_invalid_format">Nieprawidłowy format aplikacji</string>
-    <string name="loader_error_invalid_format_description"><![CDATA[Format pliku aplikacji nie jest obsługiwany.<br>Upewnij się, że używasz jednego z obsługiwanych formatów plików:<ul><li>Obrazy kartridża: <b>.cci/.zcci/.3ds</b></li><li>Archiwa instalacyjne: <b>.cia/.zcia</b></li><li>Tytuły homebrew: <b>.3dsx/.z3dsx</b></li><li>Pliki NCCH: <b>.cxi/.zcxi/.app</li><li>Pliki ELF: <b>.elf/.axf</b></li></ul>]]></string>
     <string name="loader_error_invalid_system_mode">Nieprawidłowy moduł systemu</string>
     <string name="loader_error_invalid_system_mode_description">Aplikacje dostępne wyłącznie na konsoli New 3DS nie mogą być uruchamiane bez włączenia trybu New 3DS.</string>
     <string name="loader_error_applying_patches">Błąd podczas instalowania łatki</string>
@@ -440,7 +434,6 @@
     <string name="core_error_core_exception_raised">Wystąpił błąd rdzenia</string>
     <string name="core_error_shutdown_requested">Prośba o zamknięcie</string>
     <string name="core_error_unknown">Nieznany błąd</string>
-
     <!-- Emulation Menu -->
     <string name="emulation_menu_help">Naciśnij przycisk Wstecz, aby przejść do menu.</string>
     <string name="emulation_save_state">Zapisz stan</string>

@@ -2,6 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.txt file included.
 
+#include <algorithm>
 #include <cryptopp/sha.h>
 #include "common/alignment.h"
 #include "common/file_util.h"
@@ -15,13 +16,17 @@ namespace FileSys {
 
 Loader::ResultStatus TitleMetadata::Load(const std::string& file_path) {
     FileUtil::IOFile file(file_path, "rb");
-    if (!file.IsOpen())
-        return Loader::ResultStatus::Error;
+    if (!file.IsOpen()) {
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
+    }
 
     std::vector<u8> file_data(file.GetSize());
 
-    if (!file.ReadBytes(file_data.data(), file.GetSize()))
-        return Loader::ResultStatus::Error;
+    if (!file.ReadBytes(file_data.data(), file.GetSize())) {
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
+    }
 
     Loader::ResultStatus result = Load(file_data);
     if (result != Loader::ResultStatus::Success)
@@ -30,13 +35,19 @@ Loader::ResultStatus TitleMetadata::Load(const std::string& file_path) {
     return result;
 }
 
+Loader::ResultStatus TitleMetadata::LoadResult() const {
+    return load_result.value_or(Loader::ResultStatus::Error);
+}
+
 Loader::ResultStatus TitleMetadata::Load(std::span<const u8> file_data, std::size_t offset) {
     if (offset > file_data.size()) {
-        return Loader::ResultStatus::Error;
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
     }
     std::size_t total_size = static_cast<std::size_t>(file_data.size() - offset);
     if (total_size < sizeof(u32_be)) {
-        return Loader::ResultStatus::Error;
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
     }
 
     std::memcpy(&signature_type, &file_data[offset], sizeof(u32_be));
@@ -44,7 +55,8 @@ Loader::ResultStatus TitleMetadata::Load(std::span<const u8> file_data, std::siz
     // Signature lengths are variable, and the body follows the signature
     u32 signature_size = GetSignatureSize(signature_type);
     if (signature_size == 0) {
-        return Loader::ResultStatus::Error;
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
     }
 
     // The TMD body start position is rounded to the nearest 0x40 after the signature
@@ -52,7 +64,8 @@ Loader::ResultStatus TitleMetadata::Load(std::span<const u8> file_data, std::siz
     std::size_t body_end = body_start + sizeof(Body);
 
     if (total_size < body_end) {
-        return Loader::ResultStatus::Error;
+        load_result = Loader::ResultStatus::Error;
+        return *load_result;
     }
 
     // Read signature + TMD body, then load the amount of ContentChunks specified
@@ -65,7 +78,8 @@ Loader::ResultStatus TitleMetadata::Load(std::span<const u8> file_data, std::siz
     if (total_size < expected_size) {
         LOG_ERROR(Service_FS, "Malformed TMD, expected size 0x{:x}, got 0x{:x}!", expected_size,
                   total_size);
-        return Loader::ResultStatus::ErrorInvalidFormat;
+        load_result = Loader::ResultStatus::ErrorInvalidFormat;
+        return *load_result;
     }
 
     tmd_chunks.clear();
@@ -77,7 +91,8 @@ Loader::ResultStatus TitleMetadata::Load(std::span<const u8> file_data, std::siz
         tmd_chunks.push_back(chunk);
     }
 
-    return Loader::ResultStatus::Success;
+    load_result = Loader::ResultStatus::Success;
+    return *load_result;
 }
 
 Loader::ResultStatus TitleMetadata::Save(const std::string& file_path) {
@@ -174,6 +189,53 @@ u32 TitleMetadata::GetContentIDByIndex(std::size_t index) const {
 
 u16 TitleMetadata::GetContentTypeByIndex(std::size_t index) const {
     return tmd_chunks[index].type;
+}
+
+std::array<u8, 0x20> TitleMetadata::GetContentHashByIndex(std::size_t index) const {
+    if (index >= tmd_chunks.size()) {
+        return {};
+    }
+    return tmd_chunks[index].hash;
+}
+
+std::string TitleMetadata::GetIssuer() const {
+    const auto end = std::find(tmd_body.issuer.begin(), tmd_body.issuer.end(), u8{0});
+    return std::string(tmd_body.issuer.begin(), end);
+}
+
+std::span<const u8> TitleMetadata::GetSignedData() const {
+    const auto* body = reinterpret_cast<const u8*>(&tmd_body);
+    return {body, offsetof(Body, contentinfo)};
+}
+
+bool TitleMetadata::VerifyContentInfoHashes() const {
+    std::array<u8, CryptoPP::SHA256::DIGESTSIZE> digest;
+    CryptoPP::SHA256().CalculateDigest(digest.data(),
+                                       reinterpret_cast<const u8*>(tmd_body.contentinfo.data()),
+                                       sizeof(tmd_body.contentinfo));
+    if (digest != tmd_body.contentinfo_hash) {
+        return false;
+    }
+
+    std::size_t covered = 0;
+    for (const auto& info : tmd_body.contentinfo) {
+        const std::size_t count = static_cast<u16>(info.command_count);
+        if (count == 0) {
+            break;
+        }
+        const std::size_t first = static_cast<u16>(info.index);
+        if (first != covered || count > tmd_chunks.size() - first) {
+            return false;
+        }
+        CryptoPP::SHA256().CalculateDigest(digest.data(),
+                                           reinterpret_cast<const u8*>(tmd_chunks.data() + first),
+                                           count * sizeof(ContentChunk));
+        if (digest != info.hash) {
+            return false;
+        }
+        covered += count;
+    }
+    return covered == tmd_chunks.size();
 }
 
 u64 TitleMetadata::GetContentSizeByIndex(std::size_t index) const {

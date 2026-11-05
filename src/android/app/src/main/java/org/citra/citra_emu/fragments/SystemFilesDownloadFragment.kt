@@ -33,7 +33,7 @@ import org.citra.citra_emu.HomeNavigationDirections
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
 import org.citra.citra_emu.databinding.FragmentSystemFilesDownloadBinding
-import org.citra.citra_emu.features.settings.model.Settings
+import org.citra.citra_emu.features.settings.model.CitraSettings
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.utils.SystemSaveGame
 import org.citra.citra_emu.viewmodel.GamesViewModel
@@ -160,11 +160,11 @@ class SystemFilesDownloadFragment : Fragment() {
             SystemSaveGame.setSystemSetupNeeded(isChecked)
         }
 
-        val showHomeApps = preferences.getBoolean(Settings.PREF_SHOW_HOME_APPS, false)
+        val showHomeApps = preferences.getBoolean(CitraSettings.PREF_SHOW_HOME_APPS, false)
         binding.switchShowApps.isChecked = showHomeApps
         binding.switchShowApps.setOnCheckedChangeListener { _, isChecked ->
             preferences.edit()
-                .putBoolean(Settings.PREF_SHOW_HOME_APPS, isChecked)
+                .putBoolean(CitraSettings.PREF_SHOW_HOME_APPS, isChecked)
                 .apply()
             gamesViewModel.setShouldSwapData(true)
         }

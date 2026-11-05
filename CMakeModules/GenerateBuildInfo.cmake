@@ -24,12 +24,23 @@ macro(generate_build_info)
             set(GIT_DESC "UNKNOWN")
         endif()
 
-    elseif (EXISTS "${CMAKE_SOURCE_DIR}/.git/objects")
+    # A linked worktree has a .git file pointing at the real gitdir, not a .git directory, so
+    # testing for objects/ inside it silently downgrades every worktree build to "UNKNOWN".
+    elseif (EXISTS "${CMAKE_SOURCE_DIR}/.git")
         # source obtained via Git
         find_package(Git QUIET PATHS "${GIT_EXECUTABLE}")
 
         include(GetGitRevisionDescription)
         get_git_head_revision(GIT_REF_SPEC GIT_REV)
+        # In a linked worktree HEAD lives in the worktree's own gitdir, but the ref it names does
+        # not, so the lookup above finds no hash. Ask git, which knows where to look.
+        if (NOT GIT_REV MATCHES "^[0-9a-f]+$")
+            execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+                            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+                            OUTPUT_VARIABLE GIT_REV
+                            OUTPUT_STRIP_TRAILING_WHITESPACE
+                            ERROR_QUIET)
+        endif()
         git_describe(GIT_DESC --always --long --dirty)
         git_branch_name(GIT_BRANCH)
 

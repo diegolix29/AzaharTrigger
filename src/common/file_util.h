@@ -1,6 +1,6 @@
 // Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 // Copyright Dolphin Emulator Project
 // Licensed under GPLv2 or any later version
@@ -220,6 +220,7 @@ bool SetCurrentDir(const std::string& directory);
 void SetUserPath(const std::string& path = "");
 
 void SetCurrentRomPath(const std::string& path);
+[[nodiscard]] std::string GetCurrentRomPath();
 
 // Returns a pointer to a string with a Citra data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
@@ -311,6 +312,7 @@ public:
         CryptoFile,
         Z3DSWriteIOFile,
         Z3DSReadIOFile,
+        TarIOFile,
 
         MAX,
     };
@@ -340,6 +342,7 @@ public:
             "CryptoFile",
             "Z3DSWriteIOFile",
             "Z3DSReadIOFile",
+            "TarIOFile",
         }};
 
         std::string ret;

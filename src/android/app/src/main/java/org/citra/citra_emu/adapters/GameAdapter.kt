@@ -1,6 +1,6 @@
 // Copyright 2023-2026 Citra Emulator Project / Azahar Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 package org.citra.citra_emu.adapters
 
@@ -53,6 +53,8 @@ import org.citra.citra_emu.adapters.GameAdapter.GameViewHolder
 import org.citra.citra_emu.databinding.CardGameBinding
 import org.citra.citra_emu.databinding.DialogShortcutBinding
 import org.citra.citra_emu.features.cheats.ui.CheatsFragmentDirections
+import org.citra.citra_emu.features.settings.ui.SettingsActivity
+import org.citra.citra_emu.features.settings.utils.SettingsFile
 import org.citra.citra_emu.fragments.IndeterminateProgressDialogFragment
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.utils.BuildUtil
@@ -631,6 +633,16 @@ class GameAdapter(
         bottomSheetView.findViewById<MaterialButton>(R.id.cheats).setOnClickListener {
             val action = CheatsFragmentDirections.actionGlobalCheatsFragment(holder.game.titleId)
             view.findNavController().navigate(action)
+            bottomSheetDialog.dismiss()
+        }
+
+        bottomSheetView.findViewById<MaterialButton>(R.id.application_settings).setOnClickListener {
+            SettingsActivity.launch(
+                context,
+                SettingsFile.FILE_NAME_CONFIG,
+                String.format("%016X", holder.game.titleId),
+                holder.game.title
+            )
             bottomSheetDialog.dismiss()
         }
 

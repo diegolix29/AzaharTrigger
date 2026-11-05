@@ -1,6 +1,6 @@
 // Copyright 2014-2026 Citra Emulator Project / Azahar Emulator Project
-// Licensed under GPLv2 or any later version
-// Refer to the misc/licenses/gplv2.txt file included.
+// Licensed under GPLv3 or any later version
+// Refer to the LICENSE.txt file included.
 
 #include <algorithm>
 #include <array>
@@ -62,6 +62,8 @@ const std::vector<UISettings::Shortcut> QtConfig::default_hotkeys{ {
      {QStringLiteral("Audio Volume Down"),        QStringLiteral("Main Window"), {QStringLiteral(""),       QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Audio Volume Up"),          QStringLiteral("Main Window"), {QStringLiteral(""),       QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), QStringLiteral(""), Qt::ApplicationShortcut}},
+     {QStringLiteral("Configure"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+,"), QStringLiteral(""), Qt::ApplicationShortcut}},
+     {QStringLiteral("Configure Current Application"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+."), QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"),     QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Debug Pause"),              QStringLiteral("Main Window"), {QStringLiteral(""),       QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Debug Resume"),             QStringLiteral("Main Window"), {QStringLiteral(""),       QStringLiteral(""), Qt::ApplicationShortcut}},
@@ -102,6 +104,7 @@ const std::vector<UISettings::Shortcut> QtConfig::default_hotkeys{ {
      {QStringLiteral("Toggle Virtual Touchpad (C-Stick)"), QStringLiteral("Main Window"), {QStringLiteral(""), QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Virtual Touchpad Drag/Drop"), QStringLiteral("Main Window"), {QStringLiteral(""), QStringLiteral(""), Qt::ApplicationShortcut}},
      {QStringLiteral("Virtual Touchpad Tap"),     QStringLiteral("Main Window"), {QStringLiteral(""),      QStringLiteral(""), Qt::ApplicationShortcut}},
+     {QStringLiteral("Turbo Mode (Hold)"),        QStringLiteral("Main Window"), {QStringLiteral(""),       QStringLiteral(""), Qt::ApplicationShortcut}},
     } };
 // clang-format on
 
@@ -304,6 +307,7 @@ void QtConfig::ReadAudioValues() {
     if (global) {
         ReadBasicSetting(Settings::values.output_type);
         ReadBasicSetting(Settings::values.output_device);
+        ReadBasicSetting(Settings::values.bypass_audio_effects);
         ReadBasicSetting(Settings::values.input_type);
         ReadBasicSetting(Settings::values.input_device);
     }
@@ -789,6 +793,9 @@ void QtConfig::ReadSystemValues() {
         ReadBasicSetting(Settings::values.init_time_offset);
         ReadBasicSetting(Settings::values.init_ticks_type);
         ReadBasicSetting(Settings::values.init_ticks_override);
+        ReadBasicSetting(Settings::values.battery_state_source);
+        ReadBasicSetting(Settings::values.battery_charging);
+        ReadBasicSetting(Settings::values.battery_level);
         ReadBasicSetting(Settings::values.steps_per_hour);
         ReadBasicSetting(Settings::values.plugin_loader_enabled);
         ReadBasicSetting(Settings::values.allow_plugin_loader);
@@ -874,6 +881,7 @@ void QtConfig::ReadUIValues() {
         ReadBasicSetting(UISettings::values.pause_when_in_background);
         ReadBasicSetting(UISettings::values.mute_when_in_background);
         ReadBasicSetting(UISettings::values.hide_mouse);
+        ReadBasicSetting(UISettings::values.use_on_screen_software_keyboard);
     }
 
     qt_config->endGroup();
@@ -965,6 +973,7 @@ void QtConfig::SaveAudioValues() {
     if (global) {
         WriteBasicSetting(Settings::values.output_type);
         WriteBasicSetting(Settings::values.output_device);
+        WriteBasicSetting(Settings::values.bypass_audio_effects);
         WriteBasicSetting(Settings::values.input_type);
         WriteBasicSetting(Settings::values.input_device);
     }
@@ -1342,6 +1351,9 @@ void QtConfig::SaveSystemValues() {
         WriteBasicSetting(Settings::values.init_time_offset);
         WriteBasicSetting(Settings::values.init_ticks_type);
         WriteBasicSetting(Settings::values.init_ticks_override);
+        WriteBasicSetting(Settings::values.battery_state_source);
+        WriteBasicSetting(Settings::values.battery_charging);
+        WriteBasicSetting(Settings::values.battery_level);
         WriteBasicSetting(Settings::values.steps_per_hour);
         WriteBasicSetting(Settings::values.plugin_loader_enabled);
         WriteBasicSetting(Settings::values.allow_plugin_loader);
@@ -1410,6 +1422,7 @@ void QtConfig::SaveUIValues() {
         WriteBasicSetting(UISettings::values.pause_when_in_background);
         WriteBasicSetting(UISettings::values.mute_when_in_background);
         WriteBasicSetting(UISettings::values.hide_mouse);
+        WriteBasicSetting(UISettings::values.use_on_screen_software_keyboard);
     }
 
     qt_config->endGroup();

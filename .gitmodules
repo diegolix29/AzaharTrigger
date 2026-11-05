@@ -109,3 +109,6 @@
 [submodule "externals/zlib"]
 	path = externals/zlib
 	url = https://github.com/madler/zlib.git
+[submodule "microtar"]
+	path = externals/microtar
+	url = https://github.com/azahar-emu/microtar
