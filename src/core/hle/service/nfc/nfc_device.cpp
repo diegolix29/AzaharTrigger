@@ -104,7 +104,7 @@ static EncryptedNTAG215File getAmiibo(std::string id, std::string name = "+Amiib
     genFile.user_memory.settings.init_date.SetDay(static_cast<u8>(5));
 	
 	auto amiibo_name = Common::UTF8ToUTF16(name);
-	for (int i = 0; i < amiibo_name.length(); i++) {
+	for (std::size_t i = 0; i < amiibo_name.length(); i++) {
         genFile.user_memory.settings.amiibo_name[i] = static_cast<u16_be>(amiibo_name[i]);
     }
 
