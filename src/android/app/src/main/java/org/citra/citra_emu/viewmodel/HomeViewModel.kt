@@ -39,12 +39,7 @@ class HomeViewModel : ViewModel() {
     )
 
     val gamesDir get() = _gamesDir.asStateFlow()
-    private val _gamesDir = MutableStateFlow(
-        Uri.parse(
-            PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
-                .getString(GameHelper.KEY_GAME_PATH, "")
-        ).path ?: ""
-    )
+    private val _gamesDir = MutableStateFlow(GameHelper.describeGameDirs())
 
     var directoryListener: CitraDirectoryDialogFragment.Listener? = null
 
@@ -107,9 +102,10 @@ class HomeViewModel : ViewModel() {
         _userDir.value = dir
     }
 
-    fun setGamesDir(activity: FragmentActivity, dir: String) {
+    /** Call after the list of games folders changed: rescans and refreshes the summary. */
+    fun onGamesDirsChanged(activity: FragmentActivity) {
         ViewModelProvider(activity)[GamesViewModel::class.java].reloadGames(true)
-        _gamesDir.value = dir
+        _gamesDir.value = GameHelper.describeGameDirs()
     }
 
     fun clearCopyInfo() {

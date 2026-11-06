@@ -353,11 +353,7 @@ class SetupFragment : Fragment() {
                                     )
                                 },
                                 buttonState = {
-                                    if (preferences.getString(
-                                            GameHelper.KEY_GAME_PATH,
-                                            ""
-                                        )!!.isNotEmpty()
-                                    ) {
+                                    if (GameHelper.getGameDirs().isNotEmpty()) {
                                         ButtonState.BUTTON_ACTION_COMPLETE
                                     } else {
                                         ButtonState.BUTTON_ACTION_INCOMPLETE
@@ -373,7 +369,7 @@ class SetupFragment : Fragment() {
                 ) {
                     if (
                         PermissionsHandler.hasWriteAccess(requireContext()) &&
-                        preferences.getString(GameHelper.KEY_GAME_PATH, "")!!.isNotEmpty()
+                        GameHelper.getGameDirs().isNotEmpty()
                     ) {
                         PageState.PAGE_STEPS_COMPLETE
                     } else {
@@ -611,18 +607,8 @@ class SetupFragment : Fragment() {
     }
 
     private fun onGetGamesDirectory(result: Uri) {
-        requireActivity().contentResolver.takePersistableUriPermission(
-            result,
-            Intent.FLAG_GRANT_READ_URI_PERMISSION
-        )
-
-        // When a new directory is picked, we currently will reset the existing games
-        // database. This effectively means that only one game directory is supported.
-        preferences.edit()
-            .putString(GameHelper.KEY_GAME_PATH, result.toString())
-            .apply()
-
-        homeViewModel.setGamesDir(requireActivity(), result.path!!)
+        GameHelper.addGameDir(requireActivity(), result)
+        homeViewModel.onGamesDirsChanged(requireActivity())
 
         checkForButtonState.invoke()
     }

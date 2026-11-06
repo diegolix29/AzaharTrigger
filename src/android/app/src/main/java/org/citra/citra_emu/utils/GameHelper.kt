@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
 import androidx.preference.PreferenceManager
@@ -22,21 +23,100 @@ import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.model.GameInfo
 
 object GameHelper {
+    /** First games folder only; kept in sync with [KEY_GAME_PATHS] for older code paths. */
     const val KEY_GAME_PATH = "game_path"
+
+    /** Every games folder the user added, newline separated, in the order they were added. */
+    const val KEY_GAME_PATHS = "game_paths"
     const val KEY_GAMES = "Games"
 
     // Since the game val in GetGame is tied to the JNI we need to cache the game list in order to use it elsewhere
     var cachedGameList = mutableListOf<Game>()
     private lateinit var preferences: SharedPreferences
 
+    private val prefs: SharedPreferences
+        get() = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+
+    /** The tree URIs of all games folders. Falls back to the single legacy folder. */
+    fun getGameDirs(): List<String> {
+        val stored = prefs.getString(KEY_GAME_PATHS, null)
+        if (stored != null) {
+            return stored.split('\n').filter { it.isNotBlank() }
+        }
+        val legacy = prefs.getString(KEY_GAME_PATH, "") ?: ""
+        return if (legacy.isEmpty()) emptyList() else listOf(legacy)
+    }
+
+    private fun saveGameDirs(dirs: List<String>) {
+        prefs.edit()
+            .putString(KEY_GAME_PATHS, dirs.joinToString("\n"))
+            .putString(KEY_GAME_PATH, dirs.firstOrNull() ?: "")
+            .apply()
+    }
+
+    /**
+     * Adds a games folder and keeps read access to it across reboots.
+     * Returns false when the folder was already in the list.
+     */
+    fun addGameDir(context: Context, uri: Uri): Boolean {
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+        val dirs = getGameDirs()
+        val value = uri.toString()
+        if (dirs.contains(value)) {
+            return false
+        }
+        saveGameDirs(dirs + value)
+        return true
+    }
+
+    fun removeGameDir(context: Context, dir: String) {
+        saveGameDirs(getGameDirs().filter { it != dir })
+
+        // Give the folder's permission back, unless it is also the user directory.
+        if (dir == prefs.getString(PermissionsHandler.CITRA_DIRECTORY, "")) {
+            return
+        }
+        try {
+            context.contentResolver.releasePersistableUriPermission(
+                Uri.parse(dir),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (e: Exception) {
+            Log.warning("[GameHelper] Could not release permission for $dir: ${e.message}")
+        }
+    }
+
+    /** Short readable name for a folder, e.g. "primary:Games/3DS". */
+    fun describeGameDir(dir: String): String {
+        val uri = Uri.parse(dir)
+        return try {
+            DocumentsContract.getTreeDocumentId(uri)
+        } catch (e: Exception) {
+            uri.path ?: dir
+        }
+    }
+
+    fun describeGameDirs(): String = getGameDirs().joinToString("\n") { describeGameDir(it) }
+
     fun getGames(): List<Game> {
         val games = mutableListOf<Game>()
         val context = CitraApplication.appContext
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
-        val gamesDir = preferences.getString(KEY_GAME_PATH, "")
-        val gamesUri = Uri.parse(gamesDir)
 
-        addGamesRecursive(games, FileUtil.listFiles(gamesUri), 3)
+        getGameDirs().forEach { dir ->
+            try {
+                addGamesRecursive(games, FileUtil.listFiles(Uri.parse(dir)), 3)
+            } catch (e: Exception) {
+                Log.error("[GameHelper] Could not scan $dir: ${e.message}")
+            }
+        }
+        // Overlapping folders (one inside another) would list the same file twice.
+        val seen = mutableSetOf<String>()
+        games.retainAll { seen.add(it.path) }
+
         NativeLibrary.getInstalledGamePaths().forEach {
             games.add(
                 getGame(Uri.parse(it.path), isInstalled = true, addedToLibrary = true, it.mediaType)

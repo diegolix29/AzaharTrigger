@@ -208,7 +208,7 @@ class HomeSettingsFragment : Fragment() {
                 R.string.select_games_folder,
                 R.string.select_games_folder_description,
                 R.drawable.ic_add,
-                { getGamesDirectory.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).data) },
+                { showGamesFoldersDialog() },
                 details = homeViewModel.gamesDir
             ),
             HomeSetting(
@@ -272,25 +272,49 @@ class HomeSettingsFragment : Fragment() {
                 return@registerForActivityResult
             }
 
-            requireContext().contentResolver.takePersistableUriPermission(
-                result,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION
-            )
-
-            // When a new directory is picked, we currently will reset the existing games
-            // database. This effectively means that only one game directory is supported.
-            preferences.edit()
-                .putString(GameHelper.KEY_GAME_PATH, result.toString())
-                .apply()
-
+            val added = GameHelper.addGameDir(requireContext(), result)
             Toast.makeText(
                 CitraApplication.appContext,
-                R.string.games_dir_selected,
+                if (added) R.string.games_dir_selected else R.string.games_dir_already_added,
                 Toast.LENGTH_LONG
             ).show()
 
-            homeViewModel.setGamesDir(requireActivity(), result.path!!)
+            if (added) {
+                homeViewModel.onGamesDirsChanged(requireActivity())
+            }
         }
+
+    /** Lists every games folder: tap one to remove it, or add another. */
+    private fun showGamesFoldersDialog() {
+        val dirs = GameHelper.getGameDirs()
+        if (dirs.isEmpty()) {
+            getGamesDirectory.launch(null)
+            return
+        }
+
+        val labels = dirs.map { GameHelper.describeGameDir(it) }.toTypedArray()
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.games_folders)
+            .setItems(labels) { _, which -> confirmRemoveGamesFolder(dirs[which], labels[which]) }
+            .setPositiveButton(R.string.add_games_folder) { _, _ ->
+                getGamesDirectory.launch(null)
+            }
+            .setNegativeButton(R.string.close, null)
+            .show()
+    }
+
+    private fun confirmRemoveGamesFolder(dir: String, label: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.remove_games_folder)
+            .setMessage(getString(R.string.remove_games_folder_description, label))
+            .setPositiveButton(R.string.remove_games_folder_confirm) { _, _ ->
+                GameHelper.removeGameDir(requireContext(), dir)
+                homeViewModel.onGamesDirsChanged(requireActivity())
+                showGamesFoldersDialog()
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ -> showGamesFoldersDialog() }
+            .show()
+    }
 
     private fun shareLog() {
         val logDirectory = DocumentFile.fromTreeUri(
