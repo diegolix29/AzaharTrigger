@@ -59,6 +59,7 @@ if (ENABLE_DS)
     # The DS/DSi core (melonDS behind the azds_* C API, see src/ds_core).
     target_sources(citra-android PRIVATE
         ds/ds_jni.cpp
+        ds/ds_lan_jni.cpp
         ds/ds_session.cpp
         ds/ds_session.h
     )

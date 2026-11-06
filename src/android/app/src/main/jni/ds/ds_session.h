@@ -34,7 +34,7 @@ constexpr int kNumScreens = 2;
 /// Everything the frontend has to decide before a console can be created.
 /// Mirrors the subset of azds_config the Android UI exposes.
 struct StartParams {
-    std::string rom_path;  ///< real path, or /proc/self/fd/N for a SAF document
+    std::string rom_path;  ///< real path, or /proc/self/fd/N for a SAF document; empty = firmware
     std::string save_path; ///< <user>/ds/saves/<name>.sav
     std::string data_dir;  ///< <user>/ds/
 

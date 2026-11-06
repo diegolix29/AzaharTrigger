@@ -30,6 +30,8 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+	<!-- DS LAN room discovery is broadcast UDP, which many phones filter without this -->
+	<uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
 	<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -110,6 +112,14 @@
             android:configChanges="orientation|screenSize|uiMode"
             android:theme="@style/Theme.Citra.Main"
             android:label="@string/ds_settings"/>
+
+		<activity
+            android:name="org.citra.citra_emu.ds.DsLanActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|uiMode"
+            android:theme="@style/Theme.Citra.Main"
+            android:windowSoftInputMode="adjustResize"
+            android:label="@string/ds_lan_title"/>
 
 		<activity
             android:name="org.citra.citra_emu.features.cheats.ui.CheatsActivity"

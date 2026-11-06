@@ -47,6 +47,9 @@ class DsEmulationActivity : AppCompatActivity() {
     private var game: Game? = null
     private var romName: String = "game"
 
+    /** -1 = run [game]; 0/1 = boot the DS/DSi firmware menu without a cartridge. */
+    private var firmwareConsole = -1
+
     /** Keys held through the on-screen overlay and through physical buttons. */
     private var overlayKeys = 0
     private var deviceKeys = 0
@@ -60,7 +63,12 @@ class DsEmulationActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         settings = DsSettings.load()
-        game = resolveGame()
+        firmwareConsole = intent.getIntExtra(EXTRA_BOOT_FIRMWARE, -1)
+        if (firmwareConsole >= 0) {
+            settings.consoleType = firmwareConsole
+        } else {
+            game = resolveGame()
+        }
 
         buildViews()
         enableFullscreenImmersive()
@@ -128,7 +136,28 @@ class DsEmulationActivity : AppCompatActivity() {
         setContentView(root)
     }
 
+    private fun firmwareTitle(): String? = when (firmwareConsole) {
+        0 -> getString(R.string.ds_firmware_title_ds)
+        1 -> getString(R.string.ds_firmware_title_dsi)
+        else -> null
+    }
+
+    private fun startFirmware(): Boolean {
+        // Savestates of the system menu get their own slot files.
+        romName = if (firmwareConsole == 1) "dsi_firmware" else "ds_firmware"
+        val error = DsNative.start("", "", settings)
+        if (error != null) {
+            showFatal(error)
+            return false
+        }
+        started = true
+        title = firmwareTitle()
+        Log.info("[DS] running the ${if (firmwareConsole == 1) "DSi" else "DS"} firmware")
+        return true
+    }
+
     private fun startEmulation(): Boolean {
+        if (firmwareConsole >= 0) return startFirmware()
         val target = game
         if (target == null) {
             showFatal(getString(R.string.ds_error_no_game))
@@ -292,6 +321,7 @@ class DsEmulationActivity : AppCompatActivity() {
             getString(R.string.ds_menu_toggle_overlay),
             getString(R.string.ds_menu_close_lid),
             getString(R.string.ds_menu_reset),
+            getString(R.string.ds_menu_lan),
             getString(R.string.ds_menu_settings),
             getString(R.string.ds_menu_exit)
         )
@@ -301,7 +331,7 @@ class DsEmulationActivity : AppCompatActivity() {
         if (resumeAfter) DsNative.setPaused(true)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(game?.title ?: getString(R.string.ds_title))
+            .setTitle(game?.title ?: firmwareTitle() ?: getString(R.string.ds_title))
             .setItems(items) { _, which ->
                 when (which) {
                     // `paused` is the state from before the menu opened, so flip it.
@@ -324,6 +354,11 @@ class DsEmulationActivity : AppCompatActivity() {
                     6 -> closeLid(resumeAfter)
                     7 -> confirmReset(resumeAfter)
                     8 -> {
+                        // The lobby refuses to switch wireless modes under a running game.
+                        startActivity(Intent(this, DsLanActivity::class.java))
+                        if (resumeAfter) DsNative.setPaused(false)
+                    }
+                    9 -> {
                         startActivity(Intent(this, DsSettingsActivity::class.java))
                         if (resumeAfter) DsNative.setPaused(false)
                     }
@@ -484,6 +519,52 @@ class DsEmulationActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_GAME = "game"
+
+        /** Int extra: 0 = DS, 1 = DSi. Boots that console's menu instead of a game. */
+        const val EXTRA_BOOT_FIRMWARE = "boot_firmware"
+
+        /**
+         * Boots the DS or DSi system menu. Real dumps are required: FreeBIOS has no
+         * menu, so without them this explains what to set instead of showing black.
+         */
+        fun launchFirmware(activity: android.app.Activity, dsi: Boolean) {
+            val s = DsSettings.load()
+            val missing = if (dsi) {
+                listOf(s.dsiBios9, s.dsiBios7, s.dsiFirmware, s.dsiNand).any { !File(it).isFile }
+            } else {
+                listOf(s.dsBios9, s.dsBios7, s.dsFirmware).any { !File(it).isFile }
+            }
+            if (missing) {
+                MaterialAlertDialogBuilder(activity)
+                    .setTitle(R.string.ds_home_boot_firmware)
+                    .setMessage(
+                        if (dsi) R.string.ds_firmware_missing_dsi else R.string.ds_firmware_missing_ds
+                    )
+                    .setPositiveButton(R.string.ds_firmware_open_settings) { _, _ ->
+                        DsSettingsActivity.launch(activity)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+                return
+            }
+            activity.startActivity(
+                Intent(activity, DsEmulationActivity::class.java)
+                    .putExtra(EXTRA_BOOT_FIRMWARE, if (dsi) 1 else 0)
+            )
+        }
+
+        /** Asks DS or DSi, then [launchFirmware]. */
+        fun pickAndLaunchFirmware(activity: android.app.Activity) {
+            val choices = arrayOf(
+                activity.getString(R.string.ds_firmware_ds),
+                activity.getString(R.string.ds_firmware_dsi)
+            )
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.ds_firmware_pick)
+                .setItems(choices) { _, which -> launchFirmware(activity, which == 1) }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
 
         private const val STATE_SLOTS = 8
         private const val LID_CLOSED_MS = 600L

@@ -121,6 +121,11 @@
 
     <PreferenceCategory android:title="@string/ds_category_network">
 
+        <Preference
+            android:key="ds_open_lan_lobby"
+            android:summary="@string/ds_lan_open_description"
+            android:title="@string/ds_lan_open" />
+
         <ListPreference
             android:defaultValue="0"
             android:entries="@array/ds_wireless_modes"

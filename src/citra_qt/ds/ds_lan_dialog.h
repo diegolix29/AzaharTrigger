@@ -40,7 +40,7 @@ private:
 
     std::function<bool()> game_running;
     bool in_session = false;
-    int chat_seen = 0;
+    QString chat_text; ///< chat lines last shown
 
     QLineEdit* player_name;
     QTableWidget* rooms;

@@ -185,6 +185,11 @@ AZDS_API int azds_lan_get_players(azds_lan_player* out, int max_players) {
     return count;
 }
 
+AZDS_API int azds_lan_in_session(void) {
+    LAN* lan = CurrentLAN();
+    return lan && lan->IsInSession() ? 1 : 0;
+}
+
 AZDS_API int azds_lan_num_players(void) {
     LAN* lan = CurrentLAN();
     return lan ? lan->GetNumPlayers() : 0;
@@ -206,11 +211,24 @@ AZDS_API int azds_lan_get_chat(char (*lines)[300], int max_lines) {
     if (!lan || !lines || max_lines <= 0)
         return 0;
     const auto messages = lan->GetChatMessages();
+    const auto players = lan->GetPlayerList();
     const size_t first =
         messages.size() > static_cast<size_t>(max_lines) ? messages.size() - max_lines : 0;
     int count = 0;
-    for (size_t i = first; i < messages.size(); i++)
-        std::snprintf(lines[count++], 300, "%u: %s", messages[i].SenderID, messages[i].Message);
+    for (size_t i = first; i < messages.size(); i++) {
+        const char* sender = nullptr;
+        for (const auto& player : players) {
+            if (static_cast<u32>(player.ID) == messages[i].SenderID && player.Name[0]) {
+                sender = player.Name;
+                break;
+            }
+        }
+        if (sender)
+            std::snprintf(lines[count++], 300, "%s: %s", sender, messages[i].Message);
+        else
+            std::snprintf(lines[count++], 300, "Player %u: %s", messages[i].SenderID + 1,
+                          messages[i].Message);
+    }
     return count;
 }
 

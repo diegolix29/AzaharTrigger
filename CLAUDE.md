@@ -77,13 +77,16 @@ The Android repo is owned by another Windows SID: use `git -c safe.directory=* .
 - Done: azalon_ds library (DS + DSi, JIT, saves, savestates, AR cheats, DLDI SD, LAN + local
   wireless, slirp internet), Windows MSVC build integration, Qt DS session/screen/menu/LAN
   lobby/settings, DS games in the game list.
-- Done (Android, **not built/run yet** — no SDK/NDK on this machine): `.nds/.srl/.dsi/.ids` in
+- Done (Android, builds with `gradlew assembleVanillaRelWithDebInfo`; not run on a device yet): `.nds/.srl/.dsi/.ids` in
   the game list with banner title+icon, `DsEmulationActivity` (software renderer blitted to two
   SurfaceViews, on-screen controls, physical pads, touch screen, savestates, layouts, lid),
-  `DsSettingsActivity`, `azalon_ds` linked into `citra-android`.
+  `DsSettingsActivity`, `azalon_ds` linked into `citra-android`; home screen entries for DS
+  settings, booting the DS/DSi firmware menu (needs real dumps) and the LAN lobby
+  (`DsLanActivity` + `DsLan`, JNI in `jni/ds/ds_lan_jni.cpp`).
+- LAN between desktop and Android: same core and protocol (UDP 7063 discovery, 7064 session).
+  Checked host/join/password/chat with two desktop processes; not yet tested phone <-> PC.
 - Not done: OpenGL/upscaled DS rendering, DS hotkeys, DS play-time tracking, AAC (DSi) decoding
-  (faad2), mic/camera passthrough, multi-instance local MP in one process, Android LAN lobby UI
-  and per-game DS settings, libretro, Linux/macOS packaging of the shared library
+  (faad2), mic/camera passthrough, multi-instance local MP in one process, per-game DS settings, libretro, Linux/macOS packaging of the shared library
   (rpath/bundle), CI (`.github/workflows/build.yml`).
 
 ## Android notes

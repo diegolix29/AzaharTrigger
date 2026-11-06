@@ -138,7 +138,9 @@ bool Session::Start(const StartParams& params, std::string* error) {
         return false;
     }
 
-    if (!azds_load_rom(console, params.rom_path.c_str(), params.save_path.c_str(), err,
+    // No ROM = boot the console's own firmware menu (needs BIOS/firmware dumps).
+    if (!params.rom_path.empty() &&
+        !azds_load_rom(console, params.rom_path.c_str(), params.save_path.c_str(), err,
                        sizeof(err))) {
         azds_destroy(console);
         console = nullptr;
@@ -154,7 +156,8 @@ bool Session::Start(const StartParams& params, std::string* error) {
         console = nullptr;
         CloseAudio();
         if (error) {
-            *error = "The DS core could not boot this game.";
+            *error = params.rom_path.empty() ? "The DS core could not boot the firmware."
+                                             : "The DS core could not boot this game.";
         }
         return false;
     }
@@ -165,7 +168,8 @@ bool Session::Start(const StartParams& params, std::string* error) {
     fast_forward = false;
     running = true;
     emu_thread = std::thread([this] { EmuLoop(); });
-    LOG_INFO(Frontend, "[DS] started {}", params.rom_path);
+    LOG_INFO(Frontend, "[DS] started {}",
+             params.rom_path.empty() ? std::string("firmware") : params.rom_path);
     return true;
 }
 

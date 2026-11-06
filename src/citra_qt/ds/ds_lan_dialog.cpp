@@ -2,6 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the license.txt file included.
 
+#include <QApplication>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -13,7 +14,9 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTableWidget>
+#include <QTextCursor>
 #include <QTextEdit>
+#include <QTimer>
 #include <QTimerEvent>
 #include <QVBoxLayout>
 
@@ -50,6 +53,26 @@ QString StatusName(int status) {
     default:
         return {};
     }
+}
+
+/// Keeps a hosted/joined room alive after the lobby closes, until a game starts
+/// (the game's emulation thread services the network from then on).
+void KeepSessionAlive(std::function<bool()> game_running) {
+    static QTimer* pump = nullptr;
+    if (!pump) {
+        pump = new QTimer(qApp);
+        pump->setInterval(50);
+    }
+    pump->disconnect();
+    QObject::connect(pump, &QTimer::timeout, [game_running = std::move(game_running)] {
+        if (!azds_lan_in_session()) {
+            pump->stop();
+            return;
+        }
+        if (!game_running || !game_running())
+            azds_mp_process();
+    });
+    pump->start();
 }
 
 } // namespace
@@ -146,7 +169,7 @@ LanDialog::LanDialog(std::function<bool()> game_running_, QWidget* parent)
     connect(send, &QPushButton::clicked, this, &LanDialog::SendChat);
     connect(chat_input, &QLineEdit::returnPressed, this, &LanDialog::SendChat);
 
-    in_session = azds_lan_num_players() > 0;
+    in_session = azds_lan_in_session() != 0;
     if (!in_session)
         azds_lan_start_discovery();
     UpdateSessionState();
@@ -160,6 +183,8 @@ LanDialog::~LanDialog() {
     // Keep an active session (the game needs it); only stop browsing.
     if (!in_session)
         azds_lan_end_discovery();
+    else
+        KeepSessionAlive(game_running);
     Config& cfg = Config::Get();
     cfg.lan_player_name = player_name->text().trimmed();
     cfg.Save();
@@ -246,7 +271,7 @@ void LanDialog::JoinDirect() {
 void LanDialog::Leave() {
     azds_lan_leave();
     in_session = false;
-    chat_seen = 0;
+    chat_text.clear();
     chat_log->clear();
     azds_lan_start_discovery();
     UpdateSessionState();
@@ -315,13 +340,19 @@ void LanDialog::Refresh() {
                         .arg(azds_lan_num_players())
                         .arg(azds_lan_max_players()));
 
-    char lines[64][300];
+    // The core keeps the last 100 lines, so a line count alone can stop changing:
+    // redraw whenever the text differs.
+    static char lines[64][300];
     const int chat_count = azds_lan_get_chat(lines, 64);
-    if (chat_count < chat_seen)
-        chat_seen = 0;
-    for (int i = chat_seen; i < chat_count; i++)
-        chat_log->append(QString::fromUtf8(lines[i]));
-    chat_seen = chat_count;
+    QStringList chat;
+    for (int i = 0; i < chat_count; i++)
+        chat.append(QString::fromUtf8(lines[i]));
+    const QString text = chat.join(QLatin1Char('\n'));
+    if (text != chat_text) {
+        chat_text = text;
+        chat_log->setPlainText(text);
+        chat_log->moveCursor(QTextCursor::End);
+    }
 }
 
 } // namespace DS

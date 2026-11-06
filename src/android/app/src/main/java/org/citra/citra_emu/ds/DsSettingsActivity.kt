@@ -4,6 +4,8 @@
 
 package org.citra.citra_emu.ds
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -54,6 +56,10 @@ class DsSettingsActivity : AppCompatActivity() {
     class DsSettingsFragment : PreferenceFragmentCompat() {
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.ds_preferences, rootKey)
+            findPreference<Preference>(KEY_OPEN_LAN_LOBBY)?.setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), DsLanActivity::class.java))
+                true
+            }
             // Paths are free text; show what is set as the summary.
             for (key in PATH_KEYS) {
                 findPreference<Preference>(key)?.let { preference ->
@@ -77,6 +83,12 @@ class DsSettingsActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val KEY_OPEN_LAN_LOBBY = "ds_open_lan_lobby"
+
+        fun launch(context: Context) {
+            context.startActivity(Intent(context, DsSettingsActivity::class.java))
+        }
+
         private val PATH_KEYS = listOf(
             DsSettings.KEY_DS_BIOS9,
             DsSettings.KEY_DS_BIOS7,

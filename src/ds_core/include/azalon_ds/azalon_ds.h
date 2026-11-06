@@ -272,6 +272,8 @@ AZDS_API int azds_lan_join(const char* player_name, const char* host_address,
                            const char* password);
 AZDS_API void azds_lan_leave(void);
 AZDS_API int azds_lan_get_players(azds_lan_player* out, int max_players);
+// 1 while hosting or joined to a room (browsing for rooms does not count).
+AZDS_API int azds_lan_in_session(void);
 AZDS_API int azds_lan_num_players(void);
 AZDS_API int azds_lan_max_players(void);
 AZDS_API void azds_lan_send_chat(const char* message);
