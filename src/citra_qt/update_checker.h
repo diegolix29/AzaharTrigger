@@ -21,8 +21,6 @@ namespace UpdateChecker {
 constexpr char RepoOwner[] = AZAHAR_UPDATE_REPO_OWNER;
 constexpr char RepoName[] = AZAHAR_UPDATE_REPO_NAME;
 
-std::string ExtractBuildVersionFromAsset(const std::string& asset_name);
-
 struct ReleaseAsset {
     std::string name;
     std::string browser_download_url;
@@ -39,7 +37,5 @@ struct ReleaseInfo {
 std::optional<std::string> GetLatestRelease(bool include_prereleases);
 
 std::optional<ReleaseInfo> GetLatestReleaseInfo(bool include_prereleases);
-
-std::optional<std::string> GetLatestBuildVersion(bool include_prereleases);
 
 } // namespace UpdateChecker

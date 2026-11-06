@@ -3,7 +3,11 @@ name: citra-build
 on:
   push:
     branches: [ "AzaharTrigger" ]
-    tags: [ "v*" ]
+    # Releases are cut ONLY by pushing a version tag, e.g.:
+    #   git tag v1.0.15 && git push origin v1.0.15
+    # The tag is baked into every binary (desktop BUILD_VERSION / Android versionName) and is
+    # what the in-app updaters compare against, so binaries and release always agree.
+    tags: [ "v[0-9]+.[0-9]+.[0-9]+*" ]
   pull_request:
     branches: [ "*" ]
 
@@ -50,12 +54,11 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Build
         run: ./.ci/linux.sh
@@ -65,9 +68,16 @@ jobs:
           mkdir -p artifacts
           mv build/bundle/*.AppImage artifacts/
       - name: Rename AppImage
-        if: ${{ matrix.target == 'appimage-wayland' }}
+        if: ${{ contains(matrix.target, 'appimage') }}
         run: |
-          mv artifacts/azahar.AppImage artifacts/azahar-wayland.AppImage
+          # Name the AppImage after the target (and the tag on releases) so the
+          # in-app updater picks the asset built for this exact release.
+          NAME="azahar"
+          if [[ "$TARGET" == "appimage-wayland" ]]; then NAME="azahar-wayland"; fi
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then NAME="$NAME-$GITHUB_REF_NAME"; fi
+          if [[ "artifacts/azahar.AppImage" != "artifacts/$NAME.AppImage" ]]; then
+              mv artifacts/azahar.AppImage "artifacts/$NAME.AppImage"
+          fi
       - name: Upload
         if: ${{ contains(matrix.target, 'appimage') }}
         uses: actions/upload-artifact@v4
@@ -100,15 +110,44 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Install tools
         run: brew install ccache ninja spirv-tools
+      # FFmpeg is now linked directly into Azahar, so it has to be provided at build time.
+      # Each runner builds natively for its own arch (same Conan recipe upstream uses).
+      - name: Install Conan
+        uses: conan-io/setup-conan@v1
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-ffmpeg-7.1.5-${{ runner.os }}-${{ matrix.target }}
+      - name: Build FFmpeg
+        run: |
+          # x86_64 runners ship NASM 2.15. x264's assembler probe needs a newer
+          # nasm and exits even though it prints 2.15 as acceptable. Build that
+          # dependency without hand-written assembly.
+          if [[ "$TARGET" == "x86_64" ]]; then
+              x264_asm=(-o "libx264/*:with_asm=False")
+          else
+              x264_asm=()
+          fi
+          conan install \
+               --output-folder=$HOME/conan \
+               --generator=CMakeToolchain \
+               --build=missing \
+               -s os.version=13.4 \
+               -o "*:shared=True" \
+               -o "*:with_libfdk_aac=False" \
+               ${x264_asm+"${x264_asm[@]}"} \
+               --requires=ffmpeg/7.1.5 \
+               -c "ffmpeg/*:tools.build:sharedlinkflags+=['-Wl,-flat_namespace']" \
+               -c "ffmpeg/*:tools.build:exelinkflags+=['-Wl,-flat_namespace']"
       - name: Build
         run: ./.ci/macos.sh
       - name: Prepare outputs for caching
@@ -159,14 +198,23 @@ jobs:
           path: artifacts/
 
   windows:
-    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        target: ["msvc", "msys2"]
+        include:
+        - target: msvc
+          os: windows-latest
+        # Upstream replaced the MSYS2 build (and .ci/windows.sh) with an MXE cross-build.
+        - target: mxe
+          os: ubuntu-latest
+          container:
+            image: opensauce04/azahar-build-environment:latest
+            options: -u 1001
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
     defaults:
       run:
-        shell: ${{ (matrix.target == 'msys2' && 'msys2') || 'bash' }} {0}
+        shell: bash
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -186,58 +234,72 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
-        shell: bash
       - name: Set up MSVC
         if: ${{ matrix.target == 'msvc' }}
         uses: ilammy/msvc-dev-cmd@v1
       - name: Install extra tools (MSVC)
         if: ${{ matrix.target == 'msvc' }}
         run: choco install ccache ninja ptime wget
+      # FFmpeg is now linked directly into Azahar, so it has to be provided at build time.
+      - name: Checkout vcpkg for FFmpeg 7.1.2 (MSVC)
+        if: ${{ matrix.target == 'msvc' }}
+        shell: pwsh
+        run: |
+          cd C:\vcpkg
+          git fetch --quiet origin 5087d22fd76fe1844ca492866055dea3c34e7f52
+          git checkout 5087d22fd76fe1844ca492866055dea3c34e7f52
+          .\bootstrap-vcpkg.bat -disableMetrics
+      - name: Cache vcpkg binaries (MSVC)
+        if: ${{ matrix.target == 'msvc' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/vcpkg/archives
+          key: vcpkg-ffmpeg-7.1.2-5087d22f
+      - name: Build FFmpeg (MSVC)
+        if: ${{ matrix.target == 'msvc' }}
+        run: vcpkg install
+          ffmpeg[avcodec,avfilter,avformat,swresample,aom,dav1d,mp3lame,opus,snappy,soxr,theora,vorbis,vpx,vulkan,x264,x265]:x64-windows-release
       - name: Install vulkan-sdk (MSVC)
         if: ${{ matrix.target == 'msvc' }}
         run: |
           wget https://sdk.lunarg.com/sdk/download/1.4.304.1/windows/VulkanSDK-1.4.304.1-Installer.exe -O D:/a/_temp/vulkan.exe
           D:/a/_temp/vulkan.exe --accept-licenses --default-answer --confirm-command install
-      - name: Set up MSYS2
-        if: ${{ matrix.target == 'msys2' }}
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: clang64
-          update: true
-          install: git make p7zip
-          pacboy: >-
-            toolchain:p ccache:p cmake:p ninja:p spirv-tools:p
-            qt6-base:p qt6-multimedia:p qt6-multimedia-wmf:p qt6-tools:p qt6-translations:p
-      - name: Install extra tools (MSYS2)
-        if: ${{ matrix.target == 'msys2' }}
-        uses: crazy-max/ghaction-chocolatey@v3
-        with:
-          args: install ptime wget
-      - name: Install NSIS
-        if: ${{ github.ref_type == 'tag' }}
+      - name: Install NSIS (MSVC)
+        if: ${{ github.ref_type == 'tag' && matrix.target == 'msvc' }}
         run: |
           wget https://download.sourceforge.net/project/nsis/NSIS%203/3.11/nsis-3.11-setup.exe -O D:/a/_temp/nsis-setup.exe
           ptime D:/a/_temp/nsis-setup.exe /S
         shell: pwsh
       - name: Disable line ending translation
         run: git config --global core.autocrlf input
-      - name: Build
-        run: ./.ci/windows.sh
-      - name: Generate installer
-        if: ${{ github.ref_type == 'tag' }}
+      - name: Build (MSVC)
+        if: ${{ matrix.target == 'msvc' }}
+        run: ./.ci/win-msvc.sh
+      - name: Build (MXE)
+        if: ${{ matrix.target == 'mxe' }}
+        run: ./.ci/win-mxe.sh
+      - name: Generate installer (MSVC)
+        if: ${{ github.ref_type == 'tag' && matrix.target == 'msvc' }}
         run: |
           cd src\installer
           "C:\Program Files (x86)\NSIS\makensis.exe" /DPRODUCT_VARIANT=${{ matrix.target }} /DPRODUCT_VERSION=${{ github.ref_name }} citra.nsi
           mkdir ..\..\artifacts 2> NUL
           move /y *.exe ..\..\artifacts\
         shell: cmd
+      - name: Generate installer (MXE)
+        if: ${{ github.ref_type == 'tag' && matrix.target == 'mxe' }}
+        run: |
+          export PATH="/opt/mxe/usr/bin:${PATH}"
+          cd src/installer
+          x86_64-w64-mingw32.shared-makensis -DPRODUCT_VARIANT=${{ matrix.target }} -DPRODUCT_VERSION=${{ github.ref_name }} citra.nsi
+          mkdir -p ../../artifacts
+          mv ./*.exe ../../artifacts/
       - name: Pack
         run: ./.ci/pack.sh
       - name: Upload
@@ -270,12 +332,11 @@ jobs:
             ${{ runner.os }}-android-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Deps
         run: |
@@ -288,6 +349,7 @@ jobs:
       - name: Build
         run: JAVA_HOME=$JAVA_HOME_17_X64 ./.ci/android.sh
         env:
+          GIT_TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
           ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
@@ -312,12 +374,11 @@ jobs:
           submodules: recursive
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Build Docker image
         run: ./.ci/docker.sh
@@ -369,10 +430,19 @@ jobs:
       - name: Determine Tag and Release Name
         run: |
           NEW_VERSION="$GITHUB_REF_NAME"
+          # The updaters parse the tag as a version, so refuse anything that isn't vX.Y.Z[-suffix]
+          # (e.g. tags made from commit messages).
+          if [[ ! "$NEW_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+              echo "::error::Tag '$NEW_VERSION' is not a version tag like v1.2.3 or v1.2.3-rc1"
+              exit 1
+          fi
+          # A suffix (v1.2.3-rc1) marks a prerelease, which stable-channel users won't be offered.
+          if [[ "$NEW_VERSION" == *-* ]]; then PRERELEASE=true; else PRERELEASE=false; fi
           COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          
+
           echo "TAG_NAME=$NEW_VERSION" >> $GITHUB_ENV
           echo "RELEASE_NAME=$NEW_VERSION - $COMMIT_MSG" >> $GITHUB_ENV
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -386,7 +456,7 @@ jobs:
             artifacts/linux-appimage-wayland/*
             artifacts/macos-universal/*
             artifacts/windows-msvc/*
-            artifacts/windows-msys2/*
+            artifacts/windows-mxe/*
             artifacts/android-universal/*
             artifacts/docker/*
             libretro-artifacts/android-arm64-v8a/*
@@ -397,6 +467,7 @@ jobs:
             libretro-artifacts/ios-arm64/*
             libretro-artifacts/tvos-arm64/*
           draft: false
-          prerelease: false
+          prerelease: ${{ env.PRERELEASE == 'true' }}
+          make_latest: ${{ env.PRERELEASE != 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.TRIGGER_TOKEN_REPO }}

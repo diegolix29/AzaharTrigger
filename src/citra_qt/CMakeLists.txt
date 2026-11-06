@@ -219,7 +219,9 @@ if(ENABLE_FFMPEG)
 endif()
 
 if (APPLE)
-  target_sources(citra_qt PUBLIC
+  # Keep these private. A public .mm is compiled again for citra_meta, which
+  # does not get Qt's private include directory.
+  target_sources(citra_qt PRIVATE
     qt_swizzle.h
     qt_swizzle.mm
   )

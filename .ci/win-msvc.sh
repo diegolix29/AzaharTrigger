@@ -13,7 +13,8 @@ cmake .. -G Ninja \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake \
     -DVCPKG_TARGET_TRIPLET=x64-windows-release \
-    -DENABLE_DISCORD_RPC=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DUSE_DISCORD_PRESENCE=ON \
 	"${EXTRA_CMAKE_FLAGS[@]}"
 ninja
 ninja bundle

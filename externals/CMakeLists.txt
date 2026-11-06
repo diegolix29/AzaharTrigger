@@ -128,6 +128,17 @@ if ("x86_64" IN_LIST ARCHITECTURE OR "arm64" IN_LIST ARCHITECTURE)
         set(DYNARMIC_TESTS OFF CACHE BOOL "")
         set(DYNARMIC_FRONTENDS "A32" CACHE STRING "")
         set(DYNARMIC_USE_PRECOMPILED_HEADERS ${CITRA_USE_PRECOMPILED_HEADERS} CACHE BOOL "")
+        if ("x86_64" IN_LIST ARCHITECTURE)
+            # Build Zydis before dynarmic. Its CMake already creates Zydis::Zydis,
+            # and dynarmic adds that alias a second time. The vcpkg toolchain used
+            # by the MSVC build rejects the duplicate.
+            set(ZYDIS_BUILD_TOOLS OFF)
+            set(ZYDIS_BUILD_EXAMPLES OFF)
+            set(ZYDIS_BUILD_DOXYGEN OFF)
+            set(ZYAN_ZYCORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dynarmic/externals/zycore" CACHE PATH "" FORCE)
+            set(CMAKE_DISABLE_FIND_PACKAGE_Doxygen ON)
+            add_subdirectory(dynarmic/externals/zydis EXCLUDE_FROM_ALL)
+        endif()
         add_subdirectory(dynarmic EXCLUDE_FROM_ALL)
     endif()
 endif()
@@ -542,6 +553,9 @@ if(NOT USE_SYSTEM_XXHASH)
 endif()
 
 # zlib
+# infcover is built with -coverage and links libclang_rt.profile, which the
+# MXE Clang toolchain does not ship. The emulator does not need zlib's tests.
+set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(zlib)
 
 # Set ZLIB variables for libzip

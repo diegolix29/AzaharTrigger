@@ -57,8 +57,10 @@ object AppUpdater {
         return parts
     }
 
-    private fun sanitizeVersion(version: String): String =
-        Regex("^\\d+(?:\\.\\d+)*").find(version)?.value ?: version
+    // A release build's VERSION_NAME is "X.Y.Z" (optionally "vX.Y.Z" / with a suffix).
+    // Anything else - e.g. a bare git hash from a dev build - is not comparable.
+    private fun isVersionedBuild(version: String): Boolean =
+        Regex("""^v?\d+\.\d+""").containsMatchIn(version)
 
     private fun isVersionNewer(current: String, latest: String): Boolean {
         val currentParts = parseVersionComponents(current)
@@ -74,14 +76,21 @@ object AppUpdater {
         return false
     }
 
-    private fun extractVersionFromAssetName(assetName: String): String? {
-        // Try to extract version from asset name like "AzaharTrigger-1.2.3-android.apk"
-        val versionPattern = Regex("(\\d+\\.\\d+\\.\\d+)")
-        val match = versionPattern.find(assetName)
-        return match?.value
-    }
-
-    suspend fun checkForUpdate(includePrereleases: Boolean = false): UpdateInfo? =
+    /**
+     * Returns the latest release if it is newer than this build, otherwise null.
+     *
+     * The release tag ("vX.Y.Z") is the only source of truth: the release workflow publishes
+     * only on a tag push and bakes that tag into every build's VERSION_NAME. Asset names are used
+     * solely to pick which APK to download.
+     *
+     * Builds without a real version (local/dev builds, whose VERSION_NAME is a git hash) can't be
+     * compared. With [manualCheck] false they never prompt; a manual check still offers the
+     * latest release.
+     */
+    suspend fun checkForUpdate(
+        includePrereleases: Boolean = false,
+        manualCheck: Boolean = true
+    ): UpdateInfo? =
         withContext(Dispatchers.IO) {
             try {
                 val release = fetchLatestRelease(includePrereleases) ?: return@withContext null
@@ -89,58 +98,34 @@ object AppUpdater {
                     return@withContext null
                 }
 
-                // The asset filename is only used to pick which file to download.
-                // It must NOT be used to determine the version: dev/nightly builds
-                // are named with a build date + commit hash (e.g. "...-20260715-a1b2c3d.apk"),
-                // and reverse-parsing digits out of that tail produces garbage
-                // (e.g. it could pick up just "3" or "123" from inside the hash),
-                // which caused bogus update-available / no-update-needed results.
-                val apkAsset = release.assets.firstOrNull {
+                // Prefer the APK built for this tag; a release may also carry stale
+                // "<date>-<hash>" uploads from older builds.
+                val apks = release.assets.filter {
                     it.name.contains("android") && it.name.endsWith(".apk")
-                } ?: return@withContext null
+                }
+                val apkAsset = apks.firstOrNull { it.name.contains(release.tag_name) }
+                    ?: apks.firstOrNull()
+                    ?: return@withContext null
 
-                // For stable releases, release.tag_name is always a clean "vX.Y.Z" 
-                // produced by the release workflow itself, regardless of what the asset is named,
-                // so it's a stable, unambiguous source of truth for comparison.
-                // For nightly/dev builds, we need to handle different formats.
-                val latestVersion = sanitizeVersion(release.tag_name.removePrefix("v"))
-                if (latestVersion.isEmpty()) {
-                    Log.w(TAG, "Failed to parse version from release tag: ${release.tag_name}")
+                val latestVersion = release.tag_name
+                val currentVersion = BuildConfig.VERSION_NAME
+                Log.i(TAG, "Current version: $currentVersion, latest release: $latestVersion")
+
+                if (!isVersionedBuild(currentVersion)) {
+                    if (!manualCheck) {
+                        Log.i(TAG, "Unversioned build, skipping automatic update prompt")
+                        return@withContext null
+                    }
+                    return@withContext UpdateInfo(release.tag_name, release.html_url, apkAsset)
+                }
+
+                if (!isVersionNewer(currentVersion, latestVersion)) {
+                    Log.i(TAG, "No update needed (already on latest or newer version)")
                     return@withContext null
                 }
 
-                val currentVersion = sanitizeVersion(BuildConfig.VERSION_NAME)
-                Log.i(TAG, "Current version: $currentVersion, Latest version: $latestVersion")
-                Log.i(TAG, "Release tag: ${release.tag_name}, Asset: ${apkAsset.name}")
-
-                // For nightly/dev builds, also check if the asset name contains a different version
-                // This handles cases where the tag might not reflect the actual build version
-                val assetVersion = extractVersionFromAssetName(apkAsset.name)
-                if (assetVersion != null && assetVersion != latestVersion) {
-                    Log.i(TAG, "Asset version differs from tag: $assetVersion vs $latestVersion")
-                    // Use the asset version if it's more specific
-                    val comparisonVersion = if (isVersionNewer(latestVersion, assetVersion)) {
-                        assetVersion
-                    } else {
-                        latestVersion
-                    }
-                    
-                    if (!isVersionNewer(currentVersion, comparisonVersion)) {
-                        Log.i(TAG, "No update needed (already on latest or newer version)")
-                        return@withContext null
-                    }
-                    
-                    Log.i(TAG, "Update available: $currentVersion -> $comparisonVersion")
-                    UpdateInfo(release.tag_name, release.html_url, apkAsset)
-                } else {
-                    if (!isVersionNewer(currentVersion, latestVersion)) {
-                        Log.i(TAG, "No update needed (already on latest or newer version)")
-                        return@withContext null
-                    }
-
-                    Log.i(TAG, "Update available: $currentVersion -> $latestVersion")
-                    UpdateInfo(release.tag_name, release.html_url, apkAsset)
-                }
+                Log.i(TAG, "Update available: $currentVersion -> $latestVersion (${apkAsset.name})")
+                UpdateInfo(release.tag_name, release.html_url, apkAsset)
             } catch (e: Exception) {
                 Log.w(TAG, "Update check failed: ${e.message}")
                 null

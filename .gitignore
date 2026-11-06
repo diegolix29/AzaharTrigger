@@ -57,3 +57,6 @@ repo/
 .ccache/
 node_modules/
 VULKAN_SDK/
+
+# Written by CI on tag builds only; releases are versioned by pushing a vX.Y.Z tag.
+/GIT-TAG

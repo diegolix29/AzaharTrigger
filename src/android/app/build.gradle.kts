@@ -292,10 +292,13 @@ fun getGitVersion(): String {
         logger.error("Cannot find git, defaulting to dummy version number")
     }
 
-    if (System.getenv("GITHUB_ACTIONS") != null) {
-        val gitTag = System.getenv("GIT_TAG_NAME")
-        versionName = gitTag ?: versionName
-        logger.lifecycle("Using version from GITHUB_ACTIONS env: $versionName")
+    // Tagged CI builds pass the release tag (e.g. "v1.0.15"). CI checkouts are shallow and have
+    // no tags, so without this `git describe` yields a bare commit hash and the in-app updater
+    // can't tell which release it is running.
+    val gitTag = System.getenv("GIT_TAG_NAME")
+    if (System.getenv("GITHUB_ACTIONS") != null && !gitTag.isNullOrBlank()) {
+        versionName = gitTag.removePrefix("v")
+        logger.lifecycle("Using version from GIT_TAG_NAME env: $versionName")
     }
 
     return versionName
