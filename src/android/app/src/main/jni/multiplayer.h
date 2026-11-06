@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 #include <common/common_types.h>
-#include <network/lan_melon.h>
 #include <network/network.h>
 
 namespace Core {
@@ -104,24 +103,10 @@ public:
 
     std::vector<std::string> NetPlayGetPublicRooms();
 
-    // melonDS LAN compatibility methods
-    bool MelonLANInit();
-    void MelonLANShutdown();
-    bool MelonLANStartDiscovery();
-    void MelonLANStopDiscovery();
-    std::vector<std::string> MelonLANGetDiscoveryList();
-    bool MelonLANStartHost(const std::string& player_name, int max_players);
-    bool MelonLANStartClient(const std::string& player_name, const std::string& host_address);
-    void MelonLANEndSession();
-    std::vector<std::string> MelonLANGetPlayerList();
-    void MelonLANProcess();
-    bool MelonLANIsActive();
-    bool MelonLANIsHost();
     void UpdateCredentials();
 
 private:
     Core::System& system;
     static std::unique_ptr<Network::VerifyUser::Backend> CreateVerifyBackend(bool use_validation);
     std::weak_ptr<Network::AnnounceMultiplayerSession> announce_multiplayer_session;
-    std::unique_ptr<Network::MelonLANAdapter> melon_lan_adapter;
 };

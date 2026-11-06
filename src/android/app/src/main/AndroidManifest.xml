@@ -114,14 +114,6 @@
             android:label="@string/ds_settings"/>
 
 		<activity
-            android:name="org.citra.citra_emu.ds.DsLanActivity"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|uiMode"
-            android:theme="@style/Theme.Citra.Main"
-            android:windowSoftInputMode="adjustResize"
-            android:label="@string/ds_lan_title"/>
-
-		<activity
             android:name="org.citra.citra_emu.features.cheats.ui.CheatsActivity"
             android:exported="false"
             android:theme="@style/Theme.Citra.Main"

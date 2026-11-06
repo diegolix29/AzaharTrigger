@@ -149,7 +149,9 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #ifdef ENABLE_DS
 #include <azalon_ds/azalon_ds.h>
 #include "citra_qt/ds/ds_config.h"
-#include "citra_qt/ds/ds_lan_dialog.h"
+#include <QPushButton>
+#include <QTimer>
+#include "citra_qt/ds/ds_lan.h"
 #include "citra_qt/ds/ds_screen_widget.h"
 #include "citra_qt/ds/ds_session.h"
 #endif
@@ -9260,6 +9262,7 @@ bool GMainWindow::BootDSGame(const QString& filename) {
 
     game_title = ds_session->Title();
     UpdateWindowTitle();
+    DS::Lan::SetCurrentGame(ds_session->Title(), true); // a hosted room shows what it plays
     return true;
 }
 
@@ -9275,6 +9278,7 @@ void GMainWindow::ShutdownDSGame() {
         ds_screen = nullptr;
     }
     if (ds_session) {
+        DS::Lan::SetCurrentGame(ds_session->Title(), false);
         ds_session->Stop(); // flushes the save
         // Deleted later: this can be called from one of the session's own signals.
         ds_session.release()->deleteLater();
@@ -9333,18 +9337,54 @@ void GMainWindow::InitializeDSMenu() {
     }
 
     menu->addSeparator();
-    QAction* lan = menu->addAction(tr("Local Wireless (LAN)..."));
-    connect(lan, &QAction::triggered, this, [this] {
-        if (IsDSGameRunning() && azds_mp_get_mode() != AZDS_MP_LAN) {
-            QMessageBox::information(
-                this, tr("AzalonDS"),
-                tr("Stop the DS game first, join or host a room, then start the game again."));
+    // DS local wireless lives in the Multiplayer menu, next to Azahar's own rooms.
+    DS::Lan::SetGameRunningProbe([this] { return IsDSGameRunning(); });
+    QMenu* lan_menu = new QMenu(tr("DS Local Wireless (LAN)"), this);
+    ui->menu_Multiplayer->addSeparator();
+    ui->menu_Multiplayer->addMenu(lan_menu);
+    QAction* lan_browse = lan_menu->addAction(tr("Browse DS LAN Rooms..."));
+    QAction* lan_host = lan_menu->addAction(tr("Host DS Room..."));
+    QAction* lan_direct = lan_menu->addAction(tr("Direct Connect to DS Room..."));
+    lan_menu->addSeparator();
+    QAction* lan_show = lan_menu->addAction(tr("Show Current DS Room"));
+    QAction* lan_leave = lan_menu->addAction(tr("Leave DS Room"));
+    connect(lan_browse, &QAction::triggered, this,
+            [this] { multiplayer_state->OnViewDSLobby(); });
+    connect(lan_host, &QAction::triggered, this, [this] { DS::Lan::ShowHostDialog(this); });
+    connect(lan_direct, &QAction::triggered, this, [this] { DS::Lan::ShowDirectConnect(this); });
+    connect(lan_show, &QAction::triggered, this, [this] { DS::Lan::ShowRoomWindow(this); });
+    connect(lan_leave, &QAction::triggered, this, [this] { DS::Lan::LeaveRoom(this); });
+    connect(ui->menu_Multiplayer, &QMenu::aboutToShow, this, [=] {
+        const bool in_room = DS::Lan::InSession();
+        lan_host->setEnabled(!in_room);
+        lan_direct->setEnabled(!in_room);
+        lan_show->setEnabled(in_room);
+        lan_leave->setEnabled(in_room);
+    });
+
+    // Status bar: shows the DS room while in one; click to open it.
+    auto* lan_status = new QPushButton(this);
+    lan_status->setFlat(true);
+    lan_status->setFocusPolicy(Qt::NoFocus);
+    lan_status->setToolTip(tr("DS Local Wireless room - click to open"));
+    lan_status->hide();
+    statusBar()->addPermanentWidget(lan_status);
+    connect(lan_status, &QPushButton::clicked, this, [this] { DS::Lan::ShowRoomWindow(this); });
+    auto* lan_status_timer = new QTimer(this);
+    connect(lan_status_timer, &QTimer::timeout, this, [lan_status] {
+        if (!DS::Lan::InSession()) {
+            lan_status->hide();
             return;
         }
-        auto* dialog = new DS::LanDialog([this] { return IsDSGameRunning(); }, this);
-        dialog->setAttribute(Qt::WA_DeleteOnClose);
-        dialog->show();
+        azds_lan_room room;
+        azds_lan_get_current_room(&room);
+        lan_status->setText(tr("DS room: %1 (%2/%3)")
+                                .arg(QString::fromUtf8(room.room_name))
+                                .arg(room.num_players)
+                                .arg(room.max_players));
+        lan_status->show();
     });
+    lan_status_timer->start(1000);
 
     QAction* internet = menu->addAction(tr("Internet Access (Nintendo WFC)"));
     internet->setCheckable(true);

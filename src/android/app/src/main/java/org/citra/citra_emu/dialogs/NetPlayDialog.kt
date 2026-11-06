@@ -44,12 +44,15 @@ import org.citra.citra_emu.databinding.ItemButtonNetplayBinding
 import org.citra.citra_emu.databinding.ItemTextNetplayBinding
 import org.citra.citra_emu.databinding.ItemWifiDirectPeerBinding
 import org.citra.citra_emu.dialogs.ChatDialog
+import org.citra.citra_emu.ds.DsLan
+import org.citra.citra_emu.ds.DsNetPlay
 import org.citra.citra_emu.utils.CompatUtils
 import org.citra.citra_emu.utils.GameHelper
 import org.citra.citra_emu.utils.NetPlayManager
 import org.citra.citra_emu.utils.WifiDirectManager
 
-class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
+class NetPlayDialog(context: Context, private val dsTab: Boolean = false) :
+    BottomSheetDialog(context) {
     private lateinit var adapter: NetPlayAdapter
 
     private val preferredGameList = mutableListOf<PreferredGame>()
@@ -70,6 +73,18 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
         }
 
         var thisDeviceName = "This Device"
+
+        /**
+         * Opens multiplayer: the DS room if this device is in one (and not in a 3DS
+         * room), else the connect sheet, on the DS tab when [dsTab] is set.
+         */
+        fun open(context: Context, dsTab: Boolean = false) {
+            if (!NetPlayManager.netPlayIsJoined() && DsLan.inSession) {
+                DsNetPlay.showRoom(context)
+            } else {
+                NetPlayDialog(context, dsTab).show()
+            }
+        }
     }
 
     data class PreferredGame(val name: String, val id: Long) {
@@ -123,45 +138,9 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         showModerationDialog()
                     }
                 }
-            NetPlayManager.melonLANIsActive() -> DialogMultiplayerLobbyBinding.inflate(layoutInflater)
-                .apply {
-                    setContentView(root)
-                    textTitle.text = context.getString(R.string.multiplayer_melon_lobby)
-
-                    val melonAdapter = MelonLobbyAdapter()
-                    listMultiplayer.layoutManager = LinearLayoutManager(context)
-                    listMultiplayer.adapter = melonAdapter
-                    melonAdapter.loadPlayerList()
-
-                    btnChat.visibility = View.GONE
-                    btnModeration.visibility = View.GONE
-                    btnLeave.setOnClickListener {
-                        NetPlayManager.leaveRoom()
-                        dismiss()
-                    }
-
-                    // Refresh player list periodically
-                    val handler = Handler(Looper.getMainLooper())
-                    val refreshRunnable = object : Runnable {
-                        override fun run() {
-                            if (NetPlayManager.melonLANIsActive()) {
-                                melonAdapter.loadPlayerList()
-                                handler.postDelayed(this, 1000)
-                            }
-                        }
-                    }
-                    handler.post(refreshRunnable)
-
-                    setOnDismissListener {
-                        handler.removeCallbacks(refreshRunnable)
-                    }
-                }
             else -> {
                 DialogMultiplayerConnectBinding.inflate(layoutInflater).apply {
                     setContentView(root)
-
-                    // Initialize melonDS LAN
-                    NetPlayManager.melonLANInit()
 
                     // Tab switching logic
                     tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
@@ -171,7 +150,7 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                                     citraContent.visibility = View.VISIBLE
                                     melonContent.visibility = View.GONE
                                 }
-                                1 -> { // melonDS LAN tab
+                                1 -> { // DS local wireless tab
                                     citraContent.visibility = View.GONE
                                     melonContent.visibility = View.VISIBLE
                                 }
@@ -224,18 +203,25 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                         dismiss()
                     }
 
-                    // melonDS LAN button handlers
+                    // DS local wireless: the DS core's own LAN rooms, shared with PCs.
+                    textDsInfo.text = context.getString(
+                        R.string.ds_mp_tab_info,
+                        DsNetPlay.localAddress() ?: context.getString(R.string.ds_mp_no_network)
+                    )
                     btnMelonDiscovery.setOnClickListener {
-                        showMelonDiscoveryDialog()
                         dismiss()
+                        DsNetPlay.showBrowser(context)
                     }
                     btnMelonJoin.setOnClickListener {
-                        showMelonInputDialog(false)
                         dismiss()
+                        DsNetPlay.showDirectConnect(context)
                     }
                     btnMelonHost.setOnClickListener {
-                        showMelonInputDialog(true)
                         dismiss()
+                        DsNetPlay.showHost(context)
+                    }
+                    if (dsTab) {
+                        tabLayout.getTabAt(1)?.select()
                     }
                 }
             }
@@ -687,258 +673,6 @@ class NetPlayDialog(context: Context) : BottomSheetDialog(context) {
                             R.string.multiplayer_could_not_connect,
                             Toast.LENGTH_LONG
                         ).show()
-                        binding.btnConfirm.isEnabled = true
-                        binding.btnConfirm.text = activity.getString(R.string.original_button_text)
-                    }
-                }
-            }
-        }
-
-        dialog.show()
-    }
-
-    private fun showMelonDiscoveryDialog() {
-        val activity = CompatUtils.findActivity(context)
-        val dialog = BottomSheetDialog(activity)
-
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-        val binding = DialogMultiplayerLobbyBinding.inflate(LayoutInflater.from(activity))
-        dialog.setContentView(binding.root)
-
-        binding.textTitle.text = activity.getString(R.string.multiplayer_melon_discovery)
-        binding.btnChat.visibility = View.GONE
-        binding.btnModeration.visibility = View.GONE
-        binding.btnLeave.text = activity.getString(R.string.multiplayer_close)
-
-        val adapter = MelonDiscoveryAdapter()
-        binding.listMultiplayer.layoutManager = LinearLayoutManager(context)
-        binding.listMultiplayer.adapter = adapter
-
-        // Start discovery
-        NetPlayManager.melonLANStartDiscovery()
-
-        // Load initial list
-        adapter.loadDiscoveryList()
-
-        // Refresh periodically
-        val handler = Handler(Looper.getMainLooper())
-        val refreshRunnable = object : Runnable {
-            override fun run() {
-                NetPlayManager.melonLANProcess()
-                adapter.loadDiscoveryList()
-                handler.postDelayed(this, 1000)
-            }
-        }
-        handler.post(refreshRunnable)
-
-        binding.btnLeave.setOnClickListener {
-            handler.removeCallbacks(refreshRunnable)
-            NetPlayManager.melonLANStopDiscovery()
-            dialog.dismiss()
-        }
-
-        dialog.setOnDismissListener {
-            handler.removeCallbacks(refreshRunnable)
-            NetPlayManager.melonLANStopDiscovery()
-        }
-
-        dialog.show()
-    }
-
-    private fun showMelonInputDialog(isHost: Boolean) {
-        val activity = CompatUtils.findActivity(context)
-        val dialog = BottomSheetDialog(activity)
-
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-        val binding = DialogMultiplayerRoomBinding.inflate(LayoutInflater.from(activity))
-        dialog.setContentView(binding.root)
-
-        binding.textTitle.text = activity.getString(
-            if (isHost) R.string.multiplayer_melon_host
-            else R.string.multiplayer_melon_join
-        )
-
-        // Hide Citra-specific fields
-        binding.preferedGameName.visibility = View.GONE
-        binding.roomName.visibility = View.GONE
-        binding.maxPlayersContainer.visibility = if (isHost) View.VISIBLE else View.GONE
-        binding.maxPlayersLabel.text = context.getString(R.string.multiplayer_max_players_value, binding.maxPlayers.value.toInt())
-        binding.maxPlayers.addOnChangeListener { _, value, _ ->
-            binding.maxPlayersLabel.text = context.getString(R.string.multiplayer_max_players_value, value.toInt())
-        }
-
-        binding.ipAddress.setText(
-            if (isHost) NetPlayManager.getIpAddressByWifi(activity)
-            else ""
-        )
-        binding.ipPort.visibility = View.GONE // melonDS uses fixed port
-        binding.username.setText(NetPlayManager.getUsername(activity))
-        binding.password.visibility = View.GONE // melonDS LAN doesn't use passwords
-
-        binding.btnConfirm.setOnClickListener {
-            binding.btnConfirm.isEnabled = false
-            binding.btnConfirm.text = activity.getString(R.string.disabled_button_text)
-
-            val ipAddress = binding.ipAddress.text.toString()
-            val username = binding.username.text.toString()
-            val maxPlayers = binding.maxPlayers.value.toInt()
-
-            if (ipAddress.length < 7 || username.length < 5) {
-                Toast.makeText(activity, R.string.multiplayer_input_invalid, Toast.LENGTH_LONG).show()
-                binding.btnConfirm.isEnabled = true
-                binding.btnConfirm.text = activity.getString(R.string.original_button_text)
-            } else {
-                Handler(Looper.getMainLooper()).post {
-                    val result = if (isHost) {
-                        NetPlayManager.melonLANStartHost(username, maxPlayers)
-                    } else {
-                        NetPlayManager.melonLANStartClient(username, ipAddress)
-                    }
-
-                    if (result) {
-                        NetPlayManager.setUsername(activity, username)
-                        NetPlayManager.startLANProcessing()
-                        Toast.makeText(
-                            CitraApplication.appContext,
-                            if (isHost) R.string.multiplayer_melon_host_success
-                            else R.string.multiplayer_melon_join_success,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        dialog.dismiss()
-                    } else {
-                        Toast.makeText(activity, R.string.multiplayer_could_not_connect, Toast.LENGTH_LONG).show()
-                        binding.btnConfirm.isEnabled = true
-                        binding.btnConfirm.text = activity.getString(R.string.original_button_text)
-                    }
-                }
-            }
-        }
-
-        dialog.show()
-    }
-
-    inner class MelonDiscoveryAdapter : RecyclerView.Adapter<MelonDiscoveryAdapter.MelonDiscoveryViewHolder>() {
-        val discoveryItems = mutableListOf<NetPlayManager.MelonDiscoveryInfo>()
-
-        inner class MelonDiscoveryViewHolder(private val binding: ItemButtonNetplayBinding) : RecyclerView.ViewHolder(binding.root) {
-            init {
-                binding.root.setOnClickListener {
-                    val position = bindingAdapterPosition
-                    if (position != RecyclerView.NO_POSITION) {
-                        val item = discoveryItems[position]
-                        showMelonInputDialogForDiscovery(item.ip)
-                    }
-                }
-            }
-
-            fun bind(item: NetPlayManager.MelonDiscoveryInfo) {
-                val statusText = if (item.inGame == 1) " [In Game]" else ""
-                val passwordText = if (item.hasPassword == 1) " [Locked]" else ""
-                binding.itemButtonNetplayName.text = "${item.sessionName} - ${item.gameName} (${item.numPlayers}/${item.maxPlayers})${statusText}${passwordText}"
-                binding.itemButtonMore.visibility = View.GONE
-            }
-        }
-
-        fun loadDiscoveryList() {
-            val newList = NetPlayManager.getMelonDiscoveryList()
-            discoveryItems.clear()
-            discoveryItems.addAll(newList)
-            notifyDataSetChanged()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MelonDiscoveryViewHolder {
-            val binding = ItemButtonNetplayBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return MelonDiscoveryViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: MelonDiscoveryViewHolder, position: Int) {
-            holder.bind(discoveryItems[position])
-        }
-
-        override fun getItemCount() = discoveryItems.size
-    }
-
-    inner class MelonLobbyAdapter : RecyclerView.Adapter<MelonLobbyAdapter.MelonLobbyViewHolder>() {
-        val playerItems = mutableListOf<NetPlayManager.MelonPlayerInfo>()
-
-        inner class MelonLobbyViewHolder(private val binding: ItemTextNetplayBinding) : RecyclerView.ViewHolder(binding.root) {
-            fun bind(item: NetPlayManager.MelonPlayerInfo) {
-                binding.itemTextNetplayName.text = "${item.name} (ID: ${item.id}, Status: ${item.status}, Ping: ${item.ping}ms)"
-            }
-        }
-
-        fun loadPlayerList() {
-            val newList = NetPlayManager.getMelonPlayerList()
-            playerItems.clear()
-            playerItems.addAll(newList)
-            notifyDataSetChanged()
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MelonLobbyViewHolder {
-            val binding = ItemTextNetplayBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-            return MelonLobbyViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: MelonLobbyViewHolder, position: Int) {
-            holder.bind(playerItems[position])
-        }
-
-        override fun getItemCount() = playerItems.size
-    }
-
-    private fun showMelonInputDialogForDiscovery(ipAddress: String) {
-        val activity = CompatUtils.findActivity(context)
-        val dialog = BottomSheetDialog(activity)
-
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.behavior.skipCollapsed = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-        val binding = DialogMultiplayerRoomBinding.inflate(LayoutInflater.from(activity))
-        dialog.setContentView(binding.root)
-
-        binding.textTitle.text = activity.getString(R.string.multiplayer_melon_join)
-
-        // Hide Citra-specific fields
-        binding.preferedGameName.visibility = View.GONE
-        binding.roomName.visibility = View.GONE
-        binding.maxPlayersContainer.visibility = View.GONE
-        binding.ipAddress.setText(ipAddress)
-        binding.ipAddress.isEnabled = false
-        binding.ipPort.visibility = View.GONE
-        binding.username.setText(NetPlayManager.getUsername(activity))
-        binding.password.visibility = View.GONE
-
-        binding.btnConfirm.setOnClickListener {
-            binding.btnConfirm.isEnabled = false
-            binding.btnConfirm.text = activity.getString(R.string.disabled_button_text)
-
-            val username = binding.username.text.toString()
-
-            if (username.length < 5) {
-                Toast.makeText(activity, R.string.multiplayer_input_invalid, Toast.LENGTH_LONG).show()
-                binding.btnConfirm.isEnabled = true
-                binding.btnConfirm.text = activity.getString(R.string.original_button_text)
-            } else {
-                Handler(Looper.getMainLooper()).post {
-                    val result = NetPlayManager.melonLANStartClient(username, ipAddress)
-
-                    if (result) {
-                        NetPlayManager.setUsername(activity, username)
-                        Toast.makeText(
-                            CitraApplication.appContext,
-                            R.string.multiplayer_melon_join_success,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        dialog.dismiss()
-                    } else {
-                        Toast.makeText(activity, R.string.multiplayer_could_not_connect, Toast.LENGTH_LONG).show()
                         binding.btnConfirm.isEnabled = true
                         binding.btnConfirm.text = activity.getString(R.string.original_button_text)
                     }

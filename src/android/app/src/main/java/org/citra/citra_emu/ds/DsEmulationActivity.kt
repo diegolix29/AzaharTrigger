@@ -58,6 +58,30 @@ class DsEmulationActivity : AppCompatActivity() {
     private var pausedByUser = false
     private var started = false
 
+    /** Room notifications (joins, leaves, chat) while playing in a DS LAN room. */
+    private val lanWatcher = DsLan.Watcher()
+    private val lanHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val lanTask = object : Runnable {
+        override fun run() {
+            for (event in lanWatcher.poll()) {
+                val text = when (event) {
+                    is DsLan.Watcher.Event.Joined -> getString(R.string.ds_mp_joined_toast, event.name)
+                    is DsLan.Watcher.Event.Left -> getString(R.string.ds_mp_left_toast, event.name)
+                    is DsLan.Watcher.Event.Message ->
+                        getString(R.string.ds_mp_chat_toast, event.chat.sender, event.chat.text)
+                    DsLan.Watcher.Event.RoomClosed -> getString(R.string.ds_mp_room_closed)
+                }
+                Toast.makeText(this@DsEmulationActivity, text, Toast.LENGTH_SHORT).show()
+            }
+            lanHandler.postDelayed(this, 1000)
+        }
+    }
+
+    private fun onGameStarted(gameTitle: String) {
+        DsLan.setCurrentGame(gameTitle, true) // a hosted room shows what it plays
+        lanHandler.post(lanTask)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeUtil.setTheme(this)
         super.onCreate(savedInstanceState)
@@ -153,6 +177,7 @@ class DsEmulationActivity : AppCompatActivity() {
         started = true
         title = firmwareTitle()
         Log.info("[DS] running the ${if (firmwareConsole == 1) "DSi" else "DS"} firmware")
+        onGameStarted(firmwareTitle().orEmpty())
         return true
     }
 
@@ -186,6 +211,7 @@ class DsEmulationActivity : AppCompatActivity() {
         started = true
         title = target.title
         Log.info("[DS] running ${target.title}")
+        onGameStarted(target.title)
         return true
     }
 
@@ -354,8 +380,9 @@ class DsEmulationActivity : AppCompatActivity() {
                     6 -> closeLid(resumeAfter)
                     7 -> confirmReset(resumeAfter)
                     8 -> {
-                        // The lobby refuses to switch wireless modes under a running game.
-                        startActivity(Intent(this, DsLanActivity::class.java))
+                        // Azahar's multiplayer screens; they refuse to switch wireless
+                        // modes under a running game.
+                        DsNetPlay.open(this)
                         if (resumeAfter) DsNative.setPaused(false)
                     }
                     9 -> {
@@ -481,7 +508,9 @@ class DsEmulationActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         DsNative.onStopped = null
+        lanHandler.removeCallbacks(lanTask)
         if (started) {
+            DsLan.setCurrentGame(title?.toString().orEmpty(), false)
             DsNative.stopEmulation() // flushes the cartridge save
             started = false
         }

@@ -229,8 +229,7 @@ class MainActivity :
     }
 
     fun displayMultiplayerDialog() {
-        val dialog = NetPlayDialog(this)
-        dialog.show()
+        NetPlayDialog.open(this)
     }
 
     override fun setTheme(resId: Int) {

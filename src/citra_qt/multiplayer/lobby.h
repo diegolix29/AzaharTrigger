@@ -13,11 +13,13 @@
 #include "citra_qt/multiplayer/validation.h"
 #include "common/announce_multiplayer_room.h"
 #include "network/announce_multiplayer_session.h"
-#include "network/lan_melon.h"
 #include "network/room_member.h"
 
-class MelonHostRoom;
-class MelonJoinRoom;
+#ifdef ENABLE_DS
+namespace DS::Lan {
+class LanBrowser;
+}
+#endif
 
 namespace Ui {
 class Lobby;
@@ -49,8 +51,12 @@ public:
     void UpdateGameList(QStandardItemModel* list);
     void RetranslateUi();
 
+    /// Opens the window on the DS Local Wireless tab.
+    void ShowDSTab();
+
 protected:
     void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
 
 public slots:
     /**
@@ -81,12 +87,6 @@ private slots:
      */
     void OnJoinRoom(const QModelIndex&);
 
-    // melonDS LAN slots
-    void OnMelonHostRoom();
-    void OnMelonJoinRoom();
-    void OnMelonDiscoveryUpdate();
-    void OnMelonJoinDiscovery(const QModelIndex&);
-
 signals:
     void StateChanged(const Network::RoomMember::State&);
 
@@ -115,12 +115,10 @@ private:
     QFutureWatcher<void>* watcher;
     Validation validation;
 
-    // melonDS LAN members
-    std::unique_ptr<Network::MelonLANAdapter> melon_lan_adapter;
-    QStandardItemModel* melon_model{};
-    QTimer* melon_discovery_timer{};
-    std::unique_ptr<MelonHostRoom> melon_host_dialog;
-    std::unique_ptr<MelonJoinRoom> melon_join_dialog;
+#ifdef ENABLE_DS
+    DS::Lan::LanBrowser* ds_browser{};
+    void UpdateDSBrowsing();
+#endif
 };
 
 /**

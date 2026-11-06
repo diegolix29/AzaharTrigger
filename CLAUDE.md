@@ -22,7 +22,7 @@ wants a clean core-to-core merge so melonDS's own wireless (LAN/local) and inter
 | `src/ds_core/net.cpp` | wireless: `MPInterface` Local/LAN (+ lobby API); internet: `melonDS::Net` + libslirp |
 | `src/ds_core/tests/azds_smoke.c` | headless boot test, writes a PNG (`-DAZDS_BUILD_TESTS=ON`) |
 | `CMakeModules/AzalonDSCore.cmake` | builds src/ds_core via ExternalProject → imported target `azalon_ds`; `azalon_ds_copy_runtime(<exe>)` |
-| `src/citra_qt/ds/` | Qt frontend for DS: `Session` (emu thread, pacing, Azahar input profile + audio sink), `ScreenWidget`, `Config` + `ConfigDialog` (`<config>/azalon_ds.ini`), `LanDialog` |
+| `src/citra_qt/ds/` | Qt frontend for DS: `Session` (emu thread, pacing, Azahar input profile + audio sink), `ScreenWidget`, `Config` + `ConfigDialog` (`<config>/azalon_ds.ini`), `ds_lan.*` (DS LAN tab of Azahar's Lobby, host/direct-connect dialogs, room window, status-bar button) |
 | `src/android/app/src/main/jni/ds/` | Android native DS layer: `Session` (emu thread, pacing, two `ANativeWindow`s, audio via `AudioCore::Sink`) + `ds_jni.cpp` (`DsNative`, `DsRomInfo`) |
 | `src/android/.../citra_emu/ds/` | Android Kotlin DS frontend: `DsEmulationActivity`, `DsScreensView`/`DsScreenView`, `DsInputOverlay`, `DsSettings`(+Activity, `res/xml/ds_preferences.xml`), `DsPaths`, `DsRom` |
 | `tools/build-windows-msvc.bat` | configure + build with vcvars (`x64-release` / `x64-debug`) |
@@ -75,14 +75,22 @@ The Android repo is owned by another Windows SID: use `git -c safe.directory=* .
 
 ## Status / next steps
 - Done: azalon_ds library (DS + DSi, JIT, saves, savestates, AR cheats, DLDI SD, LAN + local
-  wireless, slirp internet), Windows MSVC build integration, Qt DS session/screen/menu/LAN
-  lobby/settings, DS games in the game list.
+  wireless, slirp internet), Windows MSVC build integration, Qt DS session/screen/menu/settings,
+  DS games in the game list.
+- DS LAN has ONE home: Azahar's Multiplayer UI (desktop: Multiplayer > DS Local Wireless (LAN)
+  submenu + "DS Local Wireless (LAN)" tab in the Lobby window; Android: DS tab of `NetPlayDialog`,
+  screens in `ds/DsNetPlay.kt` built from Azahar's multiplayer layouts). The old standalone
+  reimplementation `src/network/lan_melon` ("Mandarine", never connected to the core) was removed.
+  Rooms carry host name (in `description`), current game + in-game flag (`azds_lan_set_game`,
+  set by the frontends when a DS game starts/stops), chat with sender names. Nickname = Azahar's
+  multiplayer nickname on both platforms.
 - Done (Android, builds with `gradlew assembleVanillaRelWithDebInfo`; not run on a device yet): `.nds/.srl/.dsi/.ids` in
   the game list with banner title+icon, `DsEmulationActivity` (software renderer blitted to two
   SurfaceViews, on-screen controls, physical pads, touch screen, savestates, layouts, lid),
-  `DsSettingsActivity`, `azalon_ds` linked into `citra-android`; home screen entries for DS
-  settings, booting the DS/DSi firmware menu (needs real dumps) and the LAN lobby
-  (`DsLanActivity` + `DsLan`, JNI in `jni/ds/ds_lan_jni.cpp`).
+  `DsSettingsActivity` (BIOS/firmware/NAND picked with the file picker or imported from a
+  folder, copied to `<ds dir>/bios/` by `DsBios`), `azalon_ds` linked into `citra-android`;
+  home screen entries for DS settings and booting the DS/DSi firmware menu (needs real dumps).
+  DS LAN glue: `DsLan` (JNI in `jni/ds/ds_lan_jni.cpp`), in-game join/leave/chat toasts.
 - LAN between desktop and Android: same core and protocol (UDP 7063 discovery, 7064 session).
   Checked host/join/password/chat with two desktop processes; not yet tested phone <-> PC.
 - Not done: OpenGL/upscaled DS rendering, DS hotkeys, DS play-time tracking, AAC (DSi) decoding

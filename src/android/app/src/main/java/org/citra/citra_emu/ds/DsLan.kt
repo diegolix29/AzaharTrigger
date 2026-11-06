@@ -44,13 +44,14 @@ object DsLan {
         val ping: Int
     )
 
+    data class Chat(val senderId: Int, val sender: String, val isLocal: Boolean, val text: String)
+
     // LAN::PlayerStatus
     const val STATUS_CLIENT = 1
     const val STATUS_HOST = 2
     const val STATUS_CONNECTING = 3
     const val STATUS_DISCONNECTED = 4
 
-    const val KEY_PLAYER_NAME = "ds_lan_player_name"
 
     private const val ROOM_FIELDS = 9
     private const val PLAYER_FIELDS = 6
@@ -63,10 +64,18 @@ object DsLan {
     var busy = false
         internal set
 
+    /** Set while a room browser is open (discovery needs servicing too). */
+    @Volatile
+    var browsing = false
+
     private var pumping = false
     private val pumpTask = object : Runnable {
         override fun run() {
             if (!pumping) return
+            if (!busy && !browsing && !inSession) {
+                pumping = false // nothing left to service
+                return
+            }
             if (!busy && !gameRunning()) {
                 process()
             }
@@ -100,7 +109,7 @@ object DsLan {
         return ok
     }
 
-    /** Keeps the network serviced until [stopPump]. Safe to call repeatedly. */
+    /** Keeps the network serviced while browsing or in a room; stops on its own after. */
     fun startPump() {
         if (pumping) return
         pumping = true
@@ -130,6 +139,91 @@ object DsLan {
                 hasPassword = flat[f + 7] == "1",
                 inGame = flat[f + 8] == "1"
             )
+        }
+    }
+
+    /** The room this device hosts or joined, or null. [Room.description] is the host's name. */
+    fun currentRoom(): Room? {
+        val f = runCatching { nativeCurrentRoom() }.getOrNull() ?: return null
+        if (f.size < ROOM_FIELDS) return null
+        return Room(
+            address = f[0], code = f[1], name = f[2], game = f[3], description = f[4],
+            players = f[5].toIntOrNull() ?: 0, maxPlayers = f[6].toIntOrNull() ?: 0,
+            hasPassword = f[7] == "1", inGame = f[8] == "1"
+        )
+    }
+
+    fun chatMessages(): List<Chat> {
+        val flat = runCatching { nativeGetChatMessages() }.getOrNull() ?: return emptyList()
+        return (0 until flat.size / 4).map { i ->
+            Chat(flat[i * 4].toIntOrNull() ?: 0, flat[i * 4 + 1], flat[i * 4 + 2] == "1", flat[i * 4 + 3])
+        }
+    }
+
+    /** "Not started yet" for rooms whose host has no game running yet. */
+    fun gameText(room: Room, notStarted: String, playing: (String) -> String): String =
+        if (room.game.isEmpty() || room.game == "Nintendo DS") notStarted
+        else if (room.inGame) playing(room.game) else room.game
+
+    private var currentGameTitle = ""
+    private var currentGameRunning = false
+
+    /** DsEmulationActivity reports its game; a hosted room advertises it. */
+    fun setCurrentGame(title: String, running: Boolean) {
+        currentGameTitle = title
+        currentGameRunning = running
+        if (runCatching { isHost() }.getOrDefault(false)) setGame(title, running)
+    }
+
+    /** Call right after hosting, so the room shows a game that is already running. */
+    fun advertiseCurrentGame() {
+        if (currentGameTitle.isNotEmpty() && runCatching { isHost() }.getOrDefault(false)) {
+            setGame(currentGameTitle, currentGameRunning)
+        }
+    }
+
+    /**
+     * Turns polls into "X joined", "X left" and chat events, for screens that only
+     * show notifications (the game screen). Starts silent: what is there is not news.
+     */
+    class Watcher {
+        private var known: Map<Int, String>? = null
+        private var chatSeen = -1
+        private var wasInSession = false
+
+        sealed class Event {
+            data class Joined(val name: String) : Event()
+            data class Left(val name: String) : Event()
+            data class Message(val chat: Chat) : Event()
+            object RoomClosed : Event()
+        }
+
+        fun poll(): List<Event> {
+            val events = mutableListOf<Event>()
+            val inRoom = inSession
+            if (!inRoom) {
+                if (wasInSession) events.add(Event.RoomClosed)
+                wasInSession = false
+                known = null
+                chatSeen = -1
+                return events
+            }
+            wasInSession = true
+            val now = players()
+                .filter { it.status == STATUS_HOST || it.status == STATUS_CLIENT }
+                .associate { it.id to it.name }
+            known?.let { before ->
+                now.forEach { (id, name) -> if (id !in before) events.add(Event.Joined(name)) }
+                before.forEach { (id, name) -> if (id !in now) events.add(Event.Left(name)) }
+            }
+            known = now
+            val total = chatTotal()
+            if (chatSeen in 0 until total) {
+                val fresh = chatMessages().takeLast(total - chatSeen)
+                fresh.filter { !it.isLocal }.forEach { events.add(Event.Message(it)) }
+            }
+            chatSeen = total
+            return events
         }
     }
 
@@ -178,7 +272,19 @@ object DsLan {
 
     external fun sendChat(message: String)
 
-    external fun getChat(): Array<String>?
+    private external fun nativeGetChatMessages(): Array<String>?
+
+    /** Messages this session, growing past the 100 the core keeps. */
+    external fun chatTotal(): Int
+
+    external fun isHost(): Boolean
+
+    private external fun nativeCurrentRoom(): Array<String>?
+
+    private external fun setGame(title: String, inGame: Boolean)
+
+    /** The IPv4 this device uses on its network, or null without one. */
+    external fun localAddress(): String?
 
     external fun kick(playerId: Int): Boolean
 }

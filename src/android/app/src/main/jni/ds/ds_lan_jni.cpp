@@ -152,15 +152,64 @@ JNIEXPORT void JNICALL Java_org_citra_citra_1emu_ds_DsLan_sendChat(JNIEnv* env, 
     }
 }
 
-JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_ds_DsLan_getChat(JNIEnv* env, jobject) {
-    auto lines = std::make_unique<char[][300]>(64);
-    const int count = azds_lan_get_chat(lines.get(), 64);
+/// Flat list, 4 fields per message: sender id, sender name, is local ("1"/"0"), text.
+JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_ds_DsLan_nativeGetChatMessages(JNIEnv* env,
+                                                                                        jobject) {
+    auto messages = std::make_unique<azds_lan_chat[]>(100);
+    const int count = azds_lan_get_chat_messages(messages.get(), 100);
     std::vector<std::string> out;
-    out.reserve(count);
+    out.reserve(count * 4);
     for (int i = 0; i < count; i++) {
-        out.emplace_back(lines[i]);
+        const auto& m = messages[i];
+        out.emplace_back(std::to_string(m.sender_id));
+        out.emplace_back(m.sender);
+        out.emplace_back(m.is_local ? "1" : "0");
+        out.emplace_back(m.text);
     }
     return ToJStringArray(env, out);
+}
+
+JNIEXPORT jint JNICALL Java_org_citra_citra_1emu_ds_DsLan_chatTotal(JNIEnv*, jobject) {
+    return static_cast<jint>(azds_lan_chat_total());
+}
+
+JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_ds_DsLan_isHost(JNIEnv*, jobject) {
+    return azds_mp_get_mode() == AZDS_MP_LAN && azds_lan_is_host() != 0;
+}
+
+/// Same 9 fields as one room of nativeGetRooms, or null when not in a room.
+JNIEXPORT jobjectArray JNICALL Java_org_citra_citra_1emu_ds_DsLan_nativeCurrentRoom(JNIEnv* env,
+                                                                                    jobject) {
+    if (azds_mp_get_mode() != AZDS_MP_LAN) {
+        return nullptr;
+    }
+    azds_lan_room r{};
+    if (!azds_lan_get_current_room(&r)) {
+        return nullptr;
+    }
+    const std::vector<std::string> out = {
+        r.address, r.room_code, r.room_name, r.game_name, r.description,
+        std::to_string(r.num_players), std::to_string(r.max_players),
+        r.has_password ? "1" : "0", r.in_game ? "1" : "0",
+    };
+    return ToJStringArray(env, out);
+}
+
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_ds_DsLan_setGame(JNIEnv* env, jobject,
+                                                                 jstring title, jboolean in_game) {
+    if (azds_mp_get_mode() != AZDS_MP_LAN) {
+        return;
+    }
+    const std::string text = OrEmpty(env, title);
+    azds_lan_set_game(text.c_str(), in_game ? 1 : 0);
+}
+
+JNIEXPORT jstring JNICALL Java_org_citra_citra_1emu_ds_DsLan_localAddress(JNIEnv* env, jobject) {
+    char buffer[64];
+    if (!azds_lan_local_address(buffer, sizeof(buffer))) {
+        return nullptr;
+    }
+    return env->NewStringUTF(buffer);
 }
 
 JNIEXPORT jboolean JNICALL Java_org_citra_citra_1emu_ds_DsLan_kick(JNIEnv*, jobject,

@@ -35,7 +35,6 @@ import org.citra.citra_emu.adapters.HomeSettingAdapter
 import org.citra.citra_emu.databinding.DialogSoftwareKeyboardBinding
 import org.citra.citra_emu.databinding.FragmentHomeSettingsBinding
 import org.citra.citra_emu.ds.DsEmulationActivity
-import org.citra.citra_emu.ds.DsLanActivity
 import org.citra.citra_emu.ds.DsSettingsActivity
 import org.citra.citra_emu.features.settings.SettingKeys
 import org.citra.citra_emu.features.settings.model.CitraSettings
@@ -88,7 +87,8 @@ class HomeSettingsFragment : Fragment() {
                 R.drawable.ic_settings,
                 { SettingsActivity.launch(requireContext(), SettingsFile.FILE_NAME_CONFIG, "") }
             ),
-            // AzalonDS: the melonDS core has its own settings, firmware menu and LAN lobby.
+            // AzalonDS: the melonDS core has its own settings and firmware menu. DS
+            // local wireless is in Multiplayer, next to Azahar's own rooms.
             HomeSetting(
                 R.string.ds_home_settings,
                 R.string.ds_home_settings_description,
@@ -100,12 +100,6 @@ class HomeSettingsFragment : Fragment() {
                 R.string.ds_home_boot_firmware_description,
                 R.drawable.ic_play,
                 { DsEmulationActivity.pickAndLaunchFirmware(requireActivity()) }
-            ),
-            HomeSetting(
-                R.string.ds_home_lan,
-                R.string.ds_home_lan_description,
-                R.drawable.ic_network,
-                { startActivity(Intent(requireContext(), DsLanActivity::class.java)) }
             ),
             HomeSetting(
                 R.string.grid_menu_core_export_zippass,

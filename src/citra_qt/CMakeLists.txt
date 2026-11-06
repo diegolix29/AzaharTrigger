@@ -162,12 +162,6 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     multiplayer/lobby.h
     multiplayer/lobby.ui
     multiplayer/lobby_p.h
-    multiplayer/melon_host_room.cpp
-    multiplayer/melon_host_room.h
-    multiplayer/melon_host_room.ui
-    multiplayer/melon_join_room.cpp
-    multiplayer/melon_join_room.h
-    multiplayer/melon_join_room.ui
     multiplayer/message.cpp
     multiplayer/message.h
     multiplayer/moderation_dialog.cpp
@@ -330,8 +324,8 @@ if (ENABLE_DS)
     target_sources(citra_qt PRIVATE
         ds/ds_config.cpp
         ds/ds_config.h
-        ds/ds_lan_dialog.cpp
-        ds/ds_lan_dialog.h
+        ds/ds_lan.cpp
+        ds/ds_lan.h
         ds/ds_screen_widget.cpp
         ds/ds_screen_widget.h
         ds/ds_session.cpp

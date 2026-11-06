@@ -246,7 +246,7 @@ typedef struct azds_lan_room {
     char room_code[9];
     char room_name[64];
     char game_name[64];
-    char description[128];
+    char description[128]; // AzalonDS hosts put their player name here
     int num_players;
     int max_players;
     int has_password;
@@ -279,6 +279,27 @@ AZDS_API int azds_lan_max_players(void);
 AZDS_API void azds_lan_send_chat(const char* message);
 // Copies up to max_lines chat lines (oldest first) formatted as "<sender_id>: text".
 AZDS_API int azds_lan_get_chat(char (*lines)[300], int max_lines);
+// Structured chat: sender name is captured when the message arrives, so it survives
+// the sender leaving. azds_lan_chat_total() counts every message of the session (it
+// keeps growing after the core drops old lines), so frontends can spot new ones.
+typedef struct azds_lan_chat {
+    int sender_id;
+    char sender[32];
+    int is_local;
+    char text[256];
+} azds_lan_chat;
+AZDS_API int azds_lan_get_chat_messages(azds_lan_chat* out, int max_messages);
+AZDS_API unsigned azds_lan_chat_total(void);
+// 1 while hosting a room (not when joined to someone else's).
+AZDS_API int azds_lan_is_host(void);
+// The room this console is hosting or joined to. address is the host's IPv4 for
+// clients and empty for the host. Returns 0 when not in a room.
+AZDS_API int azds_lan_get_current_room(azds_lan_room* out);
+// Host only: the game the room plays (shown in room lists) and whether it is running.
+AZDS_API void azds_lan_set_game(const char* title, int in_game);
+// The IPv4 address this device uses on its network (what others type to join by IP).
+// Returns 0 when there is no network. Works without LAN mode.
+AZDS_API int azds_lan_local_address(char* out, int out_len);
 AZDS_API int azds_lan_kick(int player_id);
 AZDS_API int azds_lan_ban(int player_id);
 // Pumps the wireless backend. azds_run_frame() already calls this once per frame;

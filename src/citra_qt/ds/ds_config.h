@@ -54,6 +54,7 @@ struct Config {
     int wireless_mode = 0; ///< azds_mp_mode: -1 off, 0 local, 1 LAN
     bool internet = true;
     QString lan_player_name = QStringLiteral("Player");
+    QString lan_last_address; ///< last Direct Connect address
 
     void Load();
     void Save() const;

@@ -60,6 +60,9 @@ public slots:
     void OnNetworkStateChanged(const Network::RoomMember::State& state);
     void OnNetworkError(const Network::RoomMember::Error& error);
     void OnViewLobby();
+#ifdef ENABLE_DS
+    void OnViewDSLobby();
+#endif
     void OnCreateRoom();
     bool OnCloseRoom();
     void OnOpenNetworkRoom();

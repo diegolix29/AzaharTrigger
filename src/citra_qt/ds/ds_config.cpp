@@ -85,6 +85,7 @@ void Config::Load() {
     wireless_mode = s.value(QStringLiteral("wireless_mode"), wireless_mode).toInt();
     internet = s.value(QStringLiteral("internet"), internet).toBool();
     lan_player_name = s.value(QStringLiteral("lan_player_name"), lan_player_name).toString();
+    lan_last_address = s.value(QStringLiteral("lan_last_address"), lan_last_address).toString();
     s.endGroup();
 }
 
@@ -129,6 +130,7 @@ void Config::Save() const {
     s.setValue(QStringLiteral("wireless_mode"), wireless_mode);
     s.setValue(QStringLiteral("internet"), internet);
     s.setValue(QStringLiteral("lan_player_name"), lan_player_name);
+    s.setValue(QStringLiteral("lan_last_address"), lan_last_address);
     s.endGroup();
 }
 

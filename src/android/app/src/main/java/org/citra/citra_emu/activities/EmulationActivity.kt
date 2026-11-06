@@ -416,8 +416,7 @@ class EmulationActivity : AppCompatActivity() {
     }
 
     fun displayMultiplayerDialog() {
-        val dialog = NetPlayDialog(this)
-        dialog.show()
+        NetPlayDialog.open(this)
     }
 
     fun addNetPlayMessages(type: Int, msg: String) {

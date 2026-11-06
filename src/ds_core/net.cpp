@@ -11,6 +11,16 @@
 #include <mutex>
 #include <string>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 #include "net/LAN.h"
 #include "net/MPInterface.h"
 #include "net/Net.h"
@@ -230,6 +240,109 @@ AZDS_API int azds_lan_get_chat(char (*lines)[300], int max_lines) {
                           messages[i].Message);
     }
     return count;
+}
+
+AZDS_API int azds_lan_get_chat_messages(azds_lan_chat* out, int max_messages) {
+    LAN* lan = CurrentLAN();
+    if (!lan || !out || max_messages <= 0)
+        return 0;
+    const auto messages = lan->GetChatMessages();
+    const auto players = lan->GetPlayerList();
+    int local_id = -1;
+    for (const auto& player : players)
+        if (player.IsLocalPlayer)
+            local_id = player.ID;
+    const size_t first =
+        messages.size() > static_cast<size_t>(max_messages) ? messages.size() - max_messages : 0;
+    int count = 0;
+    for (size_t i = first; i < messages.size(); i++) {
+        const auto& m = messages[i];
+        azds_lan_chat& c = out[count++];
+        std::memset(&c, 0, sizeof(c));
+        c.sender_id = static_cast<int>(m.SenderID);
+        if (m.SenderName[0])
+            CopyString(c.sender, sizeof(c.sender), m.SenderName);
+        else
+            std::snprintf(c.sender, sizeof(c.sender), "Player %u", m.SenderID + 1);
+        c.is_local = static_cast<int>(m.SenderID) == local_id ? 1 : 0;
+        CopyString(c.text, sizeof(c.text), m.Message);
+    }
+    return count;
+}
+
+AZDS_API unsigned azds_lan_chat_total(void) {
+    LAN* lan = CurrentLAN();
+    return lan ? lan->GetChatTotal() : 0;
+}
+
+AZDS_API int azds_lan_is_host(void) {
+    LAN* lan = CurrentLAN();
+    return lan && lan->IsHosting() ? 1 : 0;
+}
+
+AZDS_API int azds_lan_get_current_room(azds_lan_room* out) {
+    LAN* lan = CurrentLAN();
+    if (!lan || !out || !lan->IsInSession())
+        return 0;
+    const LAN::RoomInfo info = lan->GetRoomInfo();
+    std::memset(out, 0, sizeof(*out));
+    if (!lan->IsHosting())
+        FormatNetworkOrderIPv4(out->address, sizeof(out->address), lan->GetHostAddress());
+    CopyString(out->room_code, sizeof(out->room_code), info.RoomCode);
+    CopyString(out->room_name, sizeof(out->room_name), info.RoomName);
+    CopyString(out->game_name, sizeof(out->game_name), info.GameName);
+    CopyString(out->description, sizeof(out->description), info.Description);
+    out->num_players = lan->GetNumPlayers();
+    out->max_players = info.MaxPlayers ? info.MaxPlayers : lan->GetMaxPlayers();
+    out->has_password = info.HasPassword;
+    out->in_game = info.InGame;
+    return 1;
+}
+
+AZDS_API void azds_lan_set_game(const char* title, int in_game) {
+    if (LAN* lan = CurrentLAN())
+        lan->SetRoomGame(title, in_game != 0);
+}
+
+AZDS_API int azds_lan_local_address(char* out, int out_len) {
+    if (!out || out_len <= 0)
+        return 0;
+    out[0] = 0;
+#ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+        return 0;
+    SOCKET sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    const bool valid = sock != INVALID_SOCKET;
+#else
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    const bool valid = sock >= 0;
+#endif
+    int ok = 0;
+    if (valid) {
+        // Connecting a UDP socket sends nothing; it only picks the outgoing interface.
+        sockaddr_in remote{};
+        remote.sin_family = AF_INET;
+        remote.sin_port = htons(53);
+        remote.sin_addr.s_addr = htonl(0x08080808);
+        sockaddr_in local{};
+        socklen_t len = sizeof(local);
+        if (connect(sock, reinterpret_cast<sockaddr*>(&remote), sizeof(remote)) == 0 &&
+            getsockname(sock, reinterpret_cast<sockaddr*>(&local), &len) == 0 &&
+            local.sin_addr.s_addr != 0) {
+            FormatNetworkOrderIPv4(out, static_cast<size_t>(out_len), local.sin_addr.s_addr);
+            ok = 1;
+        }
+#ifdef _WIN32
+        closesocket(sock);
+#else
+        close(sock);
+#endif
+    }
+#ifdef _WIN32
+    WSACleanup();
+#endif
+    return ok;
 }
 
 AZDS_API int azds_lan_kick(int player_id) {

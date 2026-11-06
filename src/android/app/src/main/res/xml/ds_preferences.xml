@@ -60,19 +60,22 @@
         android:summary="@string/ds_category_bios_description"
         android:title="@string/ds_category_bios">
 
-        <EditTextPreference
+        <Preference
+            android:icon="@drawable/ic_install"
+            android:key="ds_import_bios_folder"
+            android:summary="@string/ds_bios_import_folder_description"
+            android:title="@string/ds_bios_import_folder" />
+
+        <Preference
             android:key="ds_bios9"
-            android:singleLine="true"
             android:title="@string/ds_bios9" />
 
-        <EditTextPreference
+        <Preference
             android:key="ds_bios7"
-            android:singleLine="true"
             android:title="@string/ds_bios7" />
 
-        <EditTextPreference
+        <Preference
             android:key="ds_firmware"
-            android:singleLine="true"
             android:title="@string/ds_firmware" />
 
     </PreferenceCategory>
@@ -81,24 +84,20 @@
         android:summary="@string/ds_category_dsi_description"
         android:title="@string/ds_category_dsi">
 
-        <EditTextPreference
+        <Preference
             android:key="ds_dsi_bios9"
-            android:singleLine="true"
             android:title="@string/ds_dsi_bios9" />
 
-        <EditTextPreference
+        <Preference
             android:key="ds_dsi_bios7"
-            android:singleLine="true"
             android:title="@string/ds_dsi_bios7" />
 
-        <EditTextPreference
+        <Preference
             android:key="ds_dsi_firmware"
-            android:singleLine="true"
             android:title="@string/ds_dsi_firmware" />
 
-        <EditTextPreference
+        <Preference
             android:key="ds_dsi_nand"
-            android:singleLine="true"
             android:title="@string/ds_dsi_nand" />
 
     </PreferenceCategory>

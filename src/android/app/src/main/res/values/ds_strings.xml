@@ -99,7 +99,7 @@
     </string-array>
 
     <string name="ds_category_bios">DS BIOS and firmware</string>
-    <string name="ds_category_bios_description">Leave empty to use the built-in FreeBIOS and generated firmware. Paths to real files on this device.</string>
+    <string name="ds_category_bios_description">Optional for DS games (the built-in FreeBIOS runs them). Needed for the DS/DSi system menu and DSi games. Tap one to pick its file; it is copied into Azalon\'s DS folder.</string>
     <string name="ds_bios9">ARM9 BIOS</string>
     <string name="ds_bios7">ARM7 BIOS</string>
     <string name="ds_firmware">Firmware</string>
@@ -153,8 +153,8 @@
 
     <!-- LAN lobby -->
     <string name="ds_menu_lan">Local wireless (LAN)</string>
-    <string name="ds_lan_open">Open the LAN lobby</string>
-    <string name="ds_lan_open_description">Host or join a room before starting the game</string>
+    <string name="ds_lan_open">DS local wireless rooms</string>
+    <string name="ds_lan_open_description">Host or join a room (Multiplayer) before starting the game. Works between phones and PCs on the same Wi-Fi.</string>
     <string name="ds_lan_title">DS local wireless</string>
     <string name="ds_lan_stop_game_first">Stop the DS game first, host or join a room, then start the game again.</string>
     <string name="ds_lan_your_name">Your name</string>
@@ -192,4 +192,56 @@
     <string name="ds_lan_leave">Leave room</string>
     <string name="ds_lan_enter_name">Enter your name first.</string>
 
+
+    <!-- DS local wireless inside Azahar's Multiplayer dialog (DsNetPlay) -->
+    <string name="ds_mp_tab_info">Play DS local wireless with phones and PCs on the same Wi-Fi. This device: %1$s</string>
+    <string name="ds_mp_no_network">no network</string>
+    <string name="ds_mp_rooms_title">DS Rooms</string>
+    <string name="ds_mp_search_rooms">Search DS rooms</string>
+    <string name="ds_mp_hide_in_game">Hide In Game</string>
+    <string name="ds_mp_searching_title">Looking for DS rooms…</string>
+    <string name="ds_mp_searching_body">Rooms on the same Wi-Fi show up here by themselves. This device: %1$s. If a room does not appear, join it by IP.</string>
+    <string name="ds_mp_hosted_by">Hosted by %1$s · %2$s</string>
+    <string name="ds_mp_not_started">Not started yet</string>
+    <string name="ds_mp_playing">%1$s (playing)</string>
+    <string name="ds_mp_join_failed">Could not join the room at %1$s.
+
+Check the password, that both devices are on the same Wi-Fi (or VPN), and that a PC host allows UDP ports 7063 and 7064 through its firewall.</string>
+    <string name="ds_mp_host_title">Host DS Room</string>
+    <string name="ds_mp_direct_title">Join DS Room by IP</string>
+    <string name="ds_mp_room_code">Room code %1$s</string>
+    <string name="ds_mp_game">Game: %1$s</string>
+    <string name="ds_mp_host_address">Others join with %1$s (tap to copy)</string>
+    <string name="ds_mp_address_copied">Address copied</string>
+    <string name="ds_mp_hint">Everyone starts the same DS game, then uses the game\'s own wireless menu (DS Download Play, multiplayer…).</string>
+    <string name="ds_mp_member_line">%1$s · %2$s</string>
+    <string name="ds_mp_you">%1$s (You)</string>
+    <string name="ds_mp_host_badge">Host</string>
+    <string name="ds_mp_ping">%1$d ms</string>
+    <string name="ds_mp_chat_unread">Chat (%1$d)</string>
+    <string name="ds_mp_close_room">Close Room</string>
+    <string name="ds_mp_close_confirm">Close the room? Everyone in it will be disconnected.</string>
+    <string name="ds_mp_leave_confirm">Leave the room?</string>
+    <string name="ds_mp_room_closed">You are no longer in the DS room.</string>
+    <string name="ds_mp_room_created">Room created. Waiting for players…</string>
+    <string name="ds_mp_joined_room">Joined the room.</string>
+    <string name="ds_mp_has_joined">%1$s has joined</string>
+    <string name="ds_mp_has_left">%1$s has left</string>
+    <string name="ds_mp_joined_toast">%1$s joined the DS room</string>
+    <string name="ds_mp_left_toast">%1$s left the DS room</string>
+    <string name="ds_mp_chat_toast">%1$s: %2$s</string>
+
+    <!-- BIOS / firmware pickers (DsBios) -->
+    <string name="ds_bios_import_folder">Import dumps from a folder</string>
+    <string name="ds_bios_import_folder_description">Pick the folder with your dumps (bios7.bin, bios9.bin, firmware.bin, dsi_bios7.bin, dsi_bios9.bin, dsi_firmware.bin, dsi_nand.bin); each one found is set up.</string>
+    <string name="ds_bios_choose">Choose file</string>
+    <string name="ds_bios_clear">Clear</string>
+    <string name="ds_bios_copying">Copying %1$s…</string>
+    <string name="ds_bios_copied">%1$s set.</string>
+    <string name="ds_bios_wrong_size">%1$s was copied, but its size does not look like a %2$s dump. It may not work.</string>
+    <string name="ds_bios_failed">Could not copy %1$s: %2$s</string>
+    <string name="ds_bios_none_found">No BIOS, firmware or NAND dumps found in that folder.</string>
+    <string name="ds_bios_imported">Set up: %1$s</string>
+    <string name="ds_bios_set_summary">%1$s · %2$s</string>
+    <string name="ds_bios_missing">%1$s (file is missing)</string>
 </resources>

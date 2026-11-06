@@ -218,6 +218,16 @@ void MultiplayerState::OnViewLobby() {
     BringWidgetToFront(lobby);
 }
 
+#ifdef ENABLE_DS
+void MultiplayerState::OnViewDSLobby() {
+    if (lobby == nullptr) {
+        lobby = new Lobby(system, this, game_list_model, announce_multiplayer_session);
+    }
+    lobby->ShowDSTab();
+    BringWidgetToFront(lobby);
+}
+#endif
+
 void MultiplayerState::OnCreateRoom() {
     if (host_room == nullptr) {
         host_room = new HostRoomWindow(system, this, game_list_model, announce_multiplayer_session);
