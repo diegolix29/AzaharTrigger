@@ -17,6 +17,10 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="sliderStyle">@style/CitraSlider</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <!-- Needed by PreferenceFragmentCompat, which the DS settings screen uses.
+             Material3 themes do not set it, and the fragment refuses to inflate
+             without it. -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 
     <style name="Theme.Citra.Blue" parent="Theme.Citra">

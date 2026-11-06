@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Container the DS settings fragment is attached to; the activity builds its
+         view hierarchy in code, so the id has to come from here. -->
+    <item name="ds_settings_container" type="id" />
+</resources>

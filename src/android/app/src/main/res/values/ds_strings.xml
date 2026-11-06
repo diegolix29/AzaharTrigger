@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Strings of the DS/DSi frontend. Kept apart from strings.xml so the DS additions
+  are easy to find and do not churn the translated files until they settle.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+
+    <string name="ds_title">Nintendo DS</string>
+    <string name="ds_settings">DS settings</string>
+    <string name="ds_path_not_set">Not set</string>
+
+    <!-- Errors -->
+    <string name="ds_error_no_game">No DS game to run.</string>
+    <string name="ds_error_open_failed">Could not open %1$s.</string>
+    <string name="ds_console_powered_off">The DS powered off.</string>
+
+    <!-- In-game menu -->
+    <string name="ds_menu_pause">Pause</string>
+    <string name="ds_menu_resume">Resume</string>
+    <string name="ds_menu_save_state">Save state</string>
+    <string name="ds_menu_load_state">Load state</string>
+    <string name="ds_menu_layout">Screen layout</string>
+    <string name="ds_menu_swap_screens">Swap screens</string>
+    <string name="ds_menu_toggle_overlay">Toggle on-screen controls</string>
+    <string name="ds_menu_close_lid">Close the lid</string>
+    <string name="ds_menu_reset">Reset</string>
+    <string name="ds_menu_settings">DS settings</string>
+    <string name="ds_menu_exit">Exit</string>
+    <string name="ds_reset_confirm">Restart the console? Unsaved progress is lost.</string>
+    <string name="ds_exit_confirm">Stop emulation and return to the game list?</string>
+
+    <!-- Savestates -->
+    <string name="ds_state_slot_empty">Slot %1$d (empty)</string>
+    <string name="ds_state_slot_used">Slot %1$d</string>
+    <string name="ds_state_saved">State saved</string>
+    <string name="ds_state_loaded">State loaded</string>
+    <string name="ds_state_failed">That did not work</string>
+
+    <!-- Screen layouts -->
+    <string name="ds_layout_vertical">Top and bottom</string>
+    <string name="ds_layout_horizontal">Side by side</string>
+    <string name="ds_layout_top_only">Top screen only</string>
+    <string name="ds_layout_bottom_only">Bottom screen only</string>
+
+    <string-array name="ds_layouts">
+        <item>@string/ds_layout_vertical</item>
+        <item>@string/ds_layout_horizontal</item>
+        <item>@string/ds_layout_top_only</item>
+        <item>@string/ds_layout_bottom_only</item>
+    </string-array>
+    <string-array name="ds_layout_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <!-- Settings -->
+    <string name="ds_category_system">System</string>
+    <string name="ds_console_type">Console</string>
+    <string-array name="ds_console_types">
+        <item>Nintendo DS</item>
+        <item>Nintendo DSi</item>
+    </string-array>
+    <string-array name="ds_console_type_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
+    <string name="ds_direct_boot">Boot games directly</string>
+    <string name="ds_direct_boot_description">Skip the firmware menu and start the cartridge straight away.</string>
+    <string name="ds_jit">Recompiler</string>
+    <string name="ds_jit_description">Much faster than the interpreter. Turn off only to diagnose a problem.</string>
+    <string name="ds_threaded_renderer">Threaded renderer</string>
+    <string name="ds_threaded_renderer_description">Render the 3D on its own thread.</string>
+
+    <string name="ds_category_firmware">Firmware</string>
+    <string name="ds_nickname">Nickname</string>
+    <string name="ds_language">Language</string>
+    <string-array name="ds_languages">
+        <item>Japanese</item>
+        <item>English</item>
+        <item>French</item>
+        <item>German</item>
+        <item>Italian</item>
+        <item>Spanish</item>
+        <item>Chinese</item>
+        <item>Korean</item>
+    </string-array>
+    <string-array name="ds_language_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+    <string name="ds_category_bios">DS BIOS and firmware</string>
+    <string name="ds_category_bios_description">Leave empty to use the built-in FreeBIOS and generated firmware. Paths to real files on this device.</string>
+    <string name="ds_bios9">ARM9 BIOS</string>
+    <string name="ds_bios7">ARM7 BIOS</string>
+    <string name="ds_firmware">Firmware</string>
+
+    <string name="ds_category_dsi">DSi</string>
+    <string name="ds_category_dsi_description">DSi mode needs all four dumps from a console.</string>
+    <string name="ds_dsi_bios9">DSi ARM9 BIOS</string>
+    <string name="ds_dsi_bios7">DSi ARM7 BIOS</string>
+    <string name="ds_dsi_firmware">DSi firmware</string>
+    <string name="ds_dsi_nand">DSi NAND</string>
+
+    <string name="ds_category_homebrew">Homebrew</string>
+    <string name="ds_dldi_enable">Virtual SD card</string>
+    <string name="ds_dldi_enable_description">Gives homebrew an SD card (DLDI).</string>
+    <string name="ds_dldi_sync_folder">Folder to mirror onto the SD card</string>
+
+    <string name="ds_category_network">Wireless</string>
+    <string name="ds_wireless_mode">Local multiplayer</string>
+    <string-array name="ds_wireless_modes">
+        <item>Off</item>
+        <item>Same device</item>
+        <item>Local network</item>
+    </string-array>
+    <string-array name="ds_wireless_mode_values">
+        <item>-1</item>
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string name="ds_internet">Internet</string>
+    <string name="ds_internet_description">Lets games reach replacement Nintendo WFC servers.</string>
+
+    <string name="ds_category_screens">Screens</string>
+    <string name="ds_show_overlay">On-screen controls</string>
+    <string name="ds_show_overlay_description">Hide them if you only play with a controller.</string>
+
+</resources>

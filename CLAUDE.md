@@ -23,6 +23,8 @@ wants a clean core-to-core merge so melonDS's own wireless (LAN/local) and inter
 | `src/ds_core/tests/azds_smoke.c` | headless boot test, writes a PNG (`-DAZDS_BUILD_TESTS=ON`) |
 | `CMakeModules/AzalonDSCore.cmake` | builds src/ds_core via ExternalProject → imported target `azalon_ds`; `azalon_ds_copy_runtime(<exe>)` |
 | `src/citra_qt/ds/` | Qt frontend for DS: `Session` (emu thread, pacing, Azahar input profile + audio sink), `ScreenWidget`, `Config` + `ConfigDialog` (`<config>/azalon_ds.ini`), `LanDialog` |
+| `src/android/app/src/main/jni/ds/` | Android native DS layer: `Session` (emu thread, pacing, two `ANativeWindow`s, audio via `AudioCore::Sink`) + `ds_jni.cpp` (`DsNative`, `DsRomInfo`) |
+| `src/android/.../citra_emu/ds/` | Android Kotlin DS frontend: `DsEmulationActivity`, `DsScreensView`/`DsScreenView`, `DsInputOverlay`, `DsSettings`(+Activity, `res/xml/ds_preferences.xml`), `DsPaths`, `DsRom` |
 | `tools/build-windows-msvc.bat` | configure + build with vcvars (`x64-release` / `x64-debug`) |
 
 Hooks in Azahar code are all under `#ifdef ENABLE_DS` (CMake option `ENABLE_DS`, default ON):
@@ -75,10 +77,24 @@ The Android repo is owned by another Windows SID: use `git -c safe.directory=* .
 - Done: azalon_ds library (DS + DSi, JIT, saves, savestates, AR cheats, DLDI SD, LAN + local
   wireless, slirp internet), Windows MSVC build integration, Qt DS session/screen/menu/LAN
   lobby/settings, DS games in the game list.
+- Done (Android, **not built/run yet** — no SDK/NDK on this machine): `.nds/.srl/.dsi/.ids` in
+  the game list with banner title+icon, `DsEmulationActivity` (software renderer blitted to two
+  SurfaceViews, on-screen controls, physical pads, touch screen, savestates, layouts, lid),
+  `DsSettingsActivity`, `azalon_ds` linked into `citra-android`.
 - Not done: OpenGL/upscaled DS rendering, DS hotkeys, DS play-time tracking, AAC (DSi) decoding
-  (faad2), mic/camera passthrough, multi-instance local MP in one process, Android frontend
-  (Kotlin UI + JNI over azds_*), libretro, Linux/macOS packaging of the shared library
+  (faad2), mic/camera passthrough, multi-instance local MP in one process, Android LAN lobby UI
+  and per-game DS settings, libretro, Linux/macOS packaging of the shared library
   (rpath/bundle), CI (`.github/workflows/build.yml`).
+
+## Android notes
+- The DS core opens files with stdio, so SAF documents are passed to it as
+  `/proc/self/fd/<fd>`; `DsRom.Handle` owns that descriptor for the session's lifetime.
+- DS saves/states live in `<Azahar user dir>/ds/{saves,states}` (same layout as desktop), or in
+  the app's external files dir when the user directory is not a writable real path.
+- `PreferenceFragmentCompat` needs `preferenceTheme`, added to `Theme.Citra` in
+  `res/values/themes.xml`.
+- `libazalon_ds.so` is emitted into `CMAKE_LIBRARY_OUTPUT_DIRECTORY` so the Android Gradle
+  plugin packages it; `libcitra-android.so` has a DT_NEEDED on it.
 
 ## Working notes
 - Shell: PowerShell primary; Git Bash available (no cmake on its PATH: use VS's

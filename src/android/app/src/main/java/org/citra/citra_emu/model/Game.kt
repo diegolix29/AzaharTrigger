@@ -16,6 +16,8 @@ import kotlinx.serialization.Serializable
 import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.activities.EmulationActivity
+import org.citra.citra_emu.ds.DsEmulationActivity
+import org.citra.citra_emu.ds.DsRom
 import org.citra.citra_emu.utils.BuildUtil
 
 @Parcelize
@@ -41,6 +43,9 @@ class Game(
     val keyAddedToLibraryTime get() = "${filename}_AddedToLibraryTime"
     val keyLastPlayedTime get() = "${filename}_LastPlayed"
 
+    /** True for DS/DSi cartridges, which the melonDS core runs instead of the 3DS one. */
+    val isDs: Boolean get() = DsRom.isDsFile(filename.ifEmpty { path })
+
     val launchIntent: Intent
         get() {
             var appUri: Uri
@@ -60,7 +65,12 @@ class Game(
             } else {
                 appUri = path.toUri()
             }
-            return Intent(CitraApplication.appContext, EmulationActivity::class.java).apply {
+            val target = if (isDs) {
+                DsEmulationActivity::class.java
+            } else {
+                EmulationActivity::class.java
+            }
+            return Intent(CitraApplication.appContext, target).apply {
                 action = Intent.ACTION_VIEW
                 data = appUri
             }
@@ -96,11 +106,15 @@ class Game(
     }
 
     companion object {
-        val extensions: Set<String> = HashSet(
+        /** Extensions the 3DS core loads. */
+        val citraExtensions: Set<String> = HashSet(
             listOf(
                 "3dsx", "app", "axf", "cci", "cxi", "elf",
                 "z3dsx", "zcci", "zcxi", "bcci", "bcxi", "3ds"
             )
         )
+
+        /** Everything the game list scanner picks up, DS cartridges included. */
+        val extensions: Set<String> = citraExtensions + DsRom.extensions
     }
 }

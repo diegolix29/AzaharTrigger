@@ -41,6 +41,7 @@ import org.citra.citra_emu.databinding.ActivityEmulationBinding
 import org.citra.citra_emu.dialogs.NetPlayDialog
 import org.citra.citra_emu.display.ScreenAdjustmentUtil
 import org.citra.citra_emu.display.SecondaryDisplay
+import org.citra.citra_emu.ds.DsEmulationActivity
 import org.citra.citra_emu.features.hotkeys.HotkeyUtility
 import org.citra.citra_emu.features.settings.model.BooleanSetting
 import org.citra.citra_emu.features.settings.model.CitraSettings
@@ -140,6 +141,22 @@ class EmulationActivity : AppCompatActivity() {
 
         processGame = processGame ?: GameHelper.getGameFromIntent(this, intent)
         val game = processGame
+
+        // DS cartridges run on the melonDS core, which has its own frontend. This
+        // activity is still the target of the VIEW intent filter and of any
+        // shortcut made before DS support existed, so hand those over.
+        if (game != null && game.isDs) {
+            // onStop/onDestroy still run for this activity, and both use it.
+            secondaryDisplayManager = SecondaryDisplay(this)
+            startActivity(
+                Intent(this, DsEmulationActivity::class.java).apply {
+                    putExtra(DsEmulationActivity.EXTRA_GAME, game)
+                }
+            )
+            processGame = null
+            finish()
+            return
+        }
 
         loadGameSettings(game)
 

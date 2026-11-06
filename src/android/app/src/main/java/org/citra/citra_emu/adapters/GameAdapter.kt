@@ -52,6 +52,7 @@ import org.citra.citra_emu.R
 import org.citra.citra_emu.adapters.GameAdapter.GameViewHolder
 import org.citra.citra_emu.databinding.CardGameBinding
 import org.citra.citra_emu.databinding.DialogShortcutBinding
+import org.citra.citra_emu.ds.DsEmulationActivity
 import org.citra.citra_emu.features.cheats.ui.CheatsFragmentDirections
 import org.citra.citra_emu.features.settings.ui.SettingsActivity
 import org.citra.citra_emu.features.settings.utils.SettingsFile
@@ -129,7 +130,23 @@ class GameAdapter(
             )
             .apply()
 
-        val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
+        launchGame(view, holder.game)
+    }
+
+    /**
+     * Starts a game: DS cartridges go to the melonDS frontend, everything else to
+     * the 3DS one.
+     */
+    private fun launchGame(view: View, game: Game) {
+        if (game.isDs) {
+            view.context.startActivity(
+                Intent(view.context, DsEmulationActivity::class.java).apply {
+                    putExtra(DsEmulationActivity.EXTRA_GAME, game)
+                }
+            )
+            return
+        }
+        val action = HomeNavigationDirections.actionGlobalEmulationActivity(game)
         view.findNavController().navigate(action)
     }
 
@@ -534,8 +551,7 @@ class GameAdapter(
         GameIconUtils.loadGameIcon(activity, game, bottomSheetView.findViewById(R.id.game_icon))
 
         bottomSheetView.findViewById<MaterialButton>(R.id.about_game_play).setOnClickListener {
-            val action = HomeNavigationDirections.actionGlobalEmulationActivity(holder.game)
-            view.findNavController().navigate(action)
+            launchGame(view, holder.game)
         }
 
         bottomSheetView.findViewById<TextView>(R.id.about_game_playtime).text =

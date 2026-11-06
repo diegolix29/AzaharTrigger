@@ -73,7 +73,10 @@ if (ANDROID)
     list(APPEND _azds_args
         -DANDROID_ABI=${ANDROID_ABI}
         -DANDROID_PLATFORM=${ANDROID_PLATFORM}
-        -DANDROID_STL=${ANDROID_STL})
+        -DANDROID_STL=${ANDROID_STL}
+        # The DS core ships in the same APK as everything else, so it has to agree
+        # with it about page size (Android 15 devices with 16 KiB pages).
+        -DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=${ANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES})
 endif()
 if (APPLE)
     list(APPEND _azds_args

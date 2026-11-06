@@ -5,6 +5,11 @@
 # To get usable stack traces
 -dontobfuscate
 
+# The DS frontend is reached from JNI (ds_jni.cpp): the native methods, the stop
+# callback and DsRomInfo's constructor have no caller R8 can see.
+-keep class org.citra.citra_emu.ds.DsNative { *; }
+-keep class org.citra.citra_emu.ds.DsRomInfo { *; }
+
 # Prevents crashing when using Wini
 -keep class org.ini4j.spi.IniParser
 -keep class org.ini4j.spi.IniBuilder

@@ -16,6 +16,7 @@ import kotlinx.serialization.json.Json
 import org.citra.citra_emu.CitraApplication
 import org.citra.citra_emu.NativeLibrary
 import org.citra.citra_emu.R
+import org.citra.citra_emu.ds.DsRom
 import org.citra.citra_emu.model.CheapDocument
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.model.GameInfo
@@ -94,6 +95,10 @@ object GameHelper {
         mediaType: Game.MediaType
     ): Game {
         val filePath = uri.toString()
+        if (DsRom.isDsFile(FileUtil.getFilename(uri).ifEmpty { filePath })) {
+            return getDsGame(uri, addedToLibrary)
+        }
+
         var nativePath: String? = null
         var gameInfo: GameInfo?
         if (BuildUtil.isGooglePlayBuild || FileUtil.isNativePath(filePath) ||
@@ -153,6 +158,63 @@ object GameHelper {
             } else {
                 FileUtil.getFilename(Uri.parse(filePath))
             }
+        )
+
+        if (addedToLibrary) {
+            val addedTime = preferences.getLong(newGame.keyAddedToLibraryTime, 0L)
+            if (addedTime == 0L) {
+                preferences.edit()
+                    .putLong(newGame.keyAddedToLibraryTime, System.currentTimeMillis())
+                    .apply()
+            }
+        }
+
+        return newGame
+    }
+
+    /**
+     * Builds a game list entry for a DS/DSi cartridge. The 3DS loaders know
+     * nothing about .nds files, so the title, icon and region come from the DS
+     * core's own ROM probe instead of [GameInfo].
+     */
+    private fun getDsGame(uri: Uri, addedToLibrary: Boolean): Game {
+        val filePath = uri.toString()
+        // The DS core reads files with stdio, so prefer a real path where we have one.
+        val corePath = if (BuildUtil.isGooglePlayBuild || FileUtil.isNativePath(filePath) ||
+            filePath.startsWith("!")
+        ) {
+            filePath
+        } else if (uri.scheme == "fd") {
+            filePath
+        } else {
+            "!" + NativeLibrary.getNativePath(uri)
+        }
+
+        val filename = if (FileUtil.isNativePath(filePath)) {
+            CitraApplication.documentsTree.getFilename(filePath)
+        } else {
+            FileUtil.getFilename(uri)
+        }.ifEmpty { corePath.substringAfterLast('/') }
+
+        val info = DsRom.probe(corePath, filePath)
+        val newGame = Game(
+            valid = info != null,
+            title = (info?.shortTitle?.ifEmpty { null } ?: filename.substringBeforeLast('.'))
+                .replace("[\\t\\n\\r]+".toRegex(), " "),
+            description = filePath.replace("\n", " "),
+            path = corePath,
+            titleId = info?.programId ?: 0L,
+            mediaType = Game.MediaType.GAME_CARD,
+            company = "",
+            regions = info?.region ?: "",
+            isInstalled = false,
+            isSystemTitle = false,
+            isVisibleSystemTitle = false,
+            isInsertable = false,
+            icon = info?.icon,
+            fileType = info?.typeName ?: "NDS",
+            isCompressed = false,
+            filename = filename
         )
 
         if (addedToLibrary) {

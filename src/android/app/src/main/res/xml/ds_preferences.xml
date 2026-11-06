@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Settings of the DS/DSi core, the Android counterpart of DS::ConfigDialog in
+  src/citra_qt/ds/ds_config.cpp. Keys must match DsSettings.
+-->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/ds_category_system">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/ds_console_types"
+            android:entryValues="@array/ds_console_type_values"
+            android:key="ds_console_type"
+            android:title="@string/ds_console_type"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_direct_boot"
+            android:summary="@string/ds_direct_boot_description"
+            android:title="@string/ds_direct_boot" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_jit"
+            android:summary="@string/ds_jit_description"
+            android:title="@string/ds_jit" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_threaded_renderer"
+            android:summary="@string/ds_threaded_renderer_description"
+            android:title="@string/ds_threaded_renderer" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ds_category_firmware">
+
+        <EditTextPreference
+            android:defaultValue="Azalon"
+            android:key="ds_nickname"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="@string/ds_nickname"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/ds_languages"
+            android:entryValues="@array/ds_language_values"
+            android:key="ds_language"
+            android:title="@string/ds_language"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="@string/ds_category_bios_description"
+        android:title="@string/ds_category_bios">
+
+        <EditTextPreference
+            android:key="ds_bios9"
+            android:singleLine="true"
+            android:title="@string/ds_bios9" />
+
+        <EditTextPreference
+            android:key="ds_bios7"
+            android:singleLine="true"
+            android:title="@string/ds_bios7" />
+
+        <EditTextPreference
+            android:key="ds_firmware"
+            android:singleLine="true"
+            android:title="@string/ds_firmware" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:summary="@string/ds_category_dsi_description"
+        android:title="@string/ds_category_dsi">
+
+        <EditTextPreference
+            android:key="ds_dsi_bios9"
+            android:singleLine="true"
+            android:title="@string/ds_dsi_bios9" />
+
+        <EditTextPreference
+            android:key="ds_dsi_bios7"
+            android:singleLine="true"
+            android:title="@string/ds_dsi_bios7" />
+
+        <EditTextPreference
+            android:key="ds_dsi_firmware"
+            android:singleLine="true"
+            android:title="@string/ds_dsi_firmware" />
+
+        <EditTextPreference
+            android:key="ds_dsi_nand"
+            android:singleLine="true"
+            android:title="@string/ds_dsi_nand" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ds_category_homebrew">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_dldi_enable"
+            android:summary="@string/ds_dldi_enable_description"
+            android:title="@string/ds_dldi_enable" />
+
+        <EditTextPreference
+            android:dependency="ds_dldi_enable"
+            android:key="ds_dldi_sync_folder"
+            android:singleLine="true"
+            android:title="@string/ds_dldi_sync_folder" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ds_category_network">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/ds_wireless_modes"
+            android:entryValues="@array/ds_wireless_mode_values"
+            android:key="ds_wireless_mode"
+            android:title="@string/ds_wireless_mode"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_internet"
+            android:summary="@string/ds_internet_description"
+            android:title="@string/ds_internet" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/ds_category_screens">
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/ds_layouts"
+            android:entryValues="@array/ds_layout_values"
+            android:key="ds_layout"
+            android:title="@string/ds_menu_layout"
+            app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="ds_swap_screens"
+            android:title="@string/ds_menu_swap_screens" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="ds_show_overlay"
+            android:summary="@string/ds_show_overlay_description"
+            android:title="@string/ds_show_overlay" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

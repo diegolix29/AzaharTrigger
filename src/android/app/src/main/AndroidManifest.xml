@@ -95,6 +95,22 @@
 
 		</activity>
 
+		<!-- The melonDS (DS/DSi) frontend. Separate from EmulationActivity: it drives
+		     its own core, with its own screens, input and settings. -->
+		<activity
+            android:name="org.citra.citra_emu.ds.DsEmulationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Citra.Main"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:launchMode="singleTop"/>
+
+		<activity
+            android:name="org.citra.citra_emu.ds.DsSettingsActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|uiMode"
+            android:theme="@style/Theme.Citra.Main"
+            android:label="@string/ds_settings"/>
+
 		<activity
             android:name="org.citra.citra_emu.features.cheats.ui.CheatsActivity"
             android:exported="false"
