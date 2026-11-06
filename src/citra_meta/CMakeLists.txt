@@ -83,6 +83,9 @@ target_link_libraries(citra_meta PRIVATE citra_cli citra_common fmt)
 
 if (ENABLE_QT)
     target_link_libraries(citra_meta PRIVATE citra_qt)
+    if (ENABLE_DS)
+        azalon_ds_copy_runtime(citra_meta)
+    endif()
 endif()
 
 if (ENABLE_ROOM)

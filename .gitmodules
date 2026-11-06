@@ -114,5 +114,5 @@
 	url = https://github.com/azahar-emu/microtar
 [submodule "externals/melonDS"]
 	path = externals/melonDS
-	url = C:/msys64/home/DiegoMuget/melonDS
+	url = https://github.com/diegolix29/melonDS-Trigger-Desktop.git
 	branch = TriggerDS

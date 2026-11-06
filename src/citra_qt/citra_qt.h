@@ -87,6 +87,13 @@ namespace Core {
 class Movie;
 }
 
+#ifdef ENABLE_DS
+namespace DS {
+class Session;
+class ScreenWidget;
+} // namespace DS
+#endif
+
 namespace Ui {
 class MainWindow;
 }
@@ -432,6 +439,18 @@ private:
     // Whether emulation is currently running in Citra.
     bool emulation_running = false;
     std::unique_ptr<EmuThread> emu_thread;
+
+#ifdef ENABLE_DS
+    // AzalonDS: DS/DSi games run in their own session (melonDS), not in Core::System.
+    bool BootDSGame(const QString& filename);
+    void ShutdownDSGame();
+    void InitializeDSMenu();
+    bool IsDSGameRunning() const;
+    std::unique_ptr<DS::Session> ds_session;
+    DS::ScreenWidget* ds_screen = nullptr;
+    QTimer* ds_status_timer = nullptr;
+#endif
+
     // The title of the game currently running
     QString game_title;
     // The path to the game currently running

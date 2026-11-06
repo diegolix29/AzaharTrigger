@@ -146,6 +146,14 @@ Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #include "core/hw/unique_data.h"
 #include "core/zip_pass.h"
 
+#ifdef ENABLE_DS
+#include <azalon_ds/azalon_ds.h>
+#include "citra_qt/ds/ds_config.h"
+#include "citra_qt/ds/ds_lan_dialog.h"
+#include "citra_qt/ds/ds_screen_widget.h"
+#include "citra_qt/ds/ds_session.h"
+#endif
+
 constexpr int default_mouse_timeout = 2500;
 
 /**
@@ -4923,6 +4931,9 @@ GMainWindow::GMainWindow(Core::System& system_)
     ConnectAppEvents();
     ConnectMenuEvents();
     ConnectWidgetEvents();
+#ifdef ENABLE_DS
+    InitializeDSMenu();
+#endif
 
     LOG_INFO(Frontend, "Azahar Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
              Common::g_scm_desc);
@@ -6154,6 +6165,18 @@ bool GMainWindow::LoadROM(const QString& filename) {
 }
 
 void GMainWindow::BootGame(const QString& filename) {
+#ifdef ENABLE_DS
+    if (IsDSGameRunning()) {
+        ShutdownDSGame();
+    }
+    if (DS::IsDSFile(filename)) {
+        if (emu_thread) {
+            ShutdownGame();
+        }
+        BootDSGame(filename);
+        return;
+    }
+#endif
     if (emu_thread) {
         ShutdownGame();
     }
@@ -6999,8 +7022,18 @@ void GMainWindow::OnGameListOpenPerGameProperties(const QString& file) {
 void GMainWindow::OnMenuLoadFile() {
     const QString extensions = QStringLiteral("*.").append(
         GameList::supported_file_extensions.join(QStringLiteral(" *.")));
+#ifdef ENABLE_DS
+    const QString ds_extensions =
+        QStringLiteral("*.").append(DS::FileExtensions().join(QStringLiteral(" *.")));
+    const QString file_filter =
+        tr("All Supported") + QStringLiteral(" (%1 %2)").arg(extensions, ds_extensions) +
+        QStringLiteral(";;") + tr("3DS Executable") + QStringLiteral(" (%1)").arg(extensions) +
+        QStringLiteral(";;") + tr("DS / DSi ROM") + QStringLiteral(" (%1)").arg(ds_extensions) +
+        QStringLiteral(";;") + tr("All Files") + QStringLiteral(" (*.*)");
+#else
     const QString file_filter = tr("3DS Executable") + QStringLiteral(" (%1)").arg(extensions) +
                                 QStringLiteral(";;") + tr("All Files") + QStringLiteral(" (*.*)");
+#endif
     const QString filename = QFileDialog::getOpenFileName(
         this, tr("Load File"), UISettings::values.roms_path, file_filter);
 
@@ -7547,6 +7580,12 @@ void GMainWindow::OnPauseGame() {
 }
 
 void GMainWindow::OnPauseContinueGame() {
+#ifdef ENABLE_DS
+    if (IsDSGameRunning()) {
+        ds_session->SetPaused(!ds_session->IsPaused());
+        return;
+    }
+#endif
     if (emulation_running) {
         if (emu_thread->IsRunning() && !system.frame_limiter.IsFrameAdvancing()) {
             OnPauseGame();
@@ -7557,6 +7596,12 @@ void GMainWindow::OnPauseContinueGame() {
 }
 
 void GMainWindow::OnStopGame() {
+#ifdef ENABLE_DS
+    if (IsDSGameRunning()) {
+        ShutdownDSGame();
+        return;
+    }
+#endif
     SetTurboEnabled(false);
 
     play_time_manager->Stop();
@@ -9090,6 +9135,11 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     hotkey_registry.SaveHotkeys();
 
     // Shutdown session if the emu thread is active...
+#ifdef ENABLE_DS
+    if (IsDSGameRunning()) {
+        ShutdownDSGame();
+    }
+#endif
     if (emu_thread) {
         ShutdownGame();
     }
@@ -9165,8 +9215,179 @@ void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
     AcceptDropEvent(event);
 }
 
+#ifdef ENABLE_DS
+// ---------------------------------------------------------------------------------------------
+// AzalonDS: DS / DSi games (melonDS through the azalon_ds library)
+
+bool GMainWindow::IsDSGameRunning() const {
+    return ds_session && ds_session->IsRunning();
+}
+
+bool GMainWindow::BootDSGame(const QString& filename) {
+    auto session = std::make_unique<DS::Session>();
+    QString error;
+    if (!session->Start(filename, &error)) {
+        QMessageBox::critical(this, tr("AzalonDS"),
+                              tr("Could not start the DS game:\n%1").arg(error));
+        return false;
+    }
+
+    StoreRecentFile(filename);
+    ds_session = std::move(session);
+
+    ds_screen = new DS::ScreenWidget(*ds_session, this);
+    ui->horizontalLayout->addWidget(ds_screen);
+    game_list->hide();
+    game_list_placeholder->hide();
+    ds_screen->show();
+    ds_screen->setFocus();
+
+    connect(ds_session.get(), &DS::Session::Stopped, this, [this] { ShutdownDSGame(); });
+    connect(ds_screen, &DS::ScreenWidget::MouseActivity, this, &GMainWindow::OnMouseActivity);
+
+    if (!ds_status_timer) {
+        ds_status_timer = new QTimer(this);
+        connect(ds_status_timer, &QTimer::timeout, this, [this] {
+            if (!IsDSGameRunning())
+                return;
+            statusBar()->showMessage(
+                ds_session->IsPaused()
+                    ? tr("DS: paused")
+                    : tr("DS: %1 FPS").arg(ds_session->Fps(), 0, 'f', 1));
+        });
+    }
+    ds_status_timer->start(1000);
+
+    game_title = ds_session->Title();
+    UpdateWindowTitle();
+    return true;
+}
+
+void GMainWindow::ShutdownDSGame() {
+    if (ds_status_timer)
+        ds_status_timer->stop();
+    statusBar()->clearMessage();
+
+    if (ds_screen) {
+        ui->horizontalLayout->removeWidget(ds_screen);
+        ds_screen->hide();
+        ds_screen->deleteLater();
+        ds_screen = nullptr;
+    }
+    if (ds_session) {
+        ds_session->Stop(); // flushes the save
+        // Deleted later: this can be called from one of the session's own signals.
+        ds_session.release()->deleteLater();
+    }
+
+    if (game_list->IsEmpty()) {
+        game_list_placeholder->show();
+    } else {
+        game_list->show();
+    }
+    game_list->SetFilterFocus();
+    game_title.clear();
+    UpdateWindowTitle();
+}
+
+void GMainWindow::InitializeDSMenu() {
+    QMenu* menu = new QMenu(tr("&DS"), this);
+    menuBar()->insertMenu(ui->menu_Tools->menuAction(), menu);
+
+    QAction* pause = menu->addAction(tr("Pause / Resume"));
+    QAction* reset = menu->addAction(tr("Reset"));
+    QAction* stop = menu->addAction(tr("Stop"));
+    connect(pause, &QAction::triggered, this, [this] {
+        if (IsDSGameRunning())
+            ds_session->SetPaused(!ds_session->IsPaused());
+    });
+    connect(reset, &QAction::triggered, this, [this] {
+        if (IsDSGameRunning())
+            ds_session->Reset();
+    });
+    connect(stop, &QAction::triggered, this, [this] {
+        if (IsDSGameRunning())
+            ShutdownDSGame();
+    });
+
+    menu->addSeparator();
+    QMenu* save_menu = menu->addMenu(tr("Save State"));
+    QMenu* load_menu = menu->addMenu(tr("Load State"));
+    for (int slot = 1; slot <= 5; slot++) {
+        connect(save_menu->addAction(tr("Slot %1").arg(slot)), &QAction::triggered, this,
+                [this, slot] {
+                    if (IsDSGameRunning())
+                        statusBar()->showMessage(ds_session->SaveState(slot)
+                                                     ? tr("Saved state %1").arg(slot)
+                                                     : tr("Could not save state %1").arg(slot),
+                                                 3000);
+                });
+        connect(load_menu->addAction(tr("Slot %1").arg(slot)), &QAction::triggered, this,
+                [this, slot] {
+                    if (IsDSGameRunning())
+                        statusBar()->showMessage(ds_session->LoadState(slot)
+                                                     ? tr("Loaded state %1").arg(slot)
+                                                     : tr("No state in slot %1").arg(slot),
+                                                 3000);
+                });
+    }
+
+    menu->addSeparator();
+    QAction* lan = menu->addAction(tr("Local Wireless (LAN)..."));
+    connect(lan, &QAction::triggered, this, [this] {
+        if (IsDSGameRunning() && azds_mp_get_mode() != AZDS_MP_LAN) {
+            QMessageBox::information(
+                this, tr("AzalonDS"),
+                tr("Stop the DS game first, join or host a room, then start the game again."));
+            return;
+        }
+        auto* dialog = new DS::LanDialog([this] { return IsDSGameRunning(); }, this);
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->show();
+    });
+
+    QAction* internet = menu->addAction(tr("Internet Access (Nintendo WFC)"));
+    internet->setCheckable(true);
+    internet->setChecked(DS::Config::Get().internet);
+    connect(internet, &QAction::toggled, this, [this](bool on) {
+        DS::Config::Get().internet = on;
+        DS::Config::Get().Save();
+        if (IsDSGameRunning())
+            statusBar()->showMessage(tr("Applies the next time a DS game starts."), 4000);
+        else
+            azds_internet_enable(on ? 1 : 0);
+    });
+
+    menu->addSeparator();
+    QAction* settings = menu->addAction(tr("DS Settings..."));
+    connect(settings, &QAction::triggered, this, [this] {
+        DS::ConfigDialog dialog(this);
+        if (dialog.exec() == QDialog::Accepted && IsDSGameRunning())
+            statusBar()->showMessage(tr("Most settings apply the next time a DS game starts."),
+                                     4000);
+    });
+    QAction* data = menu->addAction(tr("Open DS Data Folder"));
+    connect(data, &QAction::triggered, this,
+            [] { QDesktopServices::openUrl(QUrl::fromLocalFile(DS::DataDir())); });
+
+    connect(menu, &QMenu::aboutToShow, this, [=, this] {
+        const bool running = IsDSGameRunning();
+        pause->setEnabled(running);
+        reset->setEnabled(running);
+        stop->setEnabled(running);
+        save_menu->setEnabled(running);
+        load_menu->setEnabled(running);
+        internet->setChecked(DS::Config::Get().internet);
+    });
+}
+#endif
+
 bool GMainWindow::ConfirmChangeGame() {
-    if (!emu_thread) [[unlikely]] {
+    bool running = static_cast<bool>(emu_thread);
+#ifdef ENABLE_DS
+    running = running || IsDSGameRunning();
+#endif
+    if (!running) [[unlikely]] {
         return true;
     }
 

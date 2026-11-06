@@ -323,6 +323,22 @@ target_link_libraries(citra_qt PUBLIC Boost::boost Qt6::Widgets)
 target_link_libraries(citra_qt PRIVATE nihstro-headers Qt6::Multimedia Qt6::Concurrent)
 target_link_libraries(citra_qt PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
+if (ENABLE_DS)
+    target_link_libraries(citra_qt PRIVATE azalon_ds)
+    # Public: GMainWindow's layout depends on it and citra_meta includes citra_qt.h.
+    target_compile_definitions(citra_qt PUBLIC ENABLE_DS)
+    target_sources(citra_qt PRIVATE
+        ds/ds_config.cpp
+        ds/ds_config.h
+        ds/ds_lan_dialog.cpp
+        ds/ds_lan_dialog.h
+        ds/ds_screen_widget.cpp
+        ds/ds_screen_widget.h
+        ds/ds_session.cpp
+        ds/ds_session.h
+    )
+endif()
+
 if (MINGW)
     target_link_libraries(citra_qt PRIVATE dwmapi)
 endif()

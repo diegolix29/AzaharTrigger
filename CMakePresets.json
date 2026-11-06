@@ -11,7 +11,8 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
-        "ENABLE_QT_UPDATE_CHECKER": "ON"
+        "ENABLE_QT_UPDATE_CHECKER": "ON",
+        "ENABLE_FFMPEG": "OFF"
       },
       "condition": {
         "type": "equals",

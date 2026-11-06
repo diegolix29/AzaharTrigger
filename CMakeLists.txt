@@ -125,6 +125,9 @@ option(USE_SYSTEM_XXHASH "Use the system xxHash lib (instead of the bundled one)
 option(USE_SYSTEM_TEAKRA "Use system teakra lib (instead of the bundled one)" OFF)
 
 # Set bundled qt as dependent options.
+# AzalonDS: DS/DSi emulation through melonDS (src/ds_core, built as a separate shared library).
+option(ENABLE_DS "Enable the AzalonDS DS/DSi core (melonDS)" ON)
+
 option(ENABLE_QT "Enable the Qt frontend" ON)
 option(ENABLE_QT_TRANSLATION "Enable translations for the Qt frontend" OFF)
 option(ENABLE_QT_UPDATE_CHECKER "Enable built-in update checker for the Qt frontend" ON)
@@ -585,6 +588,10 @@ endif()
 
 enable_testing()
 add_subdirectory(externals)
+
+if (ENABLE_DS)
+    include(AzalonDSCore)
+endif()
 
 # Boost (bundled)
 if (NOT USE_SYSTEM_BOOST)

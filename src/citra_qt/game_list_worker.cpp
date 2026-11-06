@@ -23,11 +23,54 @@
 #include "core/hle/service/fs/archive.h"
 #include "core/loader/loader.h"
 
+#ifdef ENABLE_DS
+#include <QImage>
+#include <azalon_ds/azalon_ds.h>
+#include "citra_qt/ds/ds_config.h"
+#endif
+
 namespace {
 bool HasSupportedFileExtension(const std::string& file_name) {
     const QFileInfo file = QFileInfo(QString::fromStdString(file_name));
     return GameList::supported_file_extensions.contains(file.suffix(), Qt::CaseInsensitive);
 }
+
+#ifdef ENABLE_DS
+/// Synthetic "program id" for DS games: "NDS" + the 4-char game code.
+/// Never a valid 3DS title id, and stable, so play time tracking works.
+u64 DSProgramId(const azds_rom_info& info) {
+    u64 id = 0x4E4453ull << 40;
+    for (int i = 0; i < 4; i++)
+        id |= static_cast<u64>(static_cast<u8>(info.game_code[i])) << (24 - 8 * i);
+    return id;
+}
+
+QString DSRegion(const azds_rom_info& info) {
+    switch (info.game_code[3]) {
+    case 'J':
+        return QObject::tr("Japan");
+    case 'E':
+        return QObject::tr("North America");
+    case 'P':
+    case 'D':
+    case 'F':
+    case 'I':
+    case 'S':
+    case 'X':
+    case 'Y':
+    case 'Z':
+        return QObject::tr("Europe");
+    case 'K':
+        return QObject::tr("Korea");
+    case 'C':
+        return QObject::tr("China");
+    case 'U':
+        return QObject::tr("Australia");
+    default:
+        return QObject::tr("Region free");
+    }
+}
+#endif
 } // Anonymous namespace
 
 GameListWorker::GameListWorker(QVector<UISettings::GameDir>& game_dirs,
@@ -51,6 +94,49 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
 
         const std::string physical_name = directory + DIR_SEP + virtual_name;
         const bool is_dir = FileUtil::IsDirectory(physical_name);
+#ifdef ENABLE_DS
+        if (!is_dir && DS::IsDSFile(QString::fromStdString(physical_name))) {
+            azds_rom_info info{};
+            if (!azds_probe_rom(physical_name.c_str(), &info)) {
+                return true;
+            }
+            const u64 program_id = DSProgramId(info);
+            const QString title = QString::fromUtf8(info.title);
+
+            auto* path_item =
+                new GameListItemPath(QString::fromStdString(physical_name), {}, program_id, 0,
+                                     media_type, false, false);
+            path_item->setData(title.section(QLatin1Char('\n'), 0, 0),
+                               GameListItemPath::TitleRole);
+            path_item->setData(QString(title).replace(QLatin1Char('\n'), QLatin1Char(' ')),
+                               GameListItemPath::LongTitleRole);
+            const auto icon_size = UISettings::values.game_list_icon_size.GetValue();
+            if (info.has_icon && icon_size != UISettings::GameListIconSize::NoIcon) {
+                const int size = icon_size == UISettings::GameListIconSize::LargeIcon ? 48 : 24;
+                const QImage icon(reinterpret_cast<const uchar*>(info.icon), 32, 32,
+                                  QImage::Format_ARGB32);
+                path_item->setData(QPixmap::fromImage(icon.scaled(size, size, Qt::KeepAspectRatio,
+                                                                  Qt::SmoothTransformation)),
+                                   Qt::DecorationRole);
+            }
+
+            const QString type = info.is_dsi_exclusive  ? QStringLiteral("DSi")
+                                 : info.is_dsi_enhanced ? QStringLiteral("NDS (DSi enhanced)")
+                                 : info.is_homebrew     ? QStringLiteral("NDS (homebrew)")
+                                                        : QStringLiteral("NDS");
+            emit EntryReady(
+                {
+                    path_item,
+                    new GameListItemCompat(QStringLiteral("99")),
+                    new GameListItem(DSRegion(info)),
+                    new GameListItem(type),
+                    new GameListItemSize(FileUtil::GetSize(physical_name)),
+                    new GameListItemPlayTime(play_time_manager.GetPlayTime(program_id)),
+                },
+                parent_dir);
+            return true;
+        }
+#endif
         if (!is_dir && HasSupportedFileExtension(physical_name)) {
             std::unique_ptr<Loader::AppLoader> loader = Loader::GetLoader(physical_name);
             if (!loader) {

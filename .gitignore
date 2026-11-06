@@ -60,3 +60,7 @@ VULKAN_SDK/
 
 # Written by CI on tag builds only; releases are versioned by pushing a vX.Y.Z tag.
 /GIT-TAG
+
+# AzalonDS local builds
+out/
+build/ds_core-standalone/
