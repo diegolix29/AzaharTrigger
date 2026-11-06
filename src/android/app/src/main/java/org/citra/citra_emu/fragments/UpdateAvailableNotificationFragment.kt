@@ -40,7 +40,7 @@ class UpdateAvailableNotificationFragment(
                 val updateLink: String = if (checkForPrereleaseUpdates) {
                     getString(R.string.prerelease_channel_update_link)
                 } else {
-                    getString(R.string.prerelease_channel_update_link)
+                    getString(R.string.stable_channel_update_link)
                 }
                 val intent = Intent(
                     Intent.ACTION_VIEW,

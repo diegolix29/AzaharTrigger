@@ -2,6 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.txt file included.
 
+#include <algorithm>
 #include <clocale>
 #include <iostream>
 #include <memory>
@@ -307,6 +308,50 @@ static bool IsVersionNewer(const std::string& current, const std::string& latest
         }
     }
     return false;
+}
+
+// Fetches the latest release and returns it only if it is newer than this build.
+//
+// The release *tag* is the single source of truth: the release workflow only publishes on a
+// "vX.Y.Z" tag push, and every binary in that release is compiled with that same tag as
+// Common::g_build_version. Asset file names are NOT used for versioning - untagged builds are
+// named "<date>-<hash>", and digits scraped out of a commit hash used to look like a "newer"
+// version, which made the updater fire on every launch.
+//
+// Builds without a version (local/dev builds report "0") can't be compared. The automatic
+// startup check stays silent for them; a manual check still offers the latest release.
+static std::optional<UpdateChecker::ReleaseInfo> CheckForNewerRelease(bool manual_check) {
+    auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
+    if (!release || release->tag_name.empty()) {
+        LOG_INFO(Frontend, "No release found");
+        return std::nullopt;
+    }
+
+    const std::string current_version = Common::g_build_version;
+    const std::string& latest_version = release->tag_name;
+    LOG_INFO(Frontend, "Current build version: {}, latest release: {}", current_version,
+             latest_version);
+
+    const auto current_parts = ParseVersionComponents(current_version);
+    const bool is_versioned_build =
+        !current_parts.empty() &&
+        std::any_of(current_parts.begin(), current_parts.end(), [](int p) { return p != 0; });
+    if (!is_versioned_build) {
+        if (!manual_check) {
+            LOG_INFO(Frontend, "Unversioned build ({}), skipping automatic update prompt",
+                     current_version);
+            return std::nullopt;
+        }
+        return release;
+    }
+
+    if (!IsVersionNewer(current_version, latest_version)) {
+        LOG_INFO(Frontend, "Already on the latest version");
+        return std::nullopt;
+    }
+
+    LOG_INFO(Frontend, "Update available: {} -> {}", current_version, latest_version);
+    return release;
 }
 #endif
 
@@ -4937,37 +4982,7 @@ GMainWindow::GMainWindow(Core::System& system_)
 
 #ifdef ENABLE_QT_UPDATE_CHECKER
     if (UISettings::values.check_for_update_on_start) {
-        update_future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
-            auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
-            if (!release || release->tag_name.empty()) {
-                LOG_INFO(Frontend, "No release found");
-                return std::nullopt;
-            }
-
-            auto latest_build_version =
-                UpdateChecker::GetLatestBuildVersion(ShouldCheckForPrereleaseUpdates());
-            if (!latest_build_version) {
-                LOG_INFO(Frontend, "Could not extract build version from release assets");
-                return std::nullopt;
-            }
-
-            const std::string current_build_version = Common::g_build_version;
-            LOG_INFO(Frontend, "Current build version: {}, Latest build version: {}",
-                     current_build_version, *latest_build_version);
-
-            if (*latest_build_version == current_build_version) {
-                LOG_INFO(Frontend, "Already on latest build version: {}", current_build_version);
-                return std::nullopt;
-            }
-
-            if (IsVersionNewer(current_build_version, *latest_build_version)) {
-                LOG_INFO(Frontend, "Update available: {} -> {}", current_build_version,
-                         *latest_build_version);
-                return release;
-            }
-            LOG_INFO(Frontend, "No update needed (latest build is not newer than current)");
-            return std::nullopt;
-        });
+        update_future = QtConcurrent::run([]() { return CheckForNewerRelease(false); });
         QObject::connect(&update_watcher,
                          &QFutureWatcher<std::optional<UpdateChecker::ReleaseInfo>>::finished, this,
                          &GMainWindow::OnEmulatorUpdateAvailable);
@@ -9342,37 +9357,7 @@ void GMainWindow::OnMenuCheckForUpdates() {
                 PromptAndApplyUpdate(*release);
             });
 
-    const auto future = QtConcurrent::run([]() -> std::optional<UpdateChecker::ReleaseInfo> {
-        auto release = UpdateChecker::GetLatestReleaseInfo(ShouldCheckForPrereleaseUpdates());
-        if (!release || release->tag_name.empty()) {
-            return std::nullopt;
-        }
-
-        // Compare build versions instead of git tags to avoid conflicts across platforms
-        auto latest_build_version =
-            UpdateChecker::GetLatestBuildVersion(ShouldCheckForPrereleaseUpdates());
-        if (!latest_build_version) {
-            LOG_INFO(Frontend, "Could not extract build version from release assets");
-            return std::nullopt;
-        }
-
-        const std::string current_build_version = Common::g_build_version;
-        LOG_INFO(Frontend, "Current build version: {}, Latest build version: {}",
-                 current_build_version, *latest_build_version);
-
-        if (*latest_build_version == current_build_version) {
-            LOG_INFO(Frontend, "Already on latest build version: {}", current_build_version);
-            return std::nullopt;
-        }
-
-        if (IsVersionNewer(current_build_version, *latest_build_version)) {
-            LOG_INFO(Frontend, "Update available: {} -> {}", current_build_version,
-                     *latest_build_version);
-            return release;
-        }
-        LOG_INFO(Frontend, "No update needed (latest build is not newer than current)");
-        return std::nullopt;
-    });
+    const auto future = QtConcurrent::run([]() { return CheckForNewerRelease(true); });
     watcher->setFuture(future);
 }
 

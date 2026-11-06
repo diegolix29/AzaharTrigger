@@ -38,7 +38,7 @@ import org.citra.citra_emu.databinding.FragmentGamesBinding
 import org.citra.citra_emu.features.settings.model.BooleanSetting
 import org.citra.citra_emu.features.settings.model.CitraSettings
 import org.citra.citra_emu.features.settings.model.IntSetting
-import org.citra.citra_emu.features.updatechecker.UpdateChecker
+import org.citra.citra_emu.utils.AppUpdater
 import org.citra.citra_emu.model.Game
 import org.citra.citra_emu.utils.BuildUtil
 import org.citra.citra_emu.viewmodel.CompressProgressDialogViewModel
@@ -237,8 +237,6 @@ class GamesFragment : Fragment() {
         setInsets()
     }
 
-    private fun getMajorVersion(version: String): Int? = version.split('.')[0].toIntOrNull()
-
     private fun isPrereleaseBuild(): Boolean {
         val version = BuildConfig.GIT_VERSION
         return (
@@ -259,32 +257,26 @@ class GamesFragment : Fragment() {
             CitraSettings.activeSettings.get(BooleanSetting.CHECK_FOR_UPDATES) &&
             !homeViewModel.updatePromptShown
         ) {
-            Thread({
-                val checkForPrereleaseUpdates =
-                    isPrereleaseBuild() ||
-                        (CitraSettings.activeSettings.get(IntSetting.UPDATE_CHECK_CHANNEL) == 1)
-                val latestReleaseTag = UpdateChecker.getLatestRelease(checkForPrereleaseUpdates)
-
-                if (!latestReleaseTag.isNullOrEmpty() &&
-                    latestReleaseTag != BuildConfig.GIT_VERSION
-                ) {
-                    val latestMajorVersion = getMajorVersion(latestReleaseTag)
-                    val currentMajorVersion = getMajorVersion(BuildConfig.GIT_VERSION)
-                    if (latestMajorVersion != null &&
-                        currentMajorVersion != null &&
-                        currentMajorVersion <= latestMajorVersion
-                    ) {
-                        UpdateAvailableNotificationFragment.newInstance(
-                            latestReleaseTag,
-                            checkForPrereleaseUpdates
-                        )
-                            .show(
-                                requireActivity().supportFragmentManager,
-                                UpdateAvailableNotificationFragment.TAG
-                            )
-                    }
-                }
-            }).start()
+            // Check this fork's releases (not upstream Azahar's, whose 2125.x+ tags always
+            // looked "newer" than our 1.x versions) and compare against the release tag.
+            val checkForPrereleaseUpdates =
+                isPrereleaseBuild() ||
+                    (CitraSettings.activeSettings.get(IntSetting.UPDATE_CHECK_CHANNEL) == 1)
+            viewLifecycleOwner.lifecycleScope.launch {
+                val update = AppUpdater.checkForUpdate(
+                    includePrereleases = checkForPrereleaseUpdates,
+                    manualCheck = false
+                ) ?: return@launch
+                if (!isAdded) return@launch
+                UpdateAvailableNotificationFragment.newInstance(
+                    update.tagName,
+                    checkForPrereleaseUpdates
+                )
+                    .show(
+                        requireActivity().supportFragmentManager,
+                        UpdateAvailableNotificationFragment.TAG
+                    )
+            }
             homeViewModel.updatePromptShown = true
         }
     }

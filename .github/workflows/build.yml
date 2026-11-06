@@ -3,7 +3,11 @@ name: citra-build
 on:
   push:
     branches: [ "AzaharTrigger" ]
-    tags: [ "v*" ]
+    # Releases are cut ONLY by pushing a version tag, e.g.:
+    #   git tag v1.0.15 && git push origin v1.0.15
+    # The tag is baked into every binary (desktop BUILD_VERSION / Android versionName) and is
+    # what the in-app updaters compare against, so binaries and release always agree.
+    tags: [ "v[0-9]+.[0-9]+.[0-9]+*" ]
   pull_request:
     branches: [ "*" ]
 
@@ -50,12 +54,11 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Build
         run: ./.ci/linux.sh
@@ -65,9 +68,16 @@ jobs:
           mkdir -p artifacts
           mv build/bundle/*.AppImage artifacts/
       - name: Rename AppImage
-        if: ${{ matrix.target == 'appimage-wayland' }}
+        if: ${{ contains(matrix.target, 'appimage') }}
         run: |
-          mv artifacts/azahar.AppImage artifacts/azahar-wayland.AppImage
+          # Name the AppImage after the target (and the tag on releases) so the
+          # in-app updater picks the asset built for this exact release.
+          NAME="azahar"
+          if [[ "$TARGET" == "appimage-wayland" ]]; then NAME="azahar-wayland"; fi
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then NAME="$NAME-$GITHUB_REF_NAME"; fi
+          if [[ "artifacts/azahar.AppImage" != "artifacts/$NAME.AppImage" ]]; then
+              mv artifacts/azahar.AppImage "artifacts/$NAME.AppImage"
+          fi
       - name: Upload
         if: ${{ contains(matrix.target, 'appimage') }}
         uses: actions/upload-artifact@v4
@@ -100,12 +110,11 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Install tools
         run: brew install ccache ninja spirv-tools
@@ -186,12 +195,11 @@ jobs:
             ${{ runner.os }}-${{ matrix.target }}-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
         shell: bash
       - name: Set up MSVC
@@ -270,12 +278,11 @@ jobs:
             ${{ runner.os }}-android-
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Deps
         run: |
@@ -288,6 +295,7 @@ jobs:
       - name: Build
         run: JAVA_HOME=$JAVA_HOME_17_X64 ./.ci/android.sh
         env:
+          GIT_TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
           ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           ANDROID_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
@@ -312,12 +320,11 @@ jobs:
           submodules: recursive
       - name: Set tag for build
         run: |
+          # Only tagged builds get a version; anything else is an unversioned dev build.
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
               echo "$GITHUB_REF_NAME" > GIT-TAG
-          elif [ -f GIT-TAG ]; then
-              echo "Using existing GIT-TAG file"
           else
-              echo "dev" > GIT-TAG
+              rm -f GIT-TAG
           fi
       - name: Build Docker image
         run: ./.ci/docker.sh
@@ -369,10 +376,19 @@ jobs:
       - name: Determine Tag and Release Name
         run: |
           NEW_VERSION="$GITHUB_REF_NAME"
+          # The updaters parse the tag as a version, so refuse anything that isn't vX.Y.Z[-suffix]
+          # (e.g. tags made from commit messages).
+          if [[ ! "$NEW_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+              echo "::error::Tag '$NEW_VERSION' is not a version tag like v1.2.3 or v1.2.3-rc1"
+              exit 1
+          fi
+          # A suffix (v1.2.3-rc1) marks a prerelease, which stable-channel users won't be offered.
+          if [[ "$NEW_VERSION" == *-* ]]; then PRERELEASE=true; else PRERELEASE=false; fi
           COMMIT_MSG=$(git log -1 --pretty=format:"%s")
-          
+
           echo "TAG_NAME=$NEW_VERSION" >> $GITHUB_ENV
           echo "RELEASE_NAME=$NEW_VERSION - $COMMIT_MSG" >> $GITHUB_ENV
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -397,6 +413,7 @@ jobs:
             libretro-artifacts/ios-arm64/*
             libretro-artifacts/tvos-arm64/*
           draft: false
-          prerelease: false
+          prerelease: ${{ env.PRERELEASE == 'true' }}
+          make_latest: ${{ env.PRERELEASE != 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.TRIGGER_TOKEN_REPO }}
