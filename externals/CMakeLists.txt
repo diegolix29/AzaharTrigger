@@ -553,6 +553,9 @@ if(NOT USE_SYSTEM_XXHASH)
 endif()
 
 # zlib
+# infcover is built with -coverage and links libclang_rt.profile, which the
+# MXE Clang toolchain does not ship. The emulator does not need zlib's tests.
+set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(zlib)
 
 # Set ZLIB variables for libzip
