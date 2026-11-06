@@ -2,7 +2,7 @@ name: citra-build
 
 on:
   push:
-    branches: [ "AzaharTrigger" ]
+    branches: [ "AzaharTrigger", "azalon3-ds" ]
     # Releases are cut ONLY by pushing a version tag, e.g.:
     #   git tag v1.0.15 && git push origin v1.0.15
     # The tag is baked into every binary (desktop BUILD_VERSION / Android versionName) and is
@@ -10,6 +10,8 @@ on:
     tags: [ "v[0-9]+.[0-9]+.[0-9]+*" ]
   pull_request:
     branches: [ "*" ]
+  # "Run workflow" button in the Actions tab, to build any branch on demand.
+  workflow_dispatch:
 
 jobs:
   source:
