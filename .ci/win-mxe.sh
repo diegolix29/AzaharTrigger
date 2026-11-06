@@ -4,7 +4,9 @@
 #       It works fine when using the image locally.
 export PATH="/opt/mxe/usr/bin:${PATH}"
 
-mkdir build && cd build
+# build/ already exists in this repo (it holds the helper scripts), so don't fail on it.
+mkdir -p build
+cd build
 
 if [ "$GITHUB_REF_TYPE" == "tag" ]; then
 	export EXTRA_CMAKE_FLAGS=(-DENABLE_QT_UPDATE_CHECKER=ON)
