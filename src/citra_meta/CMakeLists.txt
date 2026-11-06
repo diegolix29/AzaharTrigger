@@ -50,11 +50,22 @@ endif()
 
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND MINGW)
     # TODO: Do this for all executables, not just citra_meta
-    # TODO: Don't hardcode MXE directory to root?
+    set(_mxe_target "")
+    foreach(_candidate IN ITEMS
+            "/opt/mxe/usr/x86_64-w64-mingw32.shared"
+            "/mxe/usr/x86_64-w64-mingw32.shared")
+        if(EXISTS "${_candidate}/bin")
+            set(_mxe_target "${_candidate}")
+            break()
+        endif()
+    endforeach()
+    if(_mxe_target STREQUAL "")
+        message(FATAL_ERROR "MXE target prefix not found")
+    endif()
     set(dllwalker_command "${CMAKE_SOURCE_DIR}/externals/dllwalker/dllwalker.rb"
                           $<TARGET_FILE:citra_meta>
-                          /mxe/usr/x86_64-w64-mingw32.shared/bin/
-                          /mxe/usr/x86_64-w64-mingw32.shared/qt6/bin/)
+                          "${_mxe_target}/bin/"
+                          "${_mxe_target}/qt6/bin/")
     set(dll_list_filename "${CMAKE_CURRENT_BINARY_DIR}/required_dlls_list.txt")
     add_custom_command(TARGET citra_meta POST_BUILD
         COMMAND ${dllwalker_command} > ${dll_list_filename}
@@ -62,7 +73,7 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux" AND MINGW)
     add_custom_command(TARGET citra_meta POST_BUILD
         COMMAND cat ${dll_list_filename} | xargs -I {} ${CMAKE_COMMAND} -E copy {} $<TARGET_FILE_DIR:citra_meta>
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:citra_meta>/plugins/"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory /mxe/usr/x86_64-w64-mingw32.shared/qt6/plugins/ "$<TARGET_FILE_DIR:citra_meta>/plugins/"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${_mxe_target}/qt6/plugins/" "$<TARGET_FILE_DIR:citra_meta>/plugins/"
         COMMAND_EXPAND_LISTS
         DEPENDS ${dll_list_filename}
     )

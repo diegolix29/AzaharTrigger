@@ -128,15 +128,25 @@ jobs:
           path: ~/.conan2/p
           key: conan-ffmpeg-7.1.5-${{ runner.os }}-${{ matrix.target }}
       - name: Build FFmpeg
-        run: conan install
-               --output-folder=$HOME/conan
-               --generator=CMakeToolchain
-               --build=missing
-               -s os.version=13.4
-               -o "*:shared=True"
-               -o "*:with_libfdk_aac=False"
-               --requires=ffmpeg/7.1.5
-               -c "ffmpeg/*:tools.build:sharedlinkflags+=['-Wl,-flat_namespace']"
+        run: |
+          # x86_64 runners ship NASM 2.15. x264's assembler probe needs a newer
+          # nasm and exits even though it prints 2.15 as acceptable. Build that
+          # dependency without hand-written assembly.
+          if [[ "$TARGET" == "x86_64" ]]; then
+              x264_asm=(-o "libx264/*:with_asm=False")
+          else
+              x264_asm=()
+          fi
+          conan install \
+               --output-folder=$HOME/conan \
+               --generator=CMakeToolchain \
+               --build=missing \
+               -s os.version=13.4 \
+               -o "*:shared=True" \
+               -o "*:with_libfdk_aac=False" \
+               ${x264_asm+"${x264_asm[@]}"} \
+               --requires=ffmpeg/7.1.5 \
+               -c "ffmpeg/*:tools.build:sharedlinkflags+=['-Wl,-flat_namespace']" \
                -c "ffmpeg/*:tools.build:exelinkflags+=['-Wl,-flat_namespace']"
       - name: Build
         run: ./.ci/macos.sh
