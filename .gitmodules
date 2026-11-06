@@ -112,3 +112,7 @@
 [submodule "microtar"]
 	path = externals/microtar
 	url = https://github.com/azahar-emu/microtar
+[submodule "externals/melonDS"]
+	path = externals/melonDS
+	url = C:/msys64/home/DiegoMuget/melonDS
+	branch = TriggerDS
