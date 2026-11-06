@@ -72,13 +72,14 @@ std::optional<UpdateChecker::ReleaseAsset> PickAssetForThisPlatform(
             LOG_INFO(Frontend, "Found matching MSVC asset: {}", asset.name);
             return asset;
         }
-        if (contains(asset.name, "windows-msys2")) {
-            LOG_INFO(Frontend, "Found matching MSYS2 asset: {}", asset.name);
+        // "msys2" was replaced upstream by the MXE (MinGW) build; accept both.
+        if (contains(asset.name, "windows-msys2") || contains(asset.name, "windows-mxe")) {
+            LOG_INFO(Frontend, "Found matching MinGW asset: {}", asset.name);
             msys2_asset = &asset;
         }
     }
     if (msys2_asset != nullptr) {
-        LOG_INFO(Frontend, "Using MSYS2 asset as fallback");
+        LOG_INFO(Frontend, "Using MinGW asset as fallback");
         return *msys2_asset;
     }
     LOG_ERROR(Frontend, "No suitable Windows update asset found");

@@ -18,7 +18,8 @@ x86_64-w64-mingw32.shared-cmake .. \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER_AR=x86_64-w64-mingw32.shared-ar \
     -DCMAKE_CXX_COMPILER_RANLIB=x86_64-w64-mingw32.shared-ranlib \
-    -DENABLE_DISCORD_RPC=ON \
+    -DENABLE_QT_TRANSLATION=ON \
+    -DUSE_DISCORD_PRESENCE=ON \
 	"${EXTRA_CMAKE_FLAGS[@]}"
 x86_64-w64-mingw32.shared-cmake --build . -- -j$(nproc)
 x86_64-w64-mingw32.shared-strip -s bin/Release/*.exe
