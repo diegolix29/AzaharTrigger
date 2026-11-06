@@ -33,11 +33,17 @@ jmethodID s_on_stopped = nullptr;
 jobject MakeRomInfo(JNIEnv* env, const azds_rom_info& info) {
     jclass clazz = env->FindClass("org/citra/citra_emu/ds/DsRomInfo");
     if (!clazz) {
+        // Never hand a pending exception back to Kotlin: the game list scan would
+        // die on it and the whole library would come up empty.
+        env->ExceptionClear();
+        LOG_ERROR(Frontend, "[DS] DsRomInfo is missing");
         return nullptr;
     }
     jmethodID ctor =
         env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;Ljava/lang/String;[IZZZ)V");
     if (!ctor) {
+        env->ExceptionClear();
+        LOG_ERROR(Frontend, "[DS] DsRomInfo's constructor changed shape");
         return nullptr;
     }
 
@@ -84,11 +90,26 @@ void NotifyStopped() {
 
 extern "C" {
 
-JNIEXPORT void JNICALL Java_org_citra_citra_1emu_ds_DsNative_nativeInit(JNIEnv* env,
-                                                                        jclass clazz) {
+// The second argument is deliberately ignored: for an `external` member of a
+// Kotlin object it can be the singleton instance rather than the class, and
+// passing an instance to GetStaticMethodID corrupts the JNI state.
+JNIEXPORT void JNICALL Java_org_citra_citra_1emu_ds_DsNative_nativeInit(JNIEnv* env, jobject) {
     if (!s_ds_native_class) {
+        jclass clazz = env->FindClass("org/citra/citra_emu/ds/DsNative");
+        if (!clazz) {
+            env->ExceptionClear();
+            LOG_ERROR(Frontend, "[DS] DsNative is missing; the DS core stays off");
+            return;
+        }
         s_ds_native_class = static_cast<jclass>(env->NewGlobalRef(clazz));
-        s_on_stopped = env->GetStaticMethodID(clazz, "onEmulationStopped", "()V");
+        s_on_stopped = env->GetStaticMethodID(s_ds_native_class, "onEmulationStopped", "()V");
+        if (!s_on_stopped) {
+            // Losing the callback only costs us the "powered off" notification, but
+            // a pending exception here would surface as a crash back in Kotlin.
+            env->ExceptionClear();
+            LOG_ERROR(Frontend, "[DS] DsNative.onEmulationStopped is missing");
+        }
+        env->DeleteLocalRef(clazz);
     }
     if (azds_api_version() != AZDS_API_VERSION) {
         LOG_WARNING(Frontend, "[DS] core API version {} != frontend {}", azds_api_version(),

@@ -67,14 +67,22 @@ object GameHelper {
         }
 
         files.forEach {
-            val filename = FileUtil.getFilename(it.uri)
+            // The directory listing already told us the name; only pay for a
+            // per-file query when the documents provider left it out. Asking again
+            // can come back empty, which used to make us skip the file silently.
+            val filename = it.filename.ifEmpty { FileUtil.getFilename(it.uri) }
             if (filename.startsWith(".")) {
                 return@forEach
             }
             if (it.isDirectory) {
                 addGamesRecursive(games, FileUtil.listFiles(it.uri), depth - 1)
             } else {
-                if (Game.extensions.contains(FileUtil.getExtension(it.uri))) {
+                val extension = filename.substringAfterLast('.', "").lowercase()
+                if (!Game.extensions.contains(extension)) {
+                    return@forEach
+                }
+                // One unreadable file must not cost the user the whole library.
+                try {
                     games.add(
                         getGame(
                             it.uri,
@@ -83,6 +91,8 @@ object GameHelper {
                             Game.MediaType.GAME_CARD
                         )
                     )
+                } catch (e: Throwable) {
+                    Log.error("[GameHelper] Skipped $filename: $e")
                 }
             }
         }
@@ -197,6 +207,13 @@ object GameHelper {
         }.ifEmpty { corePath.substringAfterLast('/') }
 
         val info = DsRom.probe(corePath, filePath)
+        if (info == null) {
+            // Still listed, under its file name: the user can tell it was found.
+            Log.warning("[GameHelper] No DS banner in $filename (core path: $corePath)")
+        } else {
+            Log.info("[GameHelper] DS game ${info.shortTitle} [${info.gameCode}] ${info.typeName}")
+        }
+
         val newGame = Game(
             valid = info != null,
             title = (info?.shortTitle?.ifEmpty { null } ?: filename.substringBeforeLast('.'))

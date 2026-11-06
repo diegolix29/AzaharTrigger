@@ -54,10 +54,16 @@ object DsNative {
     init {
         // Idempotent: NativeLibrary usually got there first. libcitra-android.so
         // pulls in libazalon_ds.so, which holds the DS core itself.
+        //
+        // Nothing may escape this block. An exception out of an object initializer
+        // is an ExceptionInInitializerError, after which every later use of this
+        // object throws NoClassDefFoundError -- and since the game list scanner
+        // reaches DsNative for every .nds it finds, that would take the whole
+        // library down with it rather than just DS support.
         try {
             System.loadLibrary("citra-android")
             nativeInit()
-        } catch (ex: UnsatisfiedLinkError) {
+        } catch (ex: Throwable) {
             // Citra's own Log is native too, so it cannot be used here.
             android.util.Log.e("DsNative", "the DS core is unavailable", ex)
         }

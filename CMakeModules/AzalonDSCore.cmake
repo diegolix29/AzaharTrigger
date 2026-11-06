@@ -66,6 +66,14 @@ else()
         -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER})
 endif()
 
+if (CMAKE_MAKE_PROGRAM)
+    # The sub-build inherits our generator (CMAKE_GENERATOR below), so it also has to be
+    # told where that generator's build tool is. Ninja is not necessarily on PATH: the
+    # Android Gradle plugin uses the one from the SDK's cmake package, and it only passes
+    # the path to us, not to any project we configure in turn.
+    list(APPEND _azds_args -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM})
+endif()
+
 if (CMAKE_TOOLCHAIN_FILE)
     list(APPEND _azds_args -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
 endif()

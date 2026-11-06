@@ -88,10 +88,12 @@ object DsRom {
 
     /** Reads a ROM's banner without keeping it open. Returns null if it is not a DS ROM. */
     fun probe(path: String, documentUri: String? = null): DsRomInfo? {
+        // Whatever goes wrong here, the game still belongs in the list, so nothing
+        // from this is allowed to escape into the scan.
         return try {
             open(path, documentUri)?.use { DsRomInfo.probe(it.path) }
-        } catch (e: UnsatisfiedLinkError) {
-            Log.error("[DS] the DS core is not available: ${e.message}")
+        } catch (e: Throwable) {
+            Log.error("[DS] could not read $path: $e")
             null
         }
     }
