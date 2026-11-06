@@ -21,8 +21,8 @@ fi
 
 cd src/android
 chmod +x ./gradlew
-./gradlew assembleRelease
-./gradlew bundleRelease
+./gradlew assembleRelease --stacktrace
+./gradlew bundleRelease --stacktrace
 
 ccache -s -v
 
