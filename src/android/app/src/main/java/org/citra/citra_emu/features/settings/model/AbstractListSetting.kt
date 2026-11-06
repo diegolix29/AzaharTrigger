@@ -4,6 +4,6 @@
 
 package org.citra.citra_emu.features.settings.model
 
-interface AbstractListSetting<E> : AbstractSetting {
+interface AbstractListSetting<E> : AbstractSetting<List<E>> {
     var list: List<E>
 }
