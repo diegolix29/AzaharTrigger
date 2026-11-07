@@ -84,7 +84,7 @@ ConfigureDebug::ConfigureDebug(bool is_powered_on_, QWidget* parent)
 
     connect(ui->toggle_pica_debugging, &QCheckBox::clicked, this, [this](bool checked) {
         QMessageBox::information(this, tr("Relaunch Required"),
-                                 tr("Please relaunch Azahar for this setting to take effect."));
+                                 tr("Please relaunch Azalon3-DS for this setting to take effect."));
     });
 
     ui->toggle_cpu_jit->setEnabled(!is_powered_on);

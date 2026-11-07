@@ -667,7 +667,7 @@ installed applications.</string>
                    <item>
                     <widget class="QLabel" name="label_linked_console">
                      <property name="text">
-                       <string>Your real console is linked to Azahar.</string>
+                       <string>Your real console is linked to Azalon3-DS.</string>
                      </property>
                     </widget>
                    </item>

@@ -74,11 +74,11 @@ jobs:
         run: |
           # Name the AppImage after the target (and the tag on releases) so the
           # in-app updater picks the asset built for this exact release.
-          NAME="azahar"
-          if [[ "$TARGET" == "appimage-wayland" ]]; then NAME="azahar-wayland"; fi
+          NAME="azalon3-ds"
+          if [[ "$TARGET" == "appimage-wayland" ]]; then NAME="azalon3-ds-wayland"; fi
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then NAME="$NAME-$GITHUB_REF_NAME"; fi
-          if [[ "artifacts/azahar.AppImage" != "artifacts/$NAME.AppImage" ]]; then
-              mv artifacts/azahar.AppImage "artifacts/$NAME.AppImage"
+          if [[ "artifacts/azalon3-ds.AppImage" != "artifacts/$NAME.AppImage" ]]; then
+              mv artifacts/azalon3-ds.AppImage "artifacts/$NAME.AppImage"
           fi
       - name: Upload
         if: ${{ contains(matrix.target, 'appimage') }}

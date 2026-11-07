@@ -396,7 +396,7 @@ bool SelfUpdater::ApplyMacOS(const QString& downloaded_path, QString& error) {
     // to find the installed .app bundle path.
     QDir bundle_dir(QCoreApplication::applicationDirPath());
     bundle_dir.cdUp(); // Contents
-    bundle_dir.cdUp(); // Azahar.app
+    bundle_dir.cdUp(); // Azalon3-DS.app
     const QString installed_app_bundle = bundle_dir.absolutePath();
     const qint64 pid = QCoreApplication::applicationPid();
 

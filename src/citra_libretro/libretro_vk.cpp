@@ -25,9 +25,9 @@ namespace LibRetro {
 
 const VkApplicationInfo* GetVulkanApplicationInfo() {
     static VkApplicationInfo app_info{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-    app_info.pApplicationName = "Azahar";
+    app_info.pApplicationName = "Azalon3-DS";
     app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    app_info.pEngineName = "Azahar";
+    app_info.pEngineName = "Azalon3-DS";
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     // Request Vulkan 1.1 for better compatibility (especially on Android)
     // Extensions can be used for features beyond 1.1

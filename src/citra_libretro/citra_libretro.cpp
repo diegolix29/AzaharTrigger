@@ -294,11 +294,11 @@ void retro_run() {
 
             switch (result) {
             case Core::System::ResultStatus::ErrorSystemFiles:
-                msg = "Azahar was unable to locate a 3DS system archive: " + errorContent;
+                msg = "Azalon3-DS was unable to locate a 3DS system archive: " + errorContent;
                 break;
             case Core::System::ResultStatus::ErrorShaderCacheCrash:
                 // There is no way to ask the user, so the emulation continues.
-                msg = "Azahar closed unexpectedly the last time it built the Vulkan shader cache "
+                msg = "Azalon3-DS closed unexpectedly the last time it built the Vulkan shader cache "
                       "of the current title. "
                       "If it crashes again, reset the shader cache by deleting the files "
                       "starting with " +
@@ -393,7 +393,7 @@ static bool do_load_game() {
         return false;
     case Core::System::ResultStatus::ErrorLoader_ErrorEncrypted:
         LibRetro::DisplayMessage("The game that you are trying to load must be decrypted before "
-                                 "being used with Azahar.");
+                                 "being used with Azalon3-DS.");
         return false;
     case Core::System::ResultStatus::ErrorLoader_ErrorInvalidFormat:
         LibRetro::DisplayMessage("Error while loading ROM: The ROM format is not supported.");
@@ -511,7 +511,7 @@ void retro_reset() {
  * libretro callback; Called when a game is to be loaded.
  */
 bool retro_load_game(const struct retro_game_info* info) {
-    LOG_INFO(Frontend, "Starting Azahar RetroArch game...");
+    LOG_INFO(Frontend, "Starting Azalon3-DS RetroArch game...");
 
 #if CITRA_ARCH(x86_64) && CITRA_HAS_SSE42
     if (!Common::GetCPUCaps().sse4_2) {
@@ -544,7 +544,7 @@ bool retro_load_game(const struct retro_game_info* info) {
             switch (result) {
             case Loader::ResultStatus::ErrorEncrypted:
                 LibRetro::DisplayMessage(
-                    "This ROM is encrypted and must be decrypted before use with Azahar.");
+                    "This ROM is encrypted and must be decrypted before use with Azalon3-DS.");
                 break;
             case Loader::ResultStatus::ErrorInvalidFormat:
                 LibRetro::DisplayMessage("The ROM format is not supported.");

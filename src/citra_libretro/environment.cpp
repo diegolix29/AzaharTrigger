@@ -259,7 +259,7 @@ uintptr_t GetFramebuffer() {
 
 void retro_get_system_info(struct retro_system_info* info) {
     memset(info, 0, sizeof(*info));
-    info->library_name = "Azahar";
+    info->library_name = "Azalon3-DS";
     info->library_version = Common::g_build_fullname;
     info->need_fullpath = true;
     info->valid_extensions = "3ds|3dsx|z3dsx|elf|axf|cci|zcci|cxi|zcxi|app|bcci|bcxi";

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_running">Το Azahar εκτελείται</string>
+    <string name="app_notification_running">Το Azalon3-DS εκτελείται</string>
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Ρυθμίσεις</string>
     <string name="home_options">Επιλογές</string>

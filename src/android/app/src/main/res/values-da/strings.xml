@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS emulator meddelelser</string>
-    <string name="app_notification_running">Azahar kører</string>
-    <string name="app_game_install_description">Dernæst skal du vælge en applikationsmappe. Azahar vil vise alle 3DS ROM\'erne inde i den valgte mappe i appen.\n\nCIA ROM\'er, opdateringer og DLC ​​skal installeres separat ved at klikke på mappeikonet og vælge installer CIA.</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS emulator meddelelser</string>
+    <string name="app_notification_running">Azalon3-DS kører</string>
+    <string name="app_game_install_description">Dernæst skal du vælge en applikationsmappe. Azalon3-DS vil vise alle 3DS ROM\'erne inde i den valgte mappe i appen.\n\nCIA ROM\'er, opdateringer og DLC ​​skal installeres separat ved at klikke på mappeikonet og vælge installer CIA.</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Indstillinger</string>
@@ -23,11 +23,11 @@
     <string name="custom_driver_not_supported_description">Indlæsning af brugerdefineret driver understøttes i øjeblikket ikke for denne enhed.\nTjek denne mulighed igen senere for at se, om support er blevet tilføjet!</string>
     <string name="share_log_not_found">Ingen logfil fundet</string>
     <string name="select_games_folder">Vælg applikationsmappe</string>
-    <string name="select_games_folder_description">Tillad at Azahar udfylder applikationslisten</string>
+    <string name="select_games_folder_description">Tillad at Azalon3-DS udfylder applikationslisten</string>
     <string name="about">Om</string>
     <string name="about_description">Version, krediteringer og mere</string>
     <string name="games_dir_selected">Applikationsmappen er valgt</string>
-    <string name="select_citra_user_folder_home_description">Ændrer de filer, som Azahar bruger til at indlæse applikationer</string>
+    <string name="select_citra_user_folder_home_description">Ændrer de filer, som Azalon3-DS bruger til at indlæse applikationer</string>
     <string name="theme_and_color_description">Rediger appens udseende</string>
     <string name="install_cia_title">Installer CIA</string>
 
@@ -45,13 +45,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Kopieret til udklipsholder</string>
     <string name="contributors">Bidragsydere</string>
-    <string name="contributors_description">Bidragsydere, der gjorde Azahar mulig</string>
-    <string name="licenses_description">Projekter brugt af Azahar til Android</string>
+    <string name="contributors_description">Bidragsydere, der gjorde Azalon3-DS mulig</string>
+    <string name="licenses_description">Projekter brugt af Azalon3-DS til Android</string>
     <string name="build">Byg</string>
     <string name="licenses">Licenser</string>
     <!-- Setup strings -->
     <string name="welcome">Velkommen!</string>
-    <string name="welcome_description">Lær hvordan du konfigurerer &lt;b>Azahar&lt;/b> og kommer i gang med emulering.</string>
+    <string name="welcome_description">Lær hvordan du konfigurerer &lt;b>Azalon3-DS&lt;/b> og kommer i gang med emulering.</string>
     <string name="get_started">Kom i gang</string>
     <string name="step_complete">Afsluttet!</string>
     <string name="games">Applikationer</string>
@@ -63,15 +63,15 @@
     <string name="notifications_description">Giv tilladelse til meddelelser med knappen nedenfor.</string>
     <string name="give_permission">Giv tilladelse</string>
     <string name="notification_warning">Vil du droppe at give tilladelse til meddelelser?</string>
-    <string name="notification_warning_description">Azahar vil ikke være i stand til at give dig meddelelse om vigtige oplysninger.</string>
+    <string name="notification_warning_description">Azalon3-DS vil ikke være i stand til at give dig meddelelse om vigtige oplysninger.</string>
     <string name="filesystem_permission_warning">Manglende tilladelser</string>
-    <string name="filesystem_permission_warning_description">Azahar kræver tilladelse til at administrere filer på denne enhed for at kunne gemme og administrere dens data.\n\nGiv venligst tilladelsen \"Filsystem\", før du fortsætter.</string>
+    <string name="filesystem_permission_warning_description">Azalon3-DS kræver tilladelse til at administrere filer på denne enhed for at kunne gemme og administrere dens data.\n\nGiv venligst tilladelsen \"Filsystem\", før du fortsætter.</string>
     <string name="camera_permission">Kamera</string>
     <string name="camera_permission_description">Giv kameraet tilladelse nedenfor til at efterligne 3DS-kameraet.</string>
     <string name="microphone_permission">Mikrofon</string>
     <string name="microphone_permission_description">Giv mikrofonen tilladelse nedenfor til at efterligne 3DS-mikrofonen.</string>
     <string name="filesystem_permission">Filsystem</string>
-    <string name="filesystem_permission_description">Giv filsystemet tilladelse nedenfor for at tillade Azahar at gemme filer.</string>
+    <string name="filesystem_permission_description">Giv filsystemet tilladelse nedenfor for at tillade Azalon3-DS at gemme filer.</string>
     <string name="permission_denied">Tilladelse nægtet</string>
     <string name="add_games_warning">Vil du droppe at vælge applikationsmappen?</string>
     <string name="add_games_warning_description">Software vil ikke blive vist på applikationslisten, hvis en mappe ikke er valgt.</string>
@@ -83,17 +83,17 @@
     <string name="warning_skip">Spring over</string>
     <string name="warning_cancel">Annuller</string>
     <string name="select_citra_user_folder">Vælg brugermappe</string>
-    <string name="select_which_user_directory_to_use">Du ser ud til at have indstillet brugermapper til både Lime3DS og Azahar. Dette skyldes sandsynligvis, at du har opgraderet til Azahar, og da du bliver bedt om det, valgte du en anden brugermappe end den, der blev brugt til Lime3DS.\n\nDette kan have resulteret i, at du troede, at du havde mistet gemte tilstande eller andre indstillinger - vi beklager, hvis det skete.\n\nVil du gå tilbage til at bruge din oprindelige Lime3DS-brugermappe, gendanne indstillinger og gemte Lime3DS-spiltilstande, eller beholde dine nuværende Azahar brugermappe?\n\nIngen af ​​mapperne slettes, uanset dit valg, og du kan frit skifte mellem dem ved at bruge valgmuligheden Vælg brugermappe.</string>
-    <string name="keep_current_azahar_directory">Behold den aktuelle Azahar-mappe</string>
+    <string name="select_which_user_directory_to_use">Du ser ud til at have indstillet brugermapper til både Lime3DS og Azalon3-DS. Dette skyldes sandsynligvis, at du har opgraderet til Azalon3-DS, og da du bliver bedt om det, valgte du en anden brugermappe end den, der blev brugt til Lime3DS.\n\nDette kan have resulteret i, at du troede, at du havde mistet gemte tilstande eller andre indstillinger - vi beklager, hvis det skete.\n\nVil du gå tilbage til at bruge din oprindelige Lime3DS-brugermappe, gendanne indstillinger og gemte Lime3DS-spiltilstande, eller beholde dine nuværende Azalon3-DS brugermappe?\n\nIngen af ​​mapperne slettes, uanset dit valg, og du kan frit skifte mellem dem ved at bruge valgmuligheden Vælg brugermappe.</string>
+    <string name="keep_current_azahar_directory">Behold den aktuelle Azalon3-DS-mappe</string>
     <string name="use_prior_lime3ds_directory">Brug tidligere Lime3DS mappe</string>
     <string name="select">Vælg</string>
     <string name="cannot_skip">Du kan ikke springe opsætningen af ​​brugermappen over </string>
-    <string name="cannot_skip_directory_description">Dette trin er påkrævet for at Azahar kan fungere. Vælg en mappe og så kan du fortsætte.</string>
+    <string name="cannot_skip_directory_description">Dette trin er påkrævet for at Azalon3-DS kan fungere. Vælg en mappe og så kan du fortsætte.</string>
     <string name="invalid_selection">Ugyldigt valg</string>
     <string name="invalid_user_directory">Valget af brugermappe var ugyldigt.\nVælg venligst brugermappen igen, og sørg for at navigere til den fra roden af ​​din enheds lager.</string>
-    <string name="filesystem_permission_lost">Azahar har mistet tilladelsen til at administrere filer på denne enhed. Dette kan ske efter nogle app- eller Android-opdateringer. Giv venligst denne tilladelse igen på den næste skærm for at fortsætte med at bruge appen.</string>
+    <string name="filesystem_permission_lost">Azalon3-DS har mistet tilladelsen til at administrere filer på denne enhed. Dette kan ske efter nogle app- eller Android-opdateringer. Giv venligst denne tilladelse igen på den næste skærm for at fortsætte med at bruge appen.</string>
     <string name="set_up_theme_settings">Temaindstillinger</string>
-    <string name="setup_theme_settings_description">Konfigurer dine temaindstillinger for Azahar.</string>
+    <string name="setup_theme_settings_description">Konfigurer dine temaindstillinger for Azalon3-DS.</string>
     <string name="setup_set_theme">Indstil tema</string>
 
     <!-- Search Strings -->
@@ -148,7 +148,7 @@
     <string name="setup_system_files_preamble"><![CDATA[Azahar har brug for unikke konsoldata og firmwarefiler fra en rigtig konsol for at kunne bruge nogle af dens funktioner. Disse filer og data kan sættes op med <a href=https://github.com/azahar-emu/ArticSetupTool>Azahar Artic Setup Tool</a>.<br>Bemærk:<ul><li><b>Denne handling vil installere unikke konsoldata til Azahar, del ikke dine bruger- eller nand-mapper efter at have udført opsætningsprocessen!</b></li><li>Mens du udfører opsætningsprocessen, vil Azahar forbinde til konsollen, der kører opsætningsværktøjet. Du kan fjerne forbindelsen til konsollen senere fra fanen Systemfiler i emulatorindstillingsmenuen.</li><li>Gå ikke online med både Azahar og din 3DS-konsol på samme tid efter opsætning af systemfiler, da dette kan medføre problemer.</li><li>Gammel 3DS-opsætning er nødvendig for at den nye 3DS-opsætning kan fungere (det anbefales at opsætte begge dele).</li><li>Begge opsætningstilstande fungerer uanset hvilken model af konsollen, der kører opsætningsværktøjet.</li></ul>]]></string>
     <string name="setup_system_files_detect">Henter den aktuelle status for systemfiler, vent venligst...</string>
     <string name="delete_system_files">Fjern linket til de unikke konsoldata</string>
-    <string name="delete_system_files_description"><![CDATA[Denne handling vil fjerne forbindelsen mellem din rigtige konsol og Azahar, med følgende konsekvenser:<br><ul><li>Din OTP, SecureInfo og LocalFriendCodeSeed vil blive fjernet fra Azahar.</li><li>Din venneliste nulstilles, og du bliver logget ud af din NNID/PNID-konto.</li><li>Systemfiler og eshop-titler opnået gennem Azahar bliver utilgængelige, indtil den samme konsol er linket igen ved hjælp af opsætningsværktøjet (gemte data går ikke tabt).</li></ul><br>Fortsætte?]]></string>
+    <string name="delete_system_files_description"><![CDATA[Denne handling vil fjerne forbindelsen mellem din rigtige konsol og Azalon3-DS, med følgende konsekvenser:<br><ul><li>Din OTP, SecureInfo og LocalFriendCodeSeed vil blive fjernet fra Azalon3-DS.</li><li>Din venneliste nulstilles, og du bliver logget ud af din NNID/PNID-konto.</li><li>Systemfiler og eshop-titler opnået gennem Azalon3-DS bliver utilgængelige, indtil den samme konsol er linket igen ved hjælp af opsætningsværktøjet (gemte data går ikke tabt).</li></ul><br>Fortsætte?]]></string>
     <string name="setup_system_files_o3ds">Gammel 3DS opsætning</string>
     <string name="setup_system_files_n3ds">Ny 3DS-opsætning</string>
     <string name="setup_system_files_possible">Opsætning er mulig.</string>
@@ -329,7 +329,7 @@
     <string name="renderer_debug">Fejlsøg renderingen</string>
     <string name="renderer_debug_description">Log yderligere grafikrelaterede fejlfindingsoplysninger. Når det er aktiveret, vil spillets ydeevne blive væsentligt reduceret.</string>
     <string name="instant_debug_log">Tøm loggen ved hver besked</string>
-    <string name="instant_debug_log_description">Overfør øjeblikkeligt fejlretningsloggen til fil. Brug dette, hvis Azahar går ned, og logoutputtet afbrydes.</string>
+    <string name="instant_debug_log_description">Overfør øjeblikkeligt fejlretningsloggen til fil. Brug dette, hvis Azalon3-DS går ned, og logoutputtet afbrydes.</string>
     <string name="delay_start_lle_modules">Forsink start med LLE moduler</string>
     <string name="delay_start_lle_modules_description">Forsinker starten af ​​appen, når LLE moduler er aktiveret.</string>
     <string name="deterministic_async_operations">Deterministiske asynkrone operationer</string>
@@ -528,7 +528,7 @@
     <string name="write_permission_needed">Du skal tillade skriveadgang til eksternt lager, for at emulatoren kan fungere</string>
     <string name="load_settings">Indlæser indstillinger...</string>
 
-    <string name="external_storage_not_mounted">Det eksterne lager skal være tilgængeligt for at Azahar kan anvendes </string>
+    <string name="external_storage_not_mounted">Det eksterne lager skal være tilgængeligt for at Azalon3-DS kan anvendes </string>
 
     <string name="select_dir">Vælg denne mappe</string>
     <string name="empty_gamelist">Ingen filer blev fundet, eller der er ikke valgt nogen spilmappe endnu.</string>
@@ -558,11 +558,11 @@
     <!-- Camera -->
     <string name="camera_select_image">Vælg billede</string>
     <string name="camera">Kamera</string>
-    <string name="camera_permission_needed">Azahar skal have adgang til dit kamera for at efterligne 3DS\'ens kameraer.\n\nAlternativt kan du også indstille \"Billedkilde\" til \"Stillbillede\" i kameraindstillinger.</string>
+    <string name="camera_permission_needed">Azalon3-DS skal have adgang til dit kamera for at efterligne 3DS\'ens kameraer.\n\nAlternativt kan du også indstille \"Billedkilde\" til \"Stillbillede\" i kameraindstillinger.</string>
 
     <!-- Microphone -->
     <string name="microphone">Mikrofon</string>
-    <string name="microphone_permission_needed">Azahar skal have adgang til din mikrofon for at efterligne 3DS\'ens mikrofon.\n\nAlternativt kan du også ændre \"Lydindgangsenhed\" i lydindstillinger.</string>
+    <string name="microphone_permission_needed">Azalon3-DS skal have adgang til din mikrofon for at efterligne 3DS\'ens mikrofon.\n\nAlternativt kan du også ændre \"Lydindgangsenhed\" i lydindstillinger.</string>
 
     <!-- Core Errors -->
     <string name="abort_button">Afbryd</string>
@@ -656,7 +656,7 @@
         <item quantity="one">Installerer %d filer. Se underretning for flere detaljer.</item>
         <item quantity="other">Installerer %d filer. Se meddelelser for flere detaljer.</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">Azahar meddelelser under CIA installation</string>
+    <string name="cia_install_notification_channel_description">Azalon3-DS meddelelser under CIA installation</string>
     <string name="cia_install_notification_title">Installerer CIA</string>
     <string name="cia_install_notification_installing">Installerer %1$s (%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CIA er installeret med succes</string>
@@ -664,7 +664,7 @@
     <string name="cia_install_success">\"%s\" er blevet installeret korrekt</string>
     <string name="cia_install_error_aborted">Installationen af \"%s\" blev afbrudt.\n Se venligst loggen for flere detaljer</string>
     <string name="cia_install_error_invalid">\"%s\" er ikke en gyldig CIA</string>
-    <string name="cia_install_error_encrypted">\"%s\" skal dekrypteres inden det kan anvendes med Azahar.\n En rigtig 3DS er påkrævet</string>
+    <string name="cia_install_error_encrypted">\"%s\" skal dekrypteres inden det kan anvendes med Azalon3-DS.\n En rigtig 3DS er påkrævet</string>
     <string name="cia_install_error_unknown">Der opstod en ukendt fejl under installationen af \"%s\".\n Se venligst loggen for flere detaljer</string>
 
     <string name="memory_byte">Byte</string>

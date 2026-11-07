@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Уведомления 3DS эмулятора Azahar</string>
-    <string name="app_notification_running">Azahar запущен</string>
+    <string name="app_notification_channel_description">Уведомления 3DS эмулятора Azalon3-DS</string>
+    <string name="app_notification_running">Azalon3-DS запущен</string>
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Настройки</string>
     <string name="home_options">Параметры</string>
@@ -20,7 +20,7 @@
     <string name="custom_driver_not_supported_description">Загрузка кастомных драйверов для данного устройства в настоящее время не поддерживается.\nПроверьте данную опцию позднее, т.к. поддержка может появиться в будущем.</string>
     <string name="share_log_not_found">Лог-файл не найден</string>
     <string name="select_games_folder">Выбор папки с приложениями</string>
-    <string name="select_games_folder_description">Разрешить Azahar наполнить список приложений</string>
+    <string name="select_games_folder_description">Разрешить Azalon3-DS наполнить список приложений</string>
     <string name="about">О приложении</string>
     <string name="about_description">Версия сборки, разработчики и другое</string>
     <string name="theme_and_color_description">Настройка внешнего вида приложения</string>
@@ -44,7 +44,7 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     <string name="contributors">Участники</string>
-    <string name="licenses_description">Проекты, которые используются Azahar для Android</string>
+    <string name="licenses_description">Проекты, которые используются Azalon3-DS для Android</string>
     <string name="build">Сборка</string>
     <string name="licenses">Лицензии</string>
     <!-- Setup strings -->
@@ -110,7 +110,7 @@
     <string name="setup_system_files_possible">Возможно осуществить установку.</string>
     <string name="setup_system_files_o3ds_needed">Сначала требуется установка старой 3DS.</string>
     <string name="setup_system_files_completed">Установка уже завершена</string>
-    <string name="setup_system_files_enter_address">Введите адрес инструмента настройки Azahar Artic:</string>
+    <string name="setup_system_files_enter_address">Введите адрес инструмента настройки Azalon3-DS Artic:</string>
     <string name="boot_home_menu">Запуск меню HOME</string>
     <string name="run_system_setup">Запускать настройку системы при загрузке меню HOME</string>
     <string name="home_menu">Меню HOME</string>

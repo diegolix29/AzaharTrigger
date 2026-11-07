@@ -86,7 +86,7 @@ ConfigurePerGame::~ConfigurePerGame() = default;
 void ConfigurePerGame::ResetDefaults() {
     const auto config_file_name = title_id == 0 ? filename : fmt::format("{:016X}", title_id);
     QMessageBox::StandardButton answer = QMessageBox::question(
-        this, QStringLiteral("Azahar"),
+        this, QStringLiteral("Azalon3-DS"),
         tr("Are you sure you want to <b>reset your settings for this application</b>?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 

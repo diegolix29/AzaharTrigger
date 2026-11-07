@@ -848,7 +848,7 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, const QStr
 #endif
     connect(uninstall_all, &QAction::triggered, this, [=, this] {
         QMessageBox::StandardButton answer = QMessageBox::question(
-            this, QStringLiteral("Azahar"),
+            this, QStringLiteral("Azalon3-DS"),
             tr("Are you sure you want to completely uninstall '%1'?\n\nThis will "
                "delete the application if installed, as well as any installed updates or DLC.")
                 .arg(name),
@@ -871,7 +871,7 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, const QStr
     });
     connect(uninstall_game, &QAction::triggered, this, [this, name, media_type, program_id] {
         QMessageBox::StandardButton answer =
-            QMessageBox::question(this, QStringLiteral("Azahar"),
+            QMessageBox::question(this, QStringLiteral("Azalon3-DS"),
                                   tr("Are you sure you want to uninstall '%1'?").arg(name),
                                   QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer == QMessageBox::Yes) {
@@ -882,7 +882,7 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, const QStr
     });
     connect(uninstall_update, &QAction::triggered, this, [this, name, update_program_id] {
         QMessageBox::StandardButton answer = QMessageBox::question(
-            this, QStringLiteral("Azahar"),
+            this, QStringLiteral("Azalon3-DS"),
             tr("Are you sure you want to uninstall the update for '%1'?").arg(name),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer == QMessageBox::Yes) {
@@ -894,7 +894,7 @@ void GameList::AddGamePopup(QMenu& context_menu, const QString& path, const QStr
     });
     connect(uninstall_dlc, &QAction::triggered, this, [this, name, dlc_program_id] {
         QMessageBox::StandardButton answer = QMessageBox::question(
-            this, QStringLiteral("Azahar"),
+            this, QStringLiteral("Azalon3-DS"),
             tr("Are you sure you want to uninstall all DLC for '%1'?").arg(name),
             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if (answer == QMessageBox::Yes) {

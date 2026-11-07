@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS emulatorius</string>
-    <string name="app_notification_running">Azahar veikia</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS emulatorius</string>
+    <string name="app_notification_running">Azalon3-DS veikia</string>
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Nustatymai</string>
     <string name="home_options">Pasirinkimai</string>

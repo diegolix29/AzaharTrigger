@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS emülatörü bildirimleri</string>
-    <string name="app_notification_running">Azahar çalışıyor</string>
-    <string name="app_game_install_description">Sırada, bir Uygulama Dosyası seçmelisiniz. Azahar seçili dosyadaki bütün 3DS ROM\'larını uygulamada gösterecektir.\n\nCİA ROM\'larının, güncellemelerin ve DLC\'lerin; dosya ikonuna tıklanıp \"CIA İndir\"i seçerek ayrı olarak indirilmesi gerekir.</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS emülatörü bildirimleri</string>
+    <string name="app_notification_running">Azalon3-DS çalışıyor</string>
+    <string name="app_game_install_description">Sırada, bir Uygulama Dosyası seçmelisiniz. Azalon3-DS seçili dosyadaki bütün 3DS ROM\'larını uygulamada gösterecektir.\n\nCİA ROM\'larının, güncellemelerin ve DLC\'lerin; dosya ikonuna tıklanıp \"CIA İndir\"i seçerek ayrı olarak indirilmesi gerekir.</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Ayarlar</string>
@@ -14,7 +14,7 @@
     <string name="install_game_content">CIA Dosyası Yükle</string>
     <string name="install_game_content_description">Uygulamalar, güncellemeler veya DLC yükle</string>
     <string name="share_log">Log\'u Paylaş</string>
-    <string name="share_log_description">Sorunları gidermek için Azahar\'ın log dosyasını paylaş</string>
+    <string name="share_log_description">Sorunları gidermek için Azalon3-DS\'ın log dosyasını paylaş</string>
     <string name="gpu_driver_manager">GPU Sürücü Yöneticisi</string>
     <string name="install_gpu_driver">GPU Sürücüsü Yükle</string>
     <string name="install_gpu_driver_description">Daha iyi performans veya doğruluk olasılığı için alternatif sürücü yükle</string>
@@ -23,11 +23,11 @@
     <string name="custom_driver_not_supported_description">Bu cihaz için özel sürücü yükleme henüz desteklenmiyor. \nLütfen gelecekte destek eklenmiş mi diye tekrar kontrol edin! </string>
     <string name="share_log_not_found">Log dosyası bulunamadı</string>
     <string name="select_games_folder">Uygulamalar Dosyasını Seç</string>
-    <string name="select_games_folder_description">Azahar\'ın uygulama listesini doldurmasına izin verir</string>
+    <string name="select_games_folder_description">Azalon3-DS\'ın uygulama listesini doldurmasına izin verir</string>
     <string name="about">Hakkında</string>
     <string name="about_description">Yapı sürümü, katkıda bulunanlar ve daha fazlası</string>
     <string name="games_dir_selected">Uygulama dizini seçildi</string>
-    <string name="select_citra_user_folder_home_description">Azahar\'ın uygulama yüklemek için kullandığı dosyaları değiştirir</string>
+    <string name="select_citra_user_folder_home_description">Azalon3-DS\'ın uygulama yüklemek için kullandığı dosyaları değiştirir</string>
     <string name="theme_and_color_description">Uygulamanın görünüşünü değiştir</string>
     <string name="install_cia_title">CIA Yükle</string>
 
@@ -48,13 +48,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
     <string name="contributors">Katkıda Bulunanlar</string>
-    <string name="contributors_description">Azahar\'ı mümkün kılan kişiler</string>
-    <string name="licenses_description">Android için Azahar tarafından kullanılan projeler</string>
+    <string name="contributors_description">Azalon3-DS\'ı mümkün kılan kişiler</string>
+    <string name="licenses_description">Android için Azalon3-DS tarafından kullanılan projeler</string>
     <string name="build">Yapı</string>
     <string name="licenses">Lisanslar</string>
     <!-- Setup strings -->
     <string name="welcome">Hoş geldiniz!</string>
-    <string name="welcome_description">&lt;b>Azahar&lt;/b>\'ı nasıl kuracağını öğren ve emülasyona başla.</string>
+    <string name="welcome_description">&lt;b>Azalon3-DS&lt;/b>\'ı nasıl kuracağını öğren ve emülasyona başla.</string>
     <string name="get_started">Başlayın</string>
     <string name="step_complete">Tamamlandı!</string>
     <string name="games">Uygulamalar</string>
@@ -66,15 +66,15 @@
     <string name="notifications_description">Aşağıdaki buton ile bildirim izni verin.</string>
     <string name="give_permission">İzin ver</string>
     <string name="notification_warning">Bildirim izni vermeyi geçmek istediğinizden emin misiniz?</string>
-    <string name="notification_warning_description">Azahar sizi önemli bilgiler hakkında bilgilendiremeyecek.</string>
+    <string name="notification_warning_description">Azalon3-DS sizi önemli bilgiler hakkında bilgilendiremeyecek.</string>
     <string name="filesystem_permission_warning">İzinler eksik</string>
-    <string name="filesystem_permission_warning_description">Azahar çalışması için gerekli olan dosyaları oluşturabilmek ve yönetebilmek için dosya izinleri gerektiriyor. \n\nLütfen devam etmeden önce dosya yönetimi izinlerinin sağlandığından emin olun.</string>
+    <string name="filesystem_permission_warning_description">Azalon3-DS çalışması için gerekli olan dosyaları oluşturabilmek ve yönetebilmek için dosya izinleri gerektiriyor. \n\nLütfen devam etmeden önce dosya yönetimi izinlerinin sağlandığından emin olun.</string>
     <string name="camera_permission">Kamera</string>
     <string name="camera_permission_description">3DS kamera emülasyonu için aşağıdaki izni verin.</string>
     <string name="microphone_permission">Mikrofon</string>
     <string name="microphone_permission_description">3DS mikrofon emülasyonu için aşağıdaki izni verin.</string>
     <string name="filesystem_permission">Dosya Sistemi</string>
-    <string name="filesystem_permission_description">Azahar\'ın çalışması için gerekli dosyaları oluşturabilmesi için lütfen izin veriniz.</string>
+    <string name="filesystem_permission_description">Azalon3-DS\'ın çalışması için gerekli dosyaları oluşturabilmesi için lütfen izin veriniz.</string>
     <string name="permission_denied">İzin reddedildi</string>
     <string name="add_games_warning">Uygulama dosyasını seçmeyi atla?</string>
     <string name="add_games_warning_description">Eğer bir dosya seçili değilse yazılımlar uygulama listesinde görünmeyecektir.</string>
@@ -85,15 +85,15 @@
     <string name="warning_skip">Atla</string>
     <string name="warning_cancel">İptal et</string>
     <string name="select_citra_user_folder">Kullanıcı Dosyası Seç</string>
-    <string name="select_which_user_directory_to_use">Hem Lime3DS hem de Azahar için ayarlanmış kullanıcı dizinleriniz var gibi görünüyor. Bunun nedeni muhtemelen Azahar\'a geçmiş olmanız ve sorulduğunda Lime3DS için kullanılandan farklı bir kullanıcı dizini seçmiş olmanızdır.\n\nBu, kayıtları veya diğer ayarları kaybettiğinizi düşünmenize neden olmuş olabilir - böyle bir şey olduysa özür dileriz. \n\nOrijinal Lime3DS kullanıcı dizininizi kullanmaya geri dönmek, Lime3DS\'deki ayarları ve oyun kayıtlarını geri yüklemek mi istersiniz; yoksa mevcut Azahar kullanıcı dizininizi korumak mı? \n\nSeçiminiz ne olursa olsun her iki dizin de silinmeyecektir ve Kullanıcı Klasörü Seç seçeneğini kullanarak aralarında serbestçe geçiş yapabilirsiniz.</string>
-    <string name="keep_current_azahar_directory">Şimdiki Azahar Dizinini Koru</string>
+    <string name="select_which_user_directory_to_use">Hem Lime3DS hem de Azalon3-DS için ayarlanmış kullanıcı dizinleriniz var gibi görünüyor. Bunun nedeni muhtemelen Azalon3-DS\'a geçmiş olmanız ve sorulduğunda Lime3DS için kullanılandan farklı bir kullanıcı dizini seçmiş olmanızdır.\n\nBu, kayıtları veya diğer ayarları kaybettiğinizi düşünmenize neden olmuş olabilir - böyle bir şey olduysa özür dileriz. \n\nOrijinal Lime3DS kullanıcı dizininizi kullanmaya geri dönmek, Lime3DS\'deki ayarları ve oyun kayıtlarını geri yüklemek mi istersiniz; yoksa mevcut Azalon3-DS kullanıcı dizininizi korumak mı? \n\nSeçiminiz ne olursa olsun her iki dizin de silinmeyecektir ve Kullanıcı Klasörü Seç seçeneğini kullanarak aralarında serbestçe geçiş yapabilirsiniz.</string>
+    <string name="keep_current_azahar_directory">Şimdiki Azalon3-DS Dizinini Koru</string>
     <string name="use_prior_lime3ds_directory">Eski Lime3DS Dizinini Kullan</string>
     <string name="select">Seç</string>
     <string name="cannot_skip">Kullanıcı klasörü ayarlamayı atlayamazsınız</string>
-    <string name="cannot_skip_directory_description">Bu adım Azahar\'ın çalışması için gereklidir. Lütfen devam etmek için bir dizin seçin.</string>
+    <string name="cannot_skip_directory_description">Bu adım Azalon3-DS\'ın çalışması için gereklidir. Lütfen devam etmek için bir dizin seçin.</string>
     <string name="invalid_selection">Geçersiz Seçim</string>
     <string name="set_up_theme_settings">Tema Ayarları</string>
-    <string name="setup_theme_settings_description">Azahar için tema tercihlerinizi yapılandırın.</string>
+    <string name="setup_theme_settings_description">Azalon3-DS için tema tercihlerinizi yapılandırın.</string>
     <string name="setup_set_theme">Tema Ayarla</string>
 
     <!-- Search Strings -->
@@ -278,7 +278,7 @@
     <string name="vsync">V-Sync\'i Etkinleştir</string>
     <string name="renderer_debug">Hata Ayıklama İşleyicisi</string>
     <string name="renderer_debug_description">Grafiklerle ilgili ek hata ayıklama bilgilerini günlüğe kaydedin. Etkinleştirildiğinde, oyun performansı önemli ölçüde azalacaktır.</string>
-    <string name="instant_debug_log_description">Hata ayıklama günlüğünü hemen dosyaya işler. Azahar çöküyor ve günlük çıktısı kesiliyorsa bunu kullanın.</string>
+    <string name="instant_debug_log_description">Hata ayıklama günlüğünü hemen dosyaya işler. Azalon3-DS çöküyor ve günlük çıktısı kesiliyorsa bunu kullanın.</string>
     <string name="delay_start_lle_modules_description">LLE modülleri etkinken uygulamanın başlamasını geciktirir</string>
     <string name="deterministic_async_operations">Deterministik Asenkron İşlemler</string>
     <string name="deterministic_async_operations_description">Hata ayıklama için asenkron işlemleri deterministik hale getirir. Bunu etkinleştirmek donmalara neden olabilir.</string>
@@ -431,7 +431,7 @@
     <string name="write_permission_needed">Emülatörün çalışması için harici depolama alanına yazma erişimine izin vermeniz gerekir</string>
     <string name="load_settings">Ayarlar Yükleniyor...</string>
 
-    <string name="external_storage_not_mounted">Azahar\'ı kullanmak için harici depolama alanının kullanılabilir olması gerekir</string>
+    <string name="external_storage_not_mounted">Azalon3-DS\'ı kullanmak için harici depolama alanının kullanılabilir olması gerekir</string>
 
     <string name="select_dir">Bu Dizini Seç</string>
     <string name="empty_gamelist">Hiçbir dosya bulunamadı veya henüz hiçbir oyun dizini seçilmedi.</string>
@@ -461,11 +461,11 @@
     <!-- Camera -->
     <string name="camera_select_image">Resim Seçin</string>
     <string name="camera">Kamera</string>
-    <string name="camera_permission_needed">Azahar\'ın 3DS\'in kameralarını taklit etmek için kameranıza erişmesi gerekir.\n\nAlternatif olarak, Kamera Ayarlarında “Görüntü Kaynağı ”nı “Hareketsiz Görüntü” olarak da ayarlayabilirsiniz.</string>
+    <string name="camera_permission_needed">Azalon3-DS\'ın 3DS\'in kameralarını taklit etmek için kameranıza erişmesi gerekir.\n\nAlternatif olarak, Kamera Ayarlarında “Görüntü Kaynağı ”nı “Hareketsiz Görüntü” olarak da ayarlayabilirsiniz.</string>
 
     <!-- Microphone -->
     <string name="microphone">Mikrofon</string>
-    <string name="microphone_permission_needed">Azahar\'ın 3DS\'in mikrofonunu taklit etmek için mikrofonunuza erişmesi gerekir.\n\nAlternatif olarak, Ses Ayarları\'nda “Ses Giriş Aygıtı ”nı da değiştirebilirsiniz.</string>
+    <string name="microphone_permission_needed">Azalon3-DS\'ın 3DS\'in mikrofonunu taklit etmek için mikrofonunuza erişmesi gerekir.\n\nAlternatif olarak, Ses Ayarları\'nda “Ses Giriş Aygıtı ”nı da değiştirebilirsiniz.</string>
 
     <!-- Core Errors -->
     <string name="abort_button">İptal et</string>
@@ -559,7 +559,7 @@
         <item quantity="one">%ddosyası indiriliyor. Daha fazla detay için bildirime bakın.</item>
         <item quantity="other">%ddosyaları indiriliyor. Daha fazla detay için bildirime bakın.</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">CIA Kurulumu sırasında Azahar bildirimleri</string>
+    <string name="cia_install_notification_channel_description">CIA Kurulumu sırasında Azalon3-DS bildirimleri</string>
     <string name="cia_install_notification_title">CİA Yükleniyor</string>
     <string name="cia_install_notification_installing">Yükleniyor %1$s(%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CİA başarıyla yüklendi</string>
@@ -567,7 +567,7 @@
     <string name="cia_install_success">\"%s\" başarıyla yüklendi</string>
     <string name="cia_install_error_aborted">\"%s\" yüklemesi durduruldu.\nDaha fazla detay için lütfen log a bakın.</string>
     <string name="cia_install_error_invalid">\"%s\" geçerli bir CİA değil</string>
-    <string name="cia_install_error_encrypted">\"%s\" Azahar\'la kullanılmadan önce şifresi çözülmelidir. \n Gerçek bir 3DS gereklidir.</string>
+    <string name="cia_install_error_encrypted">\"%s\" Azalon3-DS\'la kullanılmadan önce şifresi çözülmelidir. \n Gerçek bir 3DS gereklidir.</string>
     <string name="cia_install_error_unknown">\"%s\" yüklenirken bilinmeyen bir hata meydana geldi.\n Daha fazla detay için lütfen log a bakın</string>
 
     <string name="memory_byte">Bit</string>

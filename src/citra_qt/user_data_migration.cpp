@@ -28,7 +28,7 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow* main_window) {
     namespace fs = std::filesystem;
 
     const QString migration_prompt_message =
-        main_window->tr("Would you like to migrate your data for use in Azahar?\n"
+        main_window->tr("Would you like to migrate your data for use in Azalon3-DS?\n"
                         "(This may take a while; The old data will not be deleted)");
     const bool citra_dir_found = fs::is_directory(
         PathFromUTF8(FileUtil::GetUserPath(FileUtil::UserPath::LegacyCitraUserDir)));
@@ -39,7 +39,7 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow* main_window) {
         QMessageBox migration_prompt;
         migration_prompt.setWindowTitle(main_window->tr("Migration"));
         migration_prompt.setText(
-            main_window->tr("Azahar has detected user data for Citra and Lime3DS.\n\n") +
+            main_window->tr("Azalon3-DS has detected user data for Citra and Lime3DS.\n\n") +
             migration_prompt_message);
         migration_prompt.setIcon(QMessageBox::Information);
 
@@ -64,7 +64,7 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow* main_window) {
     else if (citra_dir_found) {
         if (QMessageBox::information(
                 main_window, main_window->tr("Migration"),
-                main_window->tr("Azahar has detected user data for Citra.\n\n") +
+                main_window->tr("Azalon3-DS has detected user data for Citra.\n\n") +
                     migration_prompt_message,
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
             MigrateUserData(main_window, LegacyEmu::Citra);
@@ -75,7 +75,7 @@ void UserDataMigrator::ShowMigrationPrompt(QMainWindow* main_window) {
     else if (lime3ds_dir_found) {
         if (QMessageBox::information(
                 main_window, main_window->tr("Migration"),
-                main_window->tr("Azahar has detected user data for Lime3DS.\n\n") +
+                main_window->tr("Azalon3-DS has detected user data for Lime3DS.\n\n") +
                     migration_prompt_message,
                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes) {
             MigrateUserData(main_window, LegacyEmu::Lime3DS);

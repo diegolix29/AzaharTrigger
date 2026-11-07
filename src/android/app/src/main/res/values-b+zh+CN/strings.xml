@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS 模拟器通知</string>
-    <string name="app_notification_running">Azahar 正在运行</string>
-    <string name="app_game_install_description">接下来，您需要选择一个应用文件夹。Azahar 将显示所选文件夹中的所有 3DS ROM。\n\nCIA ROM、更新和 DLC 需要分别进行安装，具体为点击文件夹图标并选择“安装 CIA”。</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS 模拟器通知</string>
+    <string name="app_notification_running">Azalon3-DS 正在运行</string>
+    <string name="app_game_install_description">接下来，您需要选择一个应用文件夹。Azalon3-DS 将显示所选文件夹中的所有 3DS ROM。\n\nCIA ROM、更新和 DLC 需要分别进行安装，具体为点击文件夹图标并选择“安装 CIA”。</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">设置</string>
@@ -14,7 +14,7 @@
     <string name="install_game_content">安装 CIA 文件</string>
     <string name="install_game_content_description">安装应用、更新或 DLC</string>
     <string name="share_log">分享日志文件</string>
-    <string name="share_log_description">分享 Azahar 的日志文件来调试问题</string>
+    <string name="share_log_description">分享 Azalon3-DS 的日志文件来调试问题</string>
     <string name="gpu_driver_manager">GPU 驱动管理器</string>
     <string name="install_gpu_driver">安装 GPU 驱动</string>
     <string name="install_gpu_driver_description">安装替代的驱动以获得更好的性能及精度</string>
@@ -23,11 +23,11 @@
     <string name="custom_driver_not_supported_description">此设备暂不支持自定义驱动。\n请之后再来查看您的设备是否已被支持！</string>
     <string name="share_log_not_found">未找到日志文件</string>
     <string name="select_games_folder">选择应用文件夹</string>
-    <string name="select_games_folder_description">允许 Azahar 填充应用列表</string>
+    <string name="select_games_folder_description">允许 Azalon3-DS 填充应用列表</string>
     <string name="about">关于</string>
     <string name="about_description">构建版本、贡献者以及更多</string>
     <string name="games_dir_selected">已选择应用目录</string>
-    <string name="select_citra_user_folder_home_description">更改 Azahar 用于加载应用的相关文件</string>
+    <string name="select_citra_user_folder_home_description">更改 Azalon3-DS 用于加载应用的相关文件</string>
     <string name="theme_and_color_description">更改应用程序的外观</string>
     <string name="install_cia_title">安装 CIA</string>
 
@@ -45,13 +45,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">已复制到剪贴板</string>
     <string name="contributors">贡献者</string>
-    <string name="contributors_description">使 Azahar 得以实现的贡献者</string>
-    <string name="licenses_description">Azahar 安卓版使用的项目</string>
+    <string name="contributors_description">使 Azalon3-DS 得以实现的贡献者</string>
+    <string name="licenses_description">Azalon3-DS 安卓版使用的项目</string>
     <string name="build">构建版本</string>
     <string name="licenses">许可证</string>
     <!-- Setup strings -->
     <string name="welcome">欢迎！</string>
-    <string name="welcome_description">了解如何设置 &lt;b>Azahar&lt;/b> 并进行模拟。</string>
+    <string name="welcome_description">了解如何设置 &lt;b>Azalon3-DS&lt;/b> 并进行模拟。</string>
     <string name="get_started">开始</string>
     <string name="step_complete">完成！</string>
     <string name="games">应用</string>
@@ -63,7 +63,7 @@
     <string name="notifications_description">点击下面的按钮授予通知权限。</string>
     <string name="give_permission">授予权限</string>
     <string name="notification_warning">跳过授予通知权限？</string>
-    <string name="notification_warning_description">Azahar 将无法通知您重要信息。</string>
+    <string name="notification_warning_description">Azalon3-DS 将无法通知您重要信息。</string>
     <string name="camera_permission">摄像头</string>
     <string name="camera_permission_description">在下方授予访问相机权限以模拟 3DS 的摄像头。</string>
     <string name="microphone_permission">麦克风</string>
@@ -79,14 +79,14 @@
     <string name="warning_skip">跳过</string>
     <string name="warning_cancel">取消</string>
     <string name="select_citra_user_folder">选择用户文件夹</string>
-    <string name="select_which_user_directory_to_use">您似乎同时为 Lime3DS 和 Azahar 设置了用户目录。这可能是因为您升级到了 Azahar，并在系统提示时选择了与 Lime3DS 不同的用户目录。\n\n这可能导致您误以为丢失了存档或其他设置 - 如果发生这种情况，我们深表歉意。\n\n您想恢复原来的 Lime3DS 用户目录、Lime3DS 设置和游戏存档，还是保持当前的 ​​Azahar 用户目录？\n\n无论您选择哪种方式，这两个目录都不会被删除，您可以使用“选择用户文件夹”选项在它们之间自由切换。</string>
-    <string name="keep_current_azahar_directory">保持当前的 Azahar 目录</string>
+    <string name="select_which_user_directory_to_use">您似乎同时为 Lime3DS 和 Azalon3-DS 设置了用户目录。这可能是因为您升级到了 Azalon3-DS，并在系统提示时选择了与 Lime3DS 不同的用户目录。\n\n这可能导致您误以为丢失了存档或其他设置 - 如果发生这种情况，我们深表歉意。\n\n您想恢复原来的 Lime3DS 用户目录、Lime3DS 设置和游戏存档，还是保持当前的 ​​Azalon3-DS 用户目录？\n\n无论您选择哪种方式，这两个目录都不会被删除，您可以使用“选择用户文件夹”选项在它们之间自由切换。</string>
+    <string name="keep_current_azahar_directory">保持当前的 Azalon3-DS 目录</string>
     <string name="use_prior_lime3ds_directory">使用先前的 Lime3DS 目录</string>
     <string name="select">选择</string>
     <string name="cannot_skip">您不能跳过设置用户文件夹</string>
-    <string name="cannot_skip_directory_description">此步骤是 Azahar 正常运行所必需的。请选择一个目录，然后才可继续。</string>
+    <string name="cannot_skip_directory_description">此步骤是 Azalon3-DS 正常运行所必需的。请选择一个目录，然后才可继续。</string>
     <string name="set_up_theme_settings">主题设置</string>
-    <string name="setup_theme_settings_description">配置您的 Azahar 主题偏好。</string>
+    <string name="setup_theme_settings_description">配置您的 Azalon3-DS 主题偏好。</string>
     <string name="setup_set_theme">设置主题</string>
 
     <!-- Search Strings -->
@@ -128,7 +128,7 @@
     <string name="setup_system_files_preamble"><![CDATA[Azahar 需要来自真实掌机的独有数据和固件文件才能使用其部分功能。此类文件和数据可通过 <a href=https://github.com/azahar-emu/ArticSetupTool>Azahar Artic 设置工具</a>进行设置。<br>注意：<ul><li><b>此操作会将掌机独有数据安装到 Azahar，执行设置过程后请勿共享您的用户或 nand 文件夹！</b></li><li>在执行设置过程时，Azahar 将关联到运行设置工具的掌机。您可以随时从模拟器配置菜单的“系统”选项卡中取消关联掌机。</li><li>设置系统文件后，请勿同时使用 Azahar 和 3DS 掌机联网，因为这可能会导致问题。</li><li>新 3DS 设置需要先进行老 3DS 设置才能运作（建议两种设置模式都执行）。</li><li>无论运行设置工具的掌机型号如何，两种设置模式均可运作。</li></ul>]]></string>
     <string name="setup_system_files_detect">正在获取当前系统文件状态，请稍候...</string>
     <string name="delete_system_files">取消关联掌机独有数据</string>
-    <string name="delete_system_files_description"><![CDATA[此操作将取消您真实掌机与 Azahar 的关联，并产生以下后果：<br><ul><li>您的 OTP、SecureInfo 和 LocalFriendCodeSeed 文件将从 Azahar 中删除。</li><li>您的好友列表将被重置，并且注销 NNID/PNID 帐户。</li><li>通过 Azahar 获得的系统文件和 eshop 数字版应用将变得无法访问，直到再次关联同一掌机（保存的数据不会丢失）。</ul><br>是否继续？]]></string>
+    <string name="delete_system_files_description"><![CDATA[此操作将取消您真实掌机与 Azalon3-DS 的关联，并产生以下后果：<br><ul><li>您的 OTP、SecureInfo 和 LocalFriendCodeSeed 文件将从 Azalon3-DS 中删除。</li><li>您的好友列表将被重置，并且注销 NNID/PNID 帐户。</li><li>通过 Azalon3-DS 获得的系统文件和 eshop 数字版应用将变得无法访问，直到再次关联同一掌机（保存的数据不会丢失）。</ul><br>是否继续？]]></string>
     <string name="setup_system_files_o3ds">老 3DS 设置</string>
     <string name="setup_system_files_n3ds">新 3DS 设置</string>
     <string name="setup_system_files_possible">可以进行设置。</string>
@@ -290,7 +290,7 @@
     <string name="renderer_debug">调试渲染器</string>
     <string name="renderer_debug_description">记录更多与图形相关的调试信息。启用后，游戏性能将显著降低。</string>
     <string name="instant_debug_log">每条消息都刷新日志输出</string>
-    <string name="instant_debug_log_description">立即将调试日志提交到文件。如果 Azahar 崩溃并且日志输出被切断，请使用此选项。</string>
+    <string name="instant_debug_log_description">立即将调试日志提交到文件。如果 Azalon3-DS 崩溃并且日志输出被切断，请使用此选项。</string>
     <string name="delay_start_lle_modules">使用 LLE 模块延迟启动</string>
     <string name="delay_start_lle_modules_description">当 LLE 模块启用时延迟应用的启动。</string>
     <string name="deterministic_async_operations">确定性异步操作</string>
@@ -458,7 +458,7 @@
     <string name="write_permission_needed">您需要允许 Lime3DS 对外部存储器进行读写访问，以便模拟器正常工作。</string>
     <string name="load_settings">正在加载设置…</string>
 
-    <string name="external_storage_not_mounted">需要可用的外部存储才能使用 Azahar</string>
+    <string name="external_storage_not_mounted">需要可用的外部存储才能使用 Azalon3-DS</string>
 
     <string name="select_dir">选择此目录</string>
     <string name="empty_gamelist">找不到游戏文件或尚未添加游戏目录。</string>
@@ -490,11 +490,11 @@
     <!-- Camera -->
     <string name="camera_select_image">选择图像</string>
     <string name="camera">摄像头</string>
-    <string name="camera_permission_needed">Azahar 需要访问您的摄像头来模拟 3DS 的摄像头。\n\n或者，您也可以在摄像头设置中将“图像来源”设置为“静止图像”。</string>
+    <string name="camera_permission_needed">Azalon3-DS 需要访问您的摄像头来模拟 3DS 的摄像头。\n\n或者，您也可以在摄像头设置中将“图像来源”设置为“静止图像”。</string>
 
     <!-- Microphone -->
     <string name="microphone">麦克风</string>
-    <string name="microphone_permission_needed">Azahar 需要访问您的麦克风来模拟 3DS 的麦克风。\n\n或者，您也可以在音频设置中更改“音频输入设备”。</string>
+    <string name="microphone_permission_needed">Azalon3-DS 需要访问您的麦克风来模拟 3DS 的麦克风。\n\n或者，您也可以在音频设置中更改“音频输入设备”。</string>
 
     <!-- Core Errors -->
     <string name="abort_button">中止</string>
@@ -576,7 +576,7 @@
     <plurals name="cia_install_toast">
         <item quantity="other">正在安装 %d 个文件。请查看通知了解详情。</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">CIA 安装期间的 Azahar 通知</string>
+    <string name="cia_install_notification_channel_description">CIA 安装期间的 Azalon3-DS 通知</string>
     <string name="cia_install_notification_title">正在安装 CIA 文件</string>
     <string name="cia_install_notification_installing">正在安装 %1$s (%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CIA 文件安装成功</string>
@@ -585,7 +585,7 @@
     <string name="cia_install_error_aborted">“%s”的安装中断。
 \n详情请参阅日志文件</string>
     <string name="cia_install_error_invalid">“%s”不是有效的 CIA 文件</string>
-    <string name="cia_install_error_encrypted">“%s”必须先解密才能与 Azahar 一起使用。\n 需要一台真正的 3DS 掌机</string>
+    <string name="cia_install_error_encrypted">“%s”必须先解密才能与 Azalon3-DS 一起使用。\n 需要一台真正的 3DS 掌机</string>
     <string name="cia_install_error_unknown">安装“%s”时出现未知错误。
 \n详情请参阅日志文件</string>
 

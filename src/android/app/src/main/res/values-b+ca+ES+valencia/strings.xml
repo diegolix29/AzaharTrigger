@@ -2,9 +2,9 @@
 <resources>
 
     <string name="app_disclaimer">Aquest software executarà aplicacions per a la consola de jocs portàtil Nintendo 3DS. No s\'inclouen títols de jocs.\n\nAbans de començar a emular, selecciona una carpeta on emmagatzemar les dades d\'usuari d\'Azahar.\n\nQuè és això:\n<a href='https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage'>Wiki - Dades i emmagatzematge d\'usuari d\'Azahar Android</a></string>
-    <string name="app_notification_channel_description">Notificacions de l\'emulador 3DS Azahar</string>
-    <string name="app_notification_running">Azahar s\'està executant</string>
-    <string name="app_game_install_description">A continuació, haureu de seleccionar una carpeta d\'aplicacions. Azahar mostrarà totes les aplicacions de 3DS dins de la carpeta seleccionada a l\'aplicació.\n\nLes aplicacions, actualitzacions i DLC CIA s\'hauran d\'instal·lar per separat fent clic a la icona de la carpeta i seleccionant Instal·la CIA.</string>
+    <string name="app_notification_channel_description">Notificacions de l\'emulador 3DS Azalon3-DS</string>
+    <string name="app_notification_running">Azalon3-DS s\'està executant</string>
+    <string name="app_game_install_description">A continuació, haureu de seleccionar una carpeta d\'aplicacions. Azalon3-DS mostrarà totes les aplicacions de 3DS dins de la carpeta seleccionada a l\'aplicació.\n\nLes aplicacions, actualitzacions i DLC CIA s\'hauran d\'instal·lar per separat fent clic a la icona de la carpeta i seleccionant Instal·la CIA.</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Configuració</string>
@@ -15,7 +15,7 @@
     <string name="install_game_content">Instal·lar fitxer CIA</string>
     <string name="install_game_content_description">Instal·lar aplicacions, actualitzacions o DLC</string>
     <string name="share_log">Compartir Registre</string>
-    <string name="share_log_description">Compartir el fitxer de registre de Azahar per a depurar problemes</string>
+    <string name="share_log_description">Compartir el fitxer de registre de Azalon3-DS per a depurar problemes</string>
     <string name="gpu_driver_manager">Administrador de drivers de GPU</string>
     <string name="install_gpu_driver">Instal·lar drivers de GPU</string>
     <string name="install_gpu_driver_description">Instal·la drivers alternatius per, potencialment, aconseguir millor rendiment i/o precisió</string>
@@ -24,11 +24,11 @@
     <string name="custom_driver_not_supported_description">La càrrega de drivers personalitzats no està suportada en aquest dispositiu.\n¡Comprova aquesta opció una altra vegada en el futur per veure si ja està suportada!</string>
     <string name="share_log_not_found">No s\'ha trobat cap fitxer de registre</string>
     <string name="select_games_folder">Seleccionar la carpeta d\'aplicacions</string>
-    <string name="select_games_folder_description">Permet a Azahar omplir la llista d\'aplicacions</string>
+    <string name="select_games_folder_description">Permet a Azalon3-DS omplir la llista d\'aplicacions</string>
     <string name="about">Sobre</string>
     <string name="about_description">Versió de compilació, crèdits i més</string>
     <string name="games_dir_selected">Directori d\'aplicacions seleccionat</string>
-    <string name="select_citra_user_folder_home_description">Canvia els fitxers que Azahar utilitza per a carregar aplicacions</string>
+    <string name="select_citra_user_folder_home_description">Canvia els fitxers que Azalon3-DS utilitza per a carregar aplicacions</string>
     <string name="theme_and_color_description">Modifica l\'aspecte de l\'app</string>
     <string name="install_cia_title">Instal·lar CIA</string>
 
@@ -55,13 +55,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Copiat al porta-retalls</string>
     <string name="contributors">Contribuïdors</string>
-    <string name="contributors_description">Col·laboradors que van fer possible Azahar</string>
-    <string name="licenses_description">Projectes utilitzats per Azahar per a Android</string>
+    <string name="contributors_description">Col·laboradors que van fer possible Azalon3-DS</string>
+    <string name="licenses_description">Projectes utilitzats per Azalon3-DS per a Android</string>
     <string name="build">Compilació</string>
     <string name="licenses">Llicències</string>
     <!-- Setup strings -->
     <string name="welcome">Benvingut/da!</string>
-    <string name="welcome_description">Aprén a configurar &lt;b>Azahar&lt;/b> i entra a l\'emulació.</string>
+    <string name="welcome_description">Aprén a configurar &lt;b>Azalon3-DS&lt;/b> i entra a l\'emulació.</string>
     <string name="get_started">Començar</string>
     <string name="step_complete">Completat!</string>
     <string name="games">Aplicacions</string>
@@ -73,15 +73,15 @@
     <string name="notifications_description">Concedeix el permís de notificacions amb el següent botó.</string>
     <string name="give_permission">Concedir permís</string>
     <string name="notification_warning">Saltar-se la concessió del permís de notificacions?</string>
-    <string name="notification_warning_description">Azahar no et podrà notificar sobre informació important.</string>
+    <string name="notification_warning_description">Azalon3-DS no et podrà notificar sobre informació important.</string>
     <string name="filesystem_permission_warning">Falten permisos</string>
-    <string name="filesystem_permission_warning_description">Azahar necessita permís per a administrar fitxers en este dispositiu per a poder emmagatzemar i administrar les dades d\'usuari de 3DS.\n\nPer favor, atorgue el permís abans de continuar.</string>
+    <string name="filesystem_permission_warning_description">Azalon3-DS necessita permís per a administrar fitxers en este dispositiu per a poder emmagatzemar i administrar les dades d\'usuari de 3DS.\n\nPer favor, atorgue el permís abans de continuar.</string>
     <string name="camera_permission">Càmera</string>
     <string name="camera_permission_description">Concedix el permís de càmera per a emular la càmera de la 3DS.</string>
     <string name="microphone_permission">Micròfon</string>
     <string name="microphone_permission_description">Concedix el permís de micròfon per a emular el micròfon de la 3DS.</string>
     <string name="filesystem_permission">Sistema de fitxers</string>
-    <string name="filesystem_permission_description">Concedix el permís de sistema d\'arxius a baix per a permetre que Azahar emmagatzeme arxius.</string>
+    <string name="filesystem_permission_description">Concedix el permís de sistema d\'arxius a baix per a permetre que Azalon3-DS emmagatzeme arxius.</string>
     <string name="permission_denied">Permís denegat</string>
     <string name="add_games_warning">Vols saltar la selecció de la carpeta d\'aplicacions?</string>
     <string name="add_games_warning_description">El software no es mostrarà a la llista d\'aplicacions si no se selecciona cap carpeta.</string>
@@ -94,18 +94,18 @@
     <string name="warning_cancel">Cancel·lar</string>
     <string name="select_citra_user_folder">Seleccionar carpeta d\'usuari.</string>
     <string name="select_citra_user_folder_description"><![CDATA[Selecciona el directori de <a href=\"https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage\">dades d\'usuari</a>amb el següent botó.]]></string>
-    <string name="select_which_user_directory_to_use">Sembla que tens directoris d\'usuari configurats tant per a Lime3DS com per a Azahar. Probablement es deu al fet que vas actualitzar a Azahar i, quan se\'t va demanar, vas triar un directori d\'usuari diferent del qual usaves per a Lime3DS.\n\nAixó pot haver-te fet pensar que vas perdre partides guardades o altres configuracions; et demanem disculpes si això va ocórrer.\n\nPreferixes tornar a usar el teu directori d\'usuari original de Lime3DS, restaurant la configuració i les partides guardades de Lime3DS, o conservar el teu directori d\'usuari actual d\'Azahar?\n\nCap dels directoris s\'eliminarà, independentment de la teua elecció, i pots canviar lliurement entre ells usant l\'opció \"Seleccionar carpeta d\'usuari\".</string>
-    <string name="keep_current_azahar_directory">Mantindre el directori Azahar actual</string>
+    <string name="select_which_user_directory_to_use">Sembla que tens directoris d\'usuari configurats tant per a Lime3DS com per a Azalon3-DS. Probablement es deu al fet que vas actualitzar a Azalon3-DS i, quan se\'t va demanar, vas triar un directori d\'usuari diferent del qual usaves per a Lime3DS.\n\nAixó pot haver-te fet pensar que vas perdre partides guardades o altres configuracions; et demanem disculpes si això va ocórrer.\n\nPreferixes tornar a usar el teu directori d\'usuari original de Lime3DS, restaurant la configuració i les partides guardades de Lime3DS, o conservar el teu directori d\'usuari actual d\'Azalon3-DS?\n\nCap dels directoris s\'eliminarà, independentment de la teua elecció, i pots canviar lliurement entre ells usant l\'opció \"Seleccionar carpeta d\'usuari\".</string>
+    <string name="keep_current_azahar_directory">Mantindre el directori Azalon3-DS actual</string>
     <string name="use_prior_lime3ds_directory">Usar el directori de Lime3DS anterior</string>
     <string name="select">Seleccionar</string>
     <string name="cannot_skip">No pots saltar la configuració de la carpeta d\'usuari</string>
-    <string name="cannot_skip_directory_description">Aquest pas és necessari perquè Azahar funcione. Selecciona un directori i després podràs continuar.</string>
+    <string name="cannot_skip_directory_description">Aquest pas és necessari perquè Azalon3-DS funcione. Selecciona un directori i després podràs continuar.</string>
     <string name="selecting_user_directory_without_write_permissions">Has perdut els permisos d\'escriptura en el teu <a href="https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage">directori de dades d\'usuari</a> , on es guarden les partides guardades i altra informació. Això pot ocórrer després d\'algunes actualitzacions d\'aplicacions o d\'Android. Torna a seleccionar el directori per a recuperar els permisos i poder continuar.</string>
     <string name="invalid_selection">Selecció no vàlida</string>
     <string name="invalid_user_directory">La selecció del directori d\'usuari no és vàlida.\nTorna a seleccionar el directori d\'usuari, assegurant-te de navegar fins ell des de l\'arrel de l\'emmagatzematge del dispositiu.</string>
-    <string name="filesystem_permission_lost">Azahar ha perdut el permís per a administrar fitxers en este dispositiu. Això pot ocórrer després d\'alguna actualització de l\'aplicació o d\'Android. Torna a concedir este permís en la següent pantalla per a continuar usant l\'aplicació.</string>
+    <string name="filesystem_permission_lost">Azalon3-DS ha perdut el permís per a administrar fitxers en este dispositiu. Això pot ocórrer després d\'alguna actualització de l\'aplicació o d\'Android. Torna a concedir este permís en la següent pantalla per a continuar usant l\'aplicació.</string>
     <string name="set_up_theme_settings">Configuració de tema</string>
-    <string name="setup_theme_settings_description">Configura les teues preferències de temes per a Azahar.</string>
+    <string name="setup_theme_settings_description">Configura les teues preferències de temes per a Azalon3-DS.</string>
     <string name="setup_set_theme">Establir tema</string>
 
     <!-- Search Strings -->
@@ -164,7 +164,7 @@
     <string name="setup_system_files_preamble"><![CDATA[Azahar necessita fitxers d\'una consola real per poder utilitzar algunes de les seues funcions. Pots obtindre els fitxers amb la <a href=https://github.com/azahar-emu/ArticSetupTool>ferramenta de configuració Azahar</a>.<br>Notes:<ul><li><b>Aquesta operació instal·larà fitxers únics de la consola a Azahar, no compartisques les teues carpetes d\'usuari o nand després de completar el procés de configuració!</b></li><li>Després de la configuració, Azahar s\'enllaçarà a la consola que ha executat la ferramenta de configuració. Pots desvincular la consola més tard des de la pestanya \"Fitxers de sistema\" del menú d\'opcions de l\'emulador.</li><li>No et connectes en línia amb Azahar i la consola 3DS al mateix temps després de configurar els arxius del sistema, ja que això podria causar problemes.</li><li>La configuració de Old 3DS és necessària perquè funcione la configuració de New 3DS (configurar els dos modes és recomanat).</li><li>Els dos modes de configuració funcionaran independentment del model de la consola que execute la ferramenta de configuració.</li></ul>]]></string>
     <string name="setup_system_files_detect">S\'està obtenint l\'estat actual dels fitxers del sistema, per favor espera...</string>
     <string name="delete_system_files">Desvincular Dades Úniques de Consola</string>
-    <string name="delete_system_files_description"><![CDATA[Esta acció desvincularà la teua consola real d\'Azahar, amb les següents conseqüències:<br><ul><li>OTP, SecureInfo i LocalFriendCodeSeed seran eliminats de Azahar.</li><li>La teua llista d\'amics es restablirà i es tancarà la sessió del teu compte NNID/PNID.</li><li>Els fitxers del sistema i els títols de la eshop obtinguts a través d\'Azahar es tornaran inaccessibles fins que la mateixa consola es vincule novament mitjançant la ferramenta de configuració (les dades guardades no es perdran).</li></ul><br>Continuar?]]></string>
+    <string name="delete_system_files_description"><![CDATA[Esta acció desvincularà la teua consola real d\'Azalon3-DS, amb les següents conseqüències:<br><ul><li>OTP, SecureInfo i LocalFriendCodeSeed seran eliminats de Azalon3-DS.</li><li>La teua llista d\'amics es restablirà i es tancarà la sessió del teu compte NNID/PNID.</li><li>Els fitxers del sistema i els títols de la eshop obtinguts a través d\'Azalon3-DS es tornaran inaccessibles fins que la mateixa consola es vincule novament mitjançant la ferramenta de configuració (les dades guardades no es perdran).</li></ul><br>Continuar?]]></string>
     <string name="setup_system_files_o3ds">Configuració Old 3DS</string>
     <string name="setup_system_files_n3ds">Configuració New 3DS</string>
     <string name="setup_system_files_possible">La configuració és possible</string>
@@ -356,7 +356,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="renderer_debug">Renderitzador de depuració</string>
     <string name="renderer_debug_description">Arxiva informació addicional gràfica relacionada amb la depuració. Quan està activada, el rendiment dels jocs serà reduït considerablement</string>
     <string name="instant_debug_log">Guardar l\'eixida del registre en cada missatge</string>
-    <string name="instant_debug_log_description">Envia immediatament el registre de depuració a un arxiu. Usa-ho si Azahar falla i es talla l\'eixida del registre.</string>
+    <string name="instant_debug_log_description">Envia immediatament el registre de depuració a un arxiu. Usa-ho si Azalon3-DS falla i es talla l\'eixida del registre.</string>
     <string name="delay_start_lle_modules">Inici diferit amb mòduls LLE</string>
     <string name="delay_start_lle_modules_description">Retarda l\'inici de l\'aplicació quan els mòduls LLE estan habilitats.</string>
     <string name="deterministic_async_operations">Operacions asíncrones deterministes</string>
@@ -410,7 +410,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="setting_not_editable">No pots editar-ho ara</string>
     <string name="setting_disabled">Configuració deshabilitada</string>
     <string name="setting_disabled_description_incompatible_setting">Esta configuració està actualment deshabilitada perquè una altra configuració no té el valor apropiat.</string>
-    <string name="setting_disabled_description_angle">No es pot canviar el renderitzador perquè el dispositiu està utilitzant ANGLE per a OpenGL, que actualment és incompatible amb Azahar. S\'utilitzarà Vulkan.</string>
+    <string name="setting_disabled_description_angle">No es pot canviar el renderitzador perquè el dispositiu està utilitzant ANGLE per a OpenGL, que actualment és incompatible amb Azalon3-DS. S\'utilitzarà Vulkan.</string>
     <string name="setting_not_editable_description">Esta opció no pot canviar-se mentres s\'està executant un joc.</string>
     <string name="auto_select">Auto-elegir</string>
     <string name="start">Iniciar</string>
@@ -498,7 +498,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="emulation_switch_screen_layout">Estil de Pantalla Apaïsada</string>
     <string name="emulation_switch_portrait_layout">Estil de Pantalla de Perfil</string>
     <string name="emulation_secondary_display_enable">Activar la pantalla secundària</string>
-    <string name="emulation_secondary_display_enable_description">Si està desactivat, Azahar permetrà que Android gestione les pantalles connectades. Si està activat i hi ha diverses pantalles connectades, pot seleccionar quina utilitzarà Azahar en el menú ràpid.</string>
+    <string name="emulation_secondary_display_enable_description">Si està desactivat, Azalon3-DS permetrà que Android gestione les pantalles connectades. Si està activat i hi ha diverses pantalles connectades, pot seleccionar quina utilitzarà Azalon3-DS en el menú ràpid.</string>
     <string name="emulation_switch_secondary_layout">Estil de Pantalla Secundària</string>
     <string name="emulation_secondary_display_management">Pantalla Secundària</string>
     <string name="emulation_select_secondary_display">Tria Pantalla</string>
@@ -567,7 +567,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="write_permission_needed">Necessites donar permisos d\'escriptura a l\'emmagatzematge extern perquè funcione l\'emulador.</string>
     <string name="load_settings">Carregant la configuració</string>
 
-    <string name="external_storage_not_mounted">L\'emmagatzematge extern necessita estar disponible per a poder usar Azahar.</string>
+    <string name="external_storage_not_mounted">L\'emmagatzematge extern necessita estar disponible per a poder usar Azalon3-DS.</string>
 
     <string name="select_dir">Selecciona Este Directori</string>
     <string name="empty_gamelist">No s\'han trobat fitxers o encara no s\'ha triat el directori de jocs.</string>
@@ -597,11 +597,11 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <!-- Camera -->
     <string name="camera_select_image">Seleccionar Imatge</string>
     <string name="camera">Càmera</string>
-    <string name="camera_permission_needed">Azahar necessita accedir a la teua càmera per a emular les càmeres de la 3DS.\n\nAlternativament, també pots posar la \"Font de la imatge\" en \"Imatge normal\" en Configuració de Càmera.</string>
+    <string name="camera_permission_needed">Azalon3-DS necessita accedir a la teua càmera per a emular les càmeres de la 3DS.\n\nAlternativament, també pots posar la \"Font de la imatge\" en \"Imatge normal\" en Configuració de Càmera.</string>
 
     <!-- Microphone -->
     <string name="microphone">Micròfon</string>
-    <string name="microphone_permission_needed">Azahar necessita accedir al teu micròfon per a emular el micròfon de la 3DS.\n\nAlternativament, també pots canviar el \"Dispositiu d\'entrada d\'àudio\" en Configuració d\'Àudio.</string>
+    <string name="microphone_permission_needed">Azalon3-DS necessita accedir al teu micròfon per a emular el micròfon de la 3DS.\n\nAlternativament, també pots canviar el \"Dispositiu d\'entrada d\'àudio\" en Configuració d\'Àudio.</string>
 
     <!-- Core Errors -->
     <string name="abort_button">Avortar</string>
@@ -699,7 +699,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
         <item quantity="one">Instal·lant %d fitxer. Mira la notificació per a més detalls.</item>
         <item quantity="other">Instal·lant %d fitxers. Mira la notificació per a més detalls.</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">Notificacions de Azahar durant la instal·lació de CIAs.</string>
+    <string name="cia_install_notification_channel_description">Notificacions de Azalon3-DS durant la instal·lació de CIAs.</string>
     <string name="cia_install_notification_title">Instal·lant CIA</string>
     <string name="cia_install_notification_installing">Instal·lant %1$s (%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CIA instal·lat amb èxit</string>
@@ -707,7 +707,7 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="cia_install_success">\"%s\" s\'ha instal·lat amb èxit</string>
     <string name="cia_install_error_aborted">La instal·lació de \"%s\" ha sigut avortada.\n Per favor, mira el log per a més informació.</string>
     <string name="cia_install_error_invalid">\"%s\" no és un CIA vàlid.</string>
-    <string name="cia_install_error_encrypted">\"%s\" ha de ser desencriptat abans de ser usat en Azahar. Es necessita una 3DS real.</string>
+    <string name="cia_install_error_encrypted">\"%s\" ha de ser desencriptat abans de ser usat en Azalon3-DS. Es necessita una 3DS real.</string>
     <string name="cia_install_error_unknown">Ha ocorregut un error desconegut mentres s\'instal·lava \"%s\".\n Per favor, mira el log per a més detalls.</string>
 
     <string name="memory_byte">Byte</string>
@@ -1057,9 +1057,9 @@ S\'esperen errors gràfics temporals quan estigue activat.</string>
     <string name="no_preference">Sense Preferència</string>
 
     <string name="update_available">Actualització disponible</string>
-    <string name="update_available_description">Hi ha una nova versió d\'Azahar disponible (versió %1$s).\nVols descarregar-la?</string>
+    <string name="update_available_description">Hi ha una nova versió d\'Azalon3-DS disponible (versió %1$s).\nVols descarregar-la?</string>
     <string name="check_for_updates">Buscar actualitzacions</string>
-    <string name="check_for_updates_description">Mostrar una notificació quan hi haja una actualització disponible per a Azahar.</string>
+    <string name="check_for_updates_description">Mostrar una notificació quan hi haja una actualització disponible per a Azalon3-DS.</string>
     <string name="update_check_channel">Canal d\'actualització</string>
     <string name="update_check_channel_description">Canal a usar per a comprovar actualitzacions.</string>
     <string name="update_check_channel_stable">Estable</string>

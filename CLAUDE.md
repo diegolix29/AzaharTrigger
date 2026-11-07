@@ -1,4 +1,4 @@
-# AzalonDS
+# Azalon3-DS (AzalonDS)
 
 DS + DSi + 3DS emulator: the user's Azahar fork (AzaharTrigger, 3DS) with the user's
 melonDS fork (TriggerDS) merged in as a real second core. Targets every platform Azahar
@@ -31,7 +31,7 @@ Hooks in Azahar code are all under `#ifdef ENABLE_DS` (CMake option `ENABLE_DS`,
 `citra_qt.cpp` (BootGame/OnStopGame/OnPauseContinueGame/ConfirmChangeGame/closeEvent,
 "DS" menu, file filter), `citra_qt.h` (members), `game_list_worker.cpp` (.nds rows with banner
 title/icon, synthetic program id `"NDS"+gamecode`), `citra_qt/CMakeLists.txt`,
-`citra_meta/CMakeLists.txt` (copies `azalon_ds.dll` next to `azahar.exe`).
+`citra_meta/CMakeLists.txt` (copies `azalon_ds.dll` next to `azalon3-ds.exe`).
 `ENABLE_DS` is a PUBLIC define of citra_qt because it changes `GMainWindow`'s layout.
 
 ## Why azalon_ds is a separate shared library
@@ -50,7 +50,7 @@ title/icon, synthetic program id `"NDS"+gamecode`), `citra_qt/CMakeLists.txt`,
 ```
 tools\build-windows-msvc.bat x64-release
 ```
-Output: `out\build\x64-release\bin\Release\azahar.exe` + `azalon_ds.dll`.
+Output: `out\build\x64-release\bin\Release\azalon3-ds.exe` + `azalon_ds.dll`.
 FFmpeg is off (`-DENABLE_FFMPEG=OFF`, like the user's previous builds). Bundled Qt 6.9.3 is
 downloaded by CMake into `out/build/<preset>/externals/qt` (on this machine that folder is a
 junction to AzaharTrigger's already-downloaded copy).
@@ -106,6 +106,13 @@ The Android repo is owned by another Windows SID: use `git -c safe.directory=* .
   `res/values/themes.xml`.
 - `libazalon_ds.so` is emitted into `CMAKE_LIBRARY_OUTPUT_DIRECTORY` so the Android Gradle
   plugin packages it; `libcitra-android.so` has a DT_NEEDED on it.
+
+## Branding
+Shown name is **Azalon3-DS** (exe `azalon3-ds`, macOS `Azalon3-DS.app`, Android label). On purpose
+unchanged so existing installs keep working: user data folders (`AzaharPlus`, `azaharplus-emu`),
+Android applicationId, Linux desktop id / icon names `org.azahar_emu.Azahar`, macOS bundle id,
+notification channel ids, the `azahar-room` server, libretro core file names, hotkey config keys.
+Icon files are still Azahar's (`dist/azahar.*`, Android mipmaps) until the new icon arrives.
 
 ## Working notes
 - Shell: PowerShell primary; Git Bash available (no cmake on its PATH: use VS's

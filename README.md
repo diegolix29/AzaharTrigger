@@ -1,7 +1,8 @@
-<b>AzaharTrigger</b> is a fork of the Azahar Plus 3DS emulator with extra features.
+<b>Azalon3-DS</b> is a Nintendo DS, DSi and 3DS emulator: AzaharTrigger (a fork of the Azahar Plus
+3DS emulator with extra features) with the TriggerDS melonDS fork built in as a second core.
 
 Each version is the same as the corresponding version of Azahar exept for this:
-- Compatibility with all game files. If a file works with any Citra fork, it works with AzaharPlus.
+- Compatibility with all game files. If a file works with any Citra fork, it works with Azalon3-DS.
 - Ability to download system files from official servers. No need for an actual 3DS.
 - Compatibility with older CPUs (no SSE4.2 required)
 - Compatibility with Android 9
@@ -11,6 +12,7 @@ Each version is the same as the corresponding version of Azahar exept for this:
 - Better multiplayer compatibility with other Citra forks
 
 - Added back local multiplayer, from Kleidis and rebased by diegolix29
+- DS multiplayer, 3ds multiplayer, working on a way to share multiplayer between 3ds and ds.
   
 The Azahar logo is the property of PabloMK7 and angyartanddraw
 ---
@@ -27,22 +29,16 @@ Download the latest release from [Releases](https://github.com/AzaharPlus/Azahar
 
 ### Android
 
-The Android build is available in 2 flavors.
-
 - Replace: It has the same application id as Azahar, so it will replace it on the device.
-Its display name is "AzaharPlus" and its icon background is blue.
-Use this one if you have other apps that target Azahar, like a frontend for example.
-
-- Coexist: It has a new application id so it can coexist with Azahar without issues.
-Its display name is "+AzaharPlus+" and its icon background is red.
+Its display name is "Azalon3-DS" and its icon background is blue.
 
 ### Cocoon
 
-The easiest way to use AzaharPlus with Cocoon is to uninstall Azahar and install the replace variant of AzaharPlus. It wiil be seen as Azahar by Cocoon.
+The easiest way to use Azalon3-DS with Cocoon is to uninstall Azahar and install the replace Azalon3-DS. It wiil be seen as Azahar by Cocoon.
 
 ### Batocera
 
-To use AzaharPlus with Batocera you can install the Batocera Unofficial Add-ons
+To use Azalon3-DS with Batocera you can install the Batocera Unofficial Add-ons
 
  https://github.com/batocera-unofficial-addons/batocera-unofficial-addons
 
@@ -65,7 +61,7 @@ On desktop it is in File > ZipPass. On android it is in the main menu.
 Please refer this repository's [wiki](https://github.com/AzaharPlus/AzaharPlus/wiki/Building-From-Source) for build instructions
 
 # Minimum requirements
-Below are the minimum requirements to run AzaharPlus:
+Below are the minimum requirements to run Azalon3-DS:
 
 ### Desktop
 ```

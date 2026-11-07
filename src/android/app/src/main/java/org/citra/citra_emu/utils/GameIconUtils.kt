@@ -30,9 +30,34 @@ class GameIconFetcher(private val game: Game, private val options: Options) : Fe
     )
 
     private fun getGameIcon(vector: IntArray?): Bitmap? {
+        if (vector == null) {
+            return null
+        }
+        if (game.isDs) {
+            return getDsIcon(vector)
+        }
         val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.RGB_565)
         bitmap.copyPixelsFromBuffer(IntBuffer.wrap(vector))
         return bitmap
+    }
+
+    /**
+     * DS banner icons are 32x32 ARGB8888 (0xAARRGGBB, as Bitmap expects), not the
+     * 48x48 RGB565 of 3DS SMDH icons. Scaled up without filtering so the pixel art
+     * stays sharp when the list stretches it.
+     */
+    private fun getDsIcon(argb: IntArray): Bitmap? {
+        if (argb.size < DS_ICON_SIZE * DS_ICON_SIZE) {
+            return null
+        }
+        val icon = Bitmap.createBitmap(argb, DS_ICON_SIZE, DS_ICON_SIZE, Bitmap.Config.ARGB_8888)
+        val scaled = DS_ICON_SIZE * DS_ICON_SCALE
+        return Bitmap.createScaledBitmap(icon, scaled, scaled, false)
+    }
+
+    private companion object {
+        const val DS_ICON_SIZE = 32
+        const val DS_ICON_SCALE = 4
     }
 
     class Factory : Fetcher.Factory<Game> {

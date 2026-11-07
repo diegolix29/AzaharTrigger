@@ -472,7 +472,7 @@ class SettingsFragmentPresenter(
                     R.string.username,
                     0,
                     null,
-                    "AzaharPlus",
+                    "Azalon3-DS",
                     10,
                     getValue = { SystemSaveGame.getUsername() },
                     setValue = { SystemSaveGame.setUsername(it) }

@@ -1,8 +1,8 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Azahar Room
-Comment=Multiplayer room host for Azahar
+Name=Azalon3-DS Room
+Comment=Multiplayer room host for Azalon3-DS
 Icon=org.azahar_emu.Azahar
 TryExec=azahar-room
 Exec=azahar-room %f

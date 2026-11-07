@@ -632,10 +632,10 @@ void ConfigureSystem::UnlinkConsole() {
     ui->button_unlink_console->setEnabled(false);
     QMessageBox::StandardButton reply;
     QString warning_text =
-        tr("This action will unlink your real console from Azahar, with the following "
+        tr("This action will unlink your real console from Azalon3-DS, with the following "
            "consequences:<br><ul><li>Your OTP, SecureInfo and LocalFriendCodeSeed will be removed "
-           "from Azahar.</li><li>Your friend list will reset and you will be logged out of your "
-           "NNID/PNID account.</li><li>System files and eshop titles obtained through Azahar will "
+           "from Azalon3-DS.</li><li>Your friend list will reset and you will be logged out of your "
+           "NNID/PNID account.</li><li>System files and eshop titles obtained through Azalon3-DS will "
            "become inaccessible until the same console is linked again (save data will not be "
            "lost).</li></ul><br>Continue?");
     reply =

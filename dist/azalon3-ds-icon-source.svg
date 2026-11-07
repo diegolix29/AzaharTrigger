@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+    <defs>
+        <!-- Sticker Drop Shadow -->
+        <filter id="sticker-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="15" stdDeviation="15" flood-color="#000000" flood-opacity="0.15" />
+        </filter>
+        
+        <!-- Blurs for soft highlights and deep cleft shadows -->
+        <filter id="blur-cleft">
+            <feGaussianBlur stdDeviation="8" />
+        </filter>
+        <filter id="blur-glow">
+            <feGaussianBlur stdDeviation="15" />
+        </filter>
+
+        <!-- Main Peach Body Gradient (Warm yellows to deep vibrant reds) -->
+        <radialGradient id="peachBaseGrad" cx="30%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#FFE885" /> 
+            <stop offset="35%" stop-color="#FF7A59" /> 
+            <stop offset="65%" stop-color="#FF3860" /> 
+            <stop offset="90%" stop-color="#C2123C" /> 
+            <stop offset="100%" stop-color="#800020" /> 
+        </radialGradient>
+
+        <!-- Leaf Gradients -->
+        <linearGradient id="leafRightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C6FF00" />
+            <stop offset="100%" stop-color="#4CAF50" />
+        </linearGradient>
+        <linearGradient id="leafLeftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8BC34A" />
+            <stop offset="100%" stop-color="#2E7D32" />
+        </linearGradient>
+
+        <!-- Giant Soft Gloss for the Left Lobe -->
+        <radialGradient id="leftGloss" cx="40%" cy="40%" r="60%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+            <stop offset="40%" stop-color="#FFFFFF" stop-opacity="0.7" />
+            <stop offset="80%" stop-color="#FFFFFF" stop-opacity="0.1" />
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+        </radialGradient>
+
+        <!-- Internal 3D Rim Light -->
+        <linearGradient id="rimLight" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+            <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.1" />
+            <stop offset="70%" stop-color="#FFB3C6" stop-opacity="0.0" />
+            <stop offset="100%" stop-color="#FFB3C6" stop-opacity="0.7" />
+        </linearGradient>
+
+        <!-- Clipping path to keep rim lighting strictly inside the peach body -->
+        <clipPath id="peach-clip">
+            <path d="M 512, 850 C 300, 900 120, 650 150, 450 C 180, 250 380, 180 512, 350 C 644, 180 844, 250 874, 450 C 904, 650 724, 900 512, 850 Z" />
+        </clipPath>
+    </defs>
+
+    <!-- 1. STICKER BACKGROUND (White silhouette with drop shadow) -->
+    <g filter="url(#sticker-shadow)">
+        <g fill="#FFFFFF" stroke="#FFFFFF" stroke-width="45" stroke-linejoin="round" stroke-linecap="round">
+            <!-- Stem Silhouette -->
+            <path d="M 500, 280 Q 510, 180 540, 150" />
+            <!-- Left Leaf Silhouette -->
+            <path d="M 512, 280 C 450, 180 300, 100 250, 120 C 300, 220 400, 300 512, 280 Z" />
+            <!-- Right Leaf Silhouette -->
+            <path d="M 512, 280 C 600, 150 850, 50 900, 50 C 850, 200 700, 350 512, 280 Z" />
+            <!-- Peach Body Silhouette -->
+            <path d="M 512, 850 C 300, 900 120, 650 150, 450 C 180, 250 380, 180 512, 350 C 644, 180 844, 250 874, 450 C 904, 650 724, 900 512, 850 Z" />
+        </g>
+    </g>
+
+    <!-- 2. MAIN ARTWORK -->
+    <g id="artwork-core">
+        <!-- Stem -->
+        <path d="M 500, 280 Q 510, 180 540, 150" stroke="#6D4C41" stroke-width="24" stroke-linecap="round" fill="none" />
+        <path d="M 504, 270 Q 512, 185 540, 150" stroke="#8D6E63" stroke-width="8" stroke-linecap="round" fill="none" />
+
+        <!-- Left Leaf (Tucked back) -->
+        <path d="M 512, 280 C 450, 180 300, 100 250, 120 C 300, 220 400, 300 512, 280 Z" fill="url(#leafLeftGrad)" />
+        <path d="M 250, 120 C 320, 160 420, 220 512, 280" stroke="#689F38" stroke-width="8" fill="none" stroke-linecap="round" />
+
+        <!-- Right Leaf (Prominent front) -->
+        <path d="M 512, 280 C 600, 150 850, 50 900, 50 C 850, 200 700, 350 512, 280 Z" fill="url(#leafRightGrad)" />
+        <!-- Leaf Vein -->
+        <path d="M 512, 280 C 620, 210 750, 120 900, 50" stroke="#EEFF41" stroke-width="12" fill="none" stroke-linecap="round" />
+        <!-- Soft Leaf Highlight -->
+        <path d="M 550, 250 C 620, 150 780, 80 850, 80" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.5" filter="url(#blur-cleft)" />
+
+        <!-- Solid Peach Base Shape -->
+        <path id="peach-skin" d="M 512, 850 C 300, 900 120, 650 150, 450 C 180, 250 380, 180 512, 350 C 644, 180 844, 250 874, 450 C 904, 650 724, 900 512, 850 Z" fill="url(#peachBaseGrad)" />
+
+        <!-- Clipped Inner Details (Prevents highlights from bleeding onto the white border) -->
+        <g clip-path="url(#peach-clip)">
+            <!-- 3D Inner Rim Light -->
+            <path d="M 512, 850 C 300, 900 120, 650 150, 450 C 180, 250 380, 180 512, 350 C 644, 180 844, 250 874, 450 C 904, 650 724, 900 512, 850 Z" stroke="url(#rimLight)" stroke-width="48" fill="none" opacity="0.9" />
+
+            <!-- Central Cleft / Dimple Shadows -->
+            <path d="M 512, 330 Q 480, 600 512, 840" stroke="#800020" stroke-width="45" fill="none" stroke-linecap="round" filter="url(#blur-glow)" opacity="0.5" />
+            <path d="M 512, 340 Q 490, 600 512, 830" stroke="#A80D30" stroke-width="18" fill="none" stroke-linecap="round" filter="url(#blur-cleft)" opacity="0.7" />
+
+            <!-- Glossy Dome Over Left Lobe -->
+            <path d="M 180, 450 C 170, 300 280, 200 450, 230 C 480, 280 430, 400 350, 460 C 270, 520 190, 550 180, 450 Z" fill="url(#leftGloss)" opacity="0.8" />
+            
+            <!-- Sharp Candy/Bubble Reflections -->
+            <ellipse cx="380" cy="240" rx="60" ry="25" transform="rotate(-25 380 240)" fill="#FFFFFF" opacity="0.95" />
+            <circle cx="450" cy="280" r="14" fill="#FFFFFF" opacity="0.95" />
+
+            <!-- Right Lobe Secondary Gloss -->
+            <path d="M 680, 250 C 780, 280 830, 350 840, 420" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" fill="none" filter="url(#blur-cleft)" opacity="0.5" />
+            <path d="M 700, 260 C 760, 280 800, 330 810, 380" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.8" />
+            <circle cx="730" cy="285" r="10" fill="#FFFFFF" />
+
+            <!-- Soft Bottom Ambient Bounce Light -->
+            <path d="M 250, 750 C 350, 850 450, 850 500, 820" stroke="#FFA6C9" stroke-width="25" stroke-linecap="round" fill="none" filter="url(#blur-glow)" opacity="0.6" />
+            <path d="M 770, 750 C 670, 850 570, 850 520, 820" stroke="#FFA6C9" stroke-width="25" stroke-linecap="round" fill="none" filter="url(#blur-glow)" opacity="0.6" />
+        </g>
+    </g>
+</svg>

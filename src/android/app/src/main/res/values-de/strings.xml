@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS-Emulator-Benachrichtigungen</string>
-    <string name="app_notification_running">Azahar läuft</string>
-    <string name="app_game_install_description">Als Nächstes müssen Sie einen Anwendungsordner auswählen. Azahar zeigt alle 3DS-ROMs im ausgewählten Ordner in der App an.\n\nCIA-ROMs, Updates und DLC müssen separat installiert werden, indem Sie auf das Ordnersymbol klicken und CIA installieren auswählen</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS-Emulator-Benachrichtigungen</string>
+    <string name="app_notification_running">Azalon3-DS läuft</string>
+    <string name="app_game_install_description">Als Nächstes müssen Sie einen Anwendungsordner auswählen. Azalon3-DS zeigt alle 3DS-ROMs im ausgewählten Ordner in der App an.\n\nCIA-ROMs, Updates und DLC müssen separat installiert werden, indem Sie auf das Ordnersymbol klicken und CIA installieren auswählen</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Einstellungen</string>
@@ -23,11 +23,11 @@
     <string name="custom_driver_not_supported_description">Aktuell werden keine eigenen Treiber auf dieses Gerät unterstützt.\nÜberprüfe diese Option in Zukunft, um zu schauen, ob die Unterstützung hinzugefügt wurde.</string>
     <string name="share_log_not_found">Keine Protokolldatei gefunden</string>
     <string name="select_games_folder">Wähle einen Ordner für die Anwendung</string>
-    <string name="select_games_folder_description">Ermöglicht Azahar die Anwendungs Liste zu veröffentlichen</string>
+    <string name="select_games_folder_description">Ermöglicht Azalon3-DS die Anwendungs Liste zu veröffentlichen</string>
     <string name="about">Über uns</string>
     <string name="about_description">Aktuelle Version, Mitwirkende und mehr</string>
     <string name="games_dir_selected">App Verzeichnis ausgewählt</string>
-    <string name="select_citra_user_folder_home_description">Ändere die Dateien, die Azahar nutzt, um Anwendungen zu laden</string>
+    <string name="select_citra_user_folder_home_description">Ändere die Dateien, die Azalon3-DS nutzt, um Anwendungen zu laden</string>
     <string name="theme_and_color_description">Ändere das Aussehen der App</string>
     <string name="install_cia_title">CIA Installieren</string>
 
@@ -45,13 +45,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">In die Zwischenablage kopiert</string>
     <string name="contributors">Mitwirkende</string>
-    <string name="contributors_description">Mitwirkende, die Azahar möglich gemacht haben</string>
-    <string name="licenses_description">Projekte, die von Azahar für android genutzt wurden</string>
+    <string name="contributors_description">Mitwirkende, die Azalon3-DS möglich gemacht haben</string>
+    <string name="licenses_description">Projekte, die von Azalon3-DS für android genutzt wurden</string>
     <string name="build">Version</string>
     <string name="licenses">Lizenzen</string>
     <!-- Setup strings -->
     <string name="welcome">Willkommen!</string>
-    <string name="welcome_description">Hier kannst du lernen, wie man &lt;b>Azahar&lt;/b> nutzt, um direkt in die Emulation zu springen</string>
+    <string name="welcome_description">Hier kannst du lernen, wie man &lt;b>Azalon3-DS&lt;/b> nutzt, um direkt in die Emulation zu springen</string>
     <string name="get_started">Erste Schritte</string>
     <string name="step_complete">Abgeschlossen!</string>
     <string name="games">Spiele</string>
@@ -63,7 +63,7 @@
     <string name="notifications_description">Gewähre die Benachrichtigungsberechtigung mit dem unteren Knopf.</string>
     <string name="give_permission">Berechtigung erteilen</string>
     <string name="notification_warning">Möchtest du keine Benachrichtigungsberechtigung gewähren?</string>
-    <string name="notification_warning_description">Azahar wird dich nicht über wichtige Informationen benachrichtigen.</string>
+    <string name="notification_warning_description">Azalon3-DS wird dich nicht über wichtige Informationen benachrichtigen.</string>
     <string name="filesystem_permission_warning">Fehlende Berechtigungen</string>
     <string name="camera_permission">Kamera</string>
     <string name="camera_permission_description">Teile unten die Kameraberechtigung, um die 3DS-Kamera zu emulieren</string>
@@ -80,15 +80,15 @@
     <string name="warning_skip">Überspringen</string>
     <string name="warning_cancel">Abbrechen</string>
     <string name="select_citra_user_folder">Wähle ein Nutzerverzeichnis aus</string>
-    <string name="select_which_user_directory_to_use">Es hat den Anschein, dass du Nutzerverzeichnisse für Lime3DS und Azahar eingerichtet hast. Das kann daran liegen, dass du von Lime3DS auf Azahar upgegradet hast und dabei ein neues Verzeichnis ausgewählt hast.\n\nEs kann sein, dass du dadurch gedacht hast, dass deine Speicherstände verloren gegangen sind - Wir entschuldigen und, sollte dies der Fall sein.\n\nMöchtest du wieder dein ursprüngliches Lime3DS-Verzeichnis nutzen, wodurch deine Einstellungen und Speicherstände von Lime3DS wiederhergestellt werden, oder das aktuelle Azahar-Nutzerverzeichnis nutzen?\n\nKeine der Verzeinisse werden dadurch gelöscht und du kannst das Verzeichnis jederzeit wechseln, indem du die „Wähle ein Nutzerverzeichnis aus“-Option auswählst.</string>
-    <string name="keep_current_azahar_directory">Aktuelles Azahar-Verzeichnis behalten</string>
+    <string name="select_which_user_directory_to_use">Es hat den Anschein, dass du Nutzerverzeichnisse für Lime3DS und Azalon3-DS eingerichtet hast. Das kann daran liegen, dass du von Lime3DS auf Azalon3-DS upgegradet hast und dabei ein neues Verzeichnis ausgewählt hast.\n\nEs kann sein, dass du dadurch gedacht hast, dass deine Speicherstände verloren gegangen sind - Wir entschuldigen und, sollte dies der Fall sein.\n\nMöchtest du wieder dein ursprüngliches Lime3DS-Verzeichnis nutzen, wodurch deine Einstellungen und Speicherstände von Lime3DS wiederhergestellt werden, oder das aktuelle Azalon3-DS-Nutzerverzeichnis nutzen?\n\nKeine der Verzeinisse werden dadurch gelöscht und du kannst das Verzeichnis jederzeit wechseln, indem du die „Wähle ein Nutzerverzeichnis aus“-Option auswählst.</string>
+    <string name="keep_current_azahar_directory">Aktuelles Azalon3-DS-Verzeichnis behalten</string>
     <string name="use_prior_lime3ds_directory">Vorheriges Lime3DS-Verzeichnis nutzen</string>
     <string name="select">Auswählen</string>
     <string name="cannot_skip">Der Nutzer Ordner muss gesetzt sein</string>
-    <string name="cannot_skip_directory_description">Dieser Schritt ist nötig, damit Azahar funktionieren kann. Bitte wähle ein Verzeichnis aus, damit du fortfahren kannst.</string>
+    <string name="cannot_skip_directory_description">Dieser Schritt ist nötig, damit Azalon3-DS funktionieren kann. Bitte wähle ein Verzeichnis aus, damit du fortfahren kannst.</string>
     <string name="invalid_selection">Ungültige Auswahl</string>
     <string name="set_up_theme_settings">Design-Einstellung</string>
-    <string name="setup_theme_settings_description">Konfigurieren sie ihre Designeinstellungen für Azahar.</string>
+    <string name="setup_theme_settings_description">Konfigurieren sie ihre Designeinstellungen für Azalon3-DS.</string>
     <string name="setup_set_theme">Design wählen</string>
 
     <!-- Search Strings -->
@@ -128,10 +128,10 @@
     <string name="setup_system_files">Systemdateien</string>
     <string name="setup_system_files_description">Systemdateivorgänge wie die Installation von Systemdateien oder das Booten des HOME-Menüs durchführen</string>
     <string name="setup_tool_connect">Verbindung mit Artic-Einrichtungstool erstellen</string>
-    <string name="setup_system_files_preamble"><![CDATA[Azahar benötigt Dateien von einer echten Konsole, um einige seiner Funktionen nutzen zu können. Du kannst diese Dateien mit dem Azahar Artic Einrichtung-Tool bekommen.<br>Hinweise:<ul><li><b>Bei diesem Vorgang werden konsolenspezifische Dateien in Azahar installiert. Gib deine Benutzer- oder NAND-Ordner nicht frei, nachdem der Einrichtungsvorgang durchgeführt wurde!</b></li><li>Während des Einrichtungsvorgangs, verknüpft Azahar deine Konsole mit dem Einrichtungstool. Du kannst die Verknüpfung jederzeit im  „Systemdateien“-Reiter in den Emulatoreinstellungen beenden.</li><li>Gehe nicht zeitgleich mit deinem eigenen 3DS und Azahr online, da dies sonst zu Probleme führen könnte.</li><li>Damit die New 3DS-Einrichtung funktioniert, ist zuerst eine Old 3DS-Einrichtung erforderlich (Es wird empfohlen beides einzurichten).</li><li>Beide Setup-Modi funktionieren unabhängig vom Modell der Konsole, auf dem das Setup-Tool ausgeführt wird.</li></ul>]]></string>
+    <string name="setup_system_files_preamble"><![CDATA[Azalon3-DS benötigt Dateien von einer echten Konsole, um einige seiner Funktionen nutzen zu können. Du kannst diese Dateien mit dem Azalon3-DS Artic Einrichtung-Tool bekommen.<br>Hinweise:<ul><li><b>Bei diesem Vorgang werden konsolenspezifische Dateien in Azalon3-DS installiert. Gib deine Benutzer- oder NAND-Ordner nicht frei, nachdem der Einrichtungsvorgang durchgeführt wurde!</b></li><li>Während des Einrichtungsvorgangs, verknüpft Azalon3-DS deine Konsole mit dem Einrichtungstool. Du kannst die Verknüpfung jederzeit im  „Systemdateien“-Reiter in den Emulatoreinstellungen beenden.</li><li>Gehe nicht zeitgleich mit deinem eigenen 3DS und Azahr online, da dies sonst zu Probleme führen könnte.</li><li>Damit die New 3DS-Einrichtung funktioniert, ist zuerst eine Old 3DS-Einrichtung erforderlich (Es wird empfohlen beides einzurichten).</li><li>Beide Setup-Modi funktionieren unabhängig vom Modell der Konsole, auf dem das Setup-Tool ausgeführt wird.</li></ul>]]></string>
     <string name="setup_system_files_detect">Aktueller Systemdateienstatus wird abgerufen, bitte warten...</string>
     <string name="delete_system_files">Einzigartige Konsolendaten entkoppeln</string>
-    <string name="delete_system_files_description"><![CDATA[Dadurch wird die Verknüpfung zwischen Azahar und deiner echten Konsole getrennt, was folgendes mitsichbringt:<br><ul><li>Dein OTP, SecureInfo und LocalFriendCodeSeed  werden von Azahar entfernt.</li><li>Deine Freundesliste wird zurückgesetzt und du wirst aus deinem NNID/PNID Account abgemeldet.</li><li>Systemdateien und eShop-Titel, die durch Azahar erhalten wurden, werden unzugänglich, bis die Konsole wieder verknüpft wird (Speicherdaten gehen nicht verloren).</li></ul><br>Forfahren?]]></string>
+    <string name="delete_system_files_description"><![CDATA[Dadurch wird die Verknüpfung zwischen Azalon3-DS und deiner echten Konsole getrennt, was folgendes mitsichbringt:<br><ul><li>Dein OTP, SecureInfo und LocalFriendCodeSeed  werden von Azalon3-DS entfernt.</li><li>Deine Freundesliste wird zurückgesetzt und du wirst aus deinem NNID/PNID Account abgemeldet.</li><li>Systemdateien und eShop-Titel, die durch Azalon3-DS erhalten wurden, werden unzugänglich, bis die Konsole wieder verknüpft wird (Speicherdaten gehen nicht verloren).</li></ul><br>Forfahren?]]></string>
     <string name="setup_system_files_o3ds">Old 3DS-Einrichtung</string>
     <string name="setup_system_files_n3ds">New 3DS-Einrichtung</string>
     <string name="setup_system_files_possible">Einrichtung ist möglich.</string>
@@ -290,7 +290,7 @@
     <string name="renderer_debug">Debug-Renderer</string>
     <string name="renderer_debug_description">Zusätzliche grafisch spezifische Debuginformationen werden protokolliert. Wenn dies aktiviert ist, ist die Leistung des Spiels minimal reduziert.</string>
     <string name="instant_debug_log">Log Output bei jeder Nachricht leeren</string>
-    <string name="instant_debug_log_description">Überträgt das Debugprotokoll sofort in eine Datei. Verwenden Sie dies, wenn Azahar abstürzt und die Protokollausgabe abgeschnitten wird.</string>
+    <string name="instant_debug_log_description">Überträgt das Debugprotokoll sofort in eine Datei. Verwenden Sie dies, wenn Azalon3-DS abstürzt und die Protokollausgabe abgeschnitten wird.</string>
     <string name="delay_start_lle_modules">Start mit LLE-Module verzögern</string>
     <string name="delay_start_lle_modules_description">Verzögert den Start der App, wenn die LLE-Module aktiviert sind.</string>
     <string name="deterministic_async_operations">Deterministische asynchrone Operationen</string>
@@ -450,7 +450,7 @@
     <string name="write_permission_needed">Schreibzugriff auf den externen Speicher muss erlaubt sein, damit der Emulator funktioniert</string>
     <string name="load_settings">Einstellungen werden geladen...</string>
 
-    <string name="external_storage_not_mounted">Der externe Speicher muss verfügbar sein, um Azahar nutzen zu können</string>
+    <string name="external_storage_not_mounted">Der externe Speicher muss verfügbar sein, um Azalon3-DS nutzen zu können</string>
 
     <string name="select_dir">Dieses Verzeichnis auswählen</string>
     <string name="empty_gamelist">Keine Dateien wurden gefunden oder kein Spieleverzeichnis wurde ausgewählt.</string>
@@ -480,11 +480,11 @@
     <!-- Camera -->
     <string name="camera_select_image">Bild auswählen</string>
     <string name="camera">Kamera</string>
-    <string name="camera_permission_needed">Azahar muss auf deine Kamera zugreifen, um die Kameras der 3DS zu emulieren.\n\nAlternativ kannst du auch die „Bildquelle“ in den Kameraeinstellungen auf „Standbild“ setzen.</string>
+    <string name="camera_permission_needed">Azalon3-DS muss auf deine Kamera zugreifen, um die Kameras der 3DS zu emulieren.\n\nAlternativ kannst du auch die „Bildquelle“ in den Kameraeinstellungen auf „Standbild“ setzen.</string>
 
     <!-- Microphone -->
     <string name="microphone">Mikrofon</string>
-    <string name="microphone_permission_needed">Azahar muss auf dein Mikrofon zugreifen können, um das Mikrofon des 3DS zu emulieren.\n\nAlternativ kannst du auch das „Audioeingabegerät“ in den Audioeinstellungen ändern.</string>
+    <string name="microphone_permission_needed">Azalon3-DS muss auf dein Mikrofon zugreifen können, um das Mikrofon des 3DS zu emulieren.\n\nAlternativ kannst du auch das „Audioeingabegerät“ in den Audioeinstellungen ändern.</string>
 
     <!-- Core Errors -->
     <string name="abort_button">Abbrechen</string>
@@ -557,7 +557,7 @@
         <item quantity="one">%dDatei installieren. Weitere Informationen finden Sie in der Benachrichtigung.</item>
         <item quantity="other">%dDateien installieren. Weitere Informationen findest du in der Benachrichtigung.</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">Azahar-Benachrichtigungen während CIA-Installation</string>
+    <string name="cia_install_notification_channel_description">Azalon3-DS-Benachrichtigungen während CIA-Installation</string>
     <string name="cia_install_notification_title">CIA wird installiert</string>
     <string name="cia_install_notification_installing">Installiere %1$s (%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CIA erfolgreich installiert</string>
@@ -565,7 +565,7 @@
     <string name="cia_install_success">„%s“ wurde erfolgreich installiert</string>
     <string name="cia_install_error_aborted">Die Installation von „%s“ wurde abgebrochen. Schaue im Protokoll für weitere Informationen nach</string>
     <string name="cia_install_error_invalid">„%s“ ist keine gültige CIA</string>
-    <string name="cia_install_error_encrypted">„%s“ muss entschlüsselt werden, bevor es mit Azahar verwendet werden kann. Dazu ist ein echter 3DS erforderlich.</string>
+    <string name="cia_install_error_encrypted">„%s“ muss entschlüsselt werden, bevor es mit Azalon3-DS verwendet werden kann. Dazu ist ein echter 3DS erforderlich.</string>
     <string name="cia_install_error_unknown">Ein unbekannter Fehler ist während der Installation von „%s“ aufgetreten.\n Bitte schau im Protokoll für weitere Informationen nach</string>
 
     <string name="memory_byte">Byte</string>

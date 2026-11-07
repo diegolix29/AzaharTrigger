@@ -2,9 +2,9 @@
 <resources>
 
     <string name="app_disclaimer">Este software irá executar jogos feitos para o console portátil Nintendo 3DS. Nenhum título de jogo está incluído.\n\nAntes de começar a emular, selecione uma pasta para armazenar os dados do usuário do Azahar.\n\nO que é isto:\n<a href='https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage'>Wiki - Dados e armazenamento do usuário do Citra para Android</a></string>
-    <string name="app_notification_channel_description">Notificações do emulador Azahar 3DS</string>
-    <string name="app_notification_running">Azahar em Execução</string>
-    <string name="app_game_install_description">Em seguida, você precisará selecionar uma pasta de Aplicativos. O Azahar exibirá todas as ROMs de 3DS dentro da pasta selecionada no aplicativo.\n\nROMs, atualizações e DLC no formato CIA precisarão ser instaladas separadamente clicando no ícone da pasta e selecionando Instalar CIA.</string>
+    <string name="app_notification_channel_description">Notificações do emulador Azalon3-DS 3DS</string>
+    <string name="app_notification_running">Azalon3-DS em Execução</string>
+    <string name="app_game_install_description">Em seguida, você precisará selecionar uma pasta de Aplicativos. O Azalon3-DS exibirá todas as ROMs de 3DS dentro da pasta selecionada no aplicativo.\n\nROMs, atualizações e DLC no formato CIA precisarão ser instaladas separadamente clicando no ícone da pasta e selecionando Instalar CIA.</string>
 
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Configurações</string>
@@ -15,7 +15,7 @@
     <string name="install_game_content">Instalar arquivo CIA</string>
     <string name="install_game_content_description">Instalar aplicativos, atualizações ou DLC</string>
     <string name="share_log">Compartilhar Log</string>
-    <string name="share_log_description">Compartilhe o arquivo de log do Azahar para depurar problemas</string>
+    <string name="share_log_description">Compartilhe o arquivo de log do Azalon3-DS para depurar problemas</string>
     <string name="gpu_driver_manager">Gerenciador de Driver da GPU</string>
     <string name="install_gpu_driver">Instalar driver da GPU</string>
     <string name="install_gpu_driver_description">Instale drivers alternativos para poder obter desempenho ou precisão</string>
@@ -24,11 +24,11 @@
     <string name="custom_driver_not_supported_description">O carregamento de driver personalizado não é suportado atualmente para este dispositivo.\nVerifique esta opção novamente no futuro para ver se o suporte foi adicionado!</string>
     <string name="share_log_not_found">Nenhum arquivo de log encontrado</string>
     <string name="select_games_folder">Selecionar Pasta de Aplicativos</string>
-    <string name="select_games_folder_description">Permite que o Azahar preencha a lista de aplicativos</string>
+    <string name="select_games_folder_description">Permite que o Azalon3-DS preencha a lista de aplicativos</string>
     <string name="about">Sobre</string>
     <string name="about_description">Versão da compilação, créditos e mais</string>
     <string name="games_dir_selected">Diretório do aplicativo selecionado</string>
-    <string name="select_citra_user_folder_home_description">Altera os arquivos que o Azahar usa para carregar aplicativos</string>
+    <string name="select_citra_user_folder_home_description">Altera os arquivos que o Azalon3-DS usa para carregar aplicativos</string>
     <string name="theme_and_color_description">Modificar a aparência do aplicativo</string>
     <string name="install_cia_title">Instalar arquivo CIA</string>
 
@@ -55,13 +55,13 @@
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Copiado para a área de transferência</string>
     <string name="contributors">Contribuidores</string>
-    <string name="contributors_description">Contribuidores que tornaram o Azahar possível</string>
-    <string name="licenses_description">Projetos usados pelo Azahar para Android</string>
+    <string name="contributors_description">Contribuidores que tornaram o Azalon3-DS possível</string>
+    <string name="licenses_description">Projetos usados pelo Azalon3-DS para Android</string>
     <string name="build">Compilação</string>
     <string name="licenses">Licenças</string>
     <!-- Setup strings -->
     <string name="welcome">Bem-vindo</string>
-    <string name="welcome_description">Aprenda a como configurar o &lt;b>Azahar&lt;/b> e pule para a emulação.</string>
+    <string name="welcome_description">Aprenda a como configurar o &lt;b>Azalon3-DS&lt;/b> e pule para a emulação.</string>
     <string name="get_started">Comece agora</string>
     <string name="step_complete">Concluído!</string>
     <string name="games">Aplicativos</string>
@@ -73,15 +73,15 @@
     <string name="notifications_description">Conceda a permissão de notificação com o botão abaixo.</string>
     <string name="give_permission">Conceder permissão</string>
     <string name="notification_warning">Ignorar solicitação de permissão de notificação?</string>
-    <string name="notification_warning_description">O Azahar não poderá te notificar de informações importantes.</string>
+    <string name="notification_warning_description">O Azalon3-DS não poderá te notificar de informações importantes.</string>
     <string name="filesystem_permission_warning">Permissões Ausentes</string>
-    <string name="filesystem_permission_warning_description">O Azahar requer permissão para gerenciar arquivos neste dispositivo a fim de armazenar e gerenciar seus dados.\n\nPor favor, conceda a permissão de \'Sistema de Arquivos\' antes de continuar.</string>
+    <string name="filesystem_permission_warning_description">O Azalon3-DS requer permissão para gerenciar arquivos neste dispositivo a fim de armazenar e gerenciar seus dados.\n\nPor favor, conceda a permissão de \'Sistema de Arquivos\' antes de continuar.</string>
     <string name="camera_permission">Câmera</string>
     <string name="camera_permission_description">Conceda acesso a câmera abaixo para emular a câmera do 3DS.</string>
     <string name="microphone_permission">Microfone</string>
     <string name="microphone_permission_description">Conceda a acesso ao microfone abaixo para emular o microfone do 3DS.</string>
     <string name="filesystem_permission">Sistema de Arquivos</string>
-    <string name="filesystem_permission_description">Conceda a permissão de arquivos abaixo para permitir que o Azahar armazene arquivos.</string>
+    <string name="filesystem_permission_description">Conceda a permissão de arquivos abaixo para permitir que o Azalon3-DS armazene arquivos.</string>
     <string name="permission_denied">Permissão negada</string>
     <string name="add_games_warning">Pular seleção da pasta de aplicativos?</string>
     <string name="add_games_warning_description">Os softwares não serão exibidos na lista de Aplicativos se uma pasta não for selecionada.</string>
@@ -94,18 +94,18 @@
     <string name="warning_cancel">Cancelar</string>
     <string name="select_citra_user_folder">Selecione a Pasta do Usuário</string>
     <string name="select_citra_user_folder_description"><![CDATA[Selecione o seu <a href=\"https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage\">diretório de dados de usuário</a> com o botão abaixo.]]></string>
-    <string name="select_which_user_directory_to_use">Parece que você possui pastas de usuário configuradas tanto para o Lime3DS quanto para o Azahar. Isso provavelmente ocorreu porque você atualizou para o Azahar e, quando solicitado, escolheu uma pasta de usuário diferente da que era usada pelo Lime3DS.\n\nIsso pode ter feito você pensar que perdeu seus saves ou outras configurações — pedimos desculpas se isso aconteceu.\n\nVocê gostaria de voltar a usar sua pasta de usuário original do Lime3DS, restaurando as configurações e jogos salvos do Lime3DS, ou manter sua pasta de usuário atual do Azahar?\n\nNenhuma das pastas será excluída, independentemente da sua escolha, e você pode alternar livremente entre elas usando a opção Selecionar Pasta do Usuário.</string>
-    <string name="keep_current_azahar_directory">Manter diretório atual do Azahar</string>
+    <string name="select_which_user_directory_to_use">Parece que você possui pastas de usuário configuradas tanto para o Lime3DS quanto para o Azalon3-DS. Isso provavelmente ocorreu porque você atualizou para o Azalon3-DS e, quando solicitado, escolheu uma pasta de usuário diferente da que era usada pelo Lime3DS.\n\nIsso pode ter feito você pensar que perdeu seus saves ou outras configurações — pedimos desculpas se isso aconteceu.\n\nVocê gostaria de voltar a usar sua pasta de usuário original do Lime3DS, restaurando as configurações e jogos salvos do Lime3DS, ou manter sua pasta de usuário atual do Azalon3-DS?\n\nNenhuma das pastas será excluída, independentemente da sua escolha, e você pode alternar livremente entre elas usando a opção Selecionar Pasta do Usuário.</string>
+    <string name="keep_current_azahar_directory">Manter diretório atual do Azalon3-DS</string>
     <string name="use_prior_lime3ds_directory">Usar o diretório antigo do Lime3DS</string>
     <string name="select">Selecionar</string>
     <string name="cannot_skip">Você não pode pular a configuração da pasta do usuário.</string>
-    <string name="cannot_skip_directory_description">Este passo é necessário para permitir que o Azahar funcione. Selecione um diretório para continuar.</string>
+    <string name="cannot_skip_directory_description">Este passo é necessário para permitir que o Azalon3-DS funcione. Selecione um diretório para continuar.</string>
     <string name="selecting_user_directory_without_write_permissions">Você perdeu as permissões de gravação do seu diretório de <a href="https://github.com/azahar-emu/azahar/wiki/Android-User-Data-and-Storage">dados de usuário</a>, onde salvamentos e outras informações são armazenadas. Isso pode ocorrer após algumas atualizações do aplicativo ou do Android. Selecione o diretório novamente para recuperar as permissões e poder prosseguir.</string>
     <string name="invalid_selection">Seleção Inválida</string>
     <string name="invalid_user_directory">A seleção do diretório de usuário é inválida.\nPor favor, selecione novamente o diretório de usuário, certificando-se de navegar até ele a partir da raiz do armazenamento do seu dispositivo.</string>
-    <string name="filesystem_permission_lost">O Azahar perdeu a permissão para gerenciar arquivos neste dispositivo. Isso pode acontecer após atualizações do aplicativo ou do Android. Por favor, conceda novamente esta permissão na próxima tela para continuar usando o app.</string>
+    <string name="filesystem_permission_lost">O Azalon3-DS perdeu a permissão para gerenciar arquivos neste dispositivo. Isso pode acontecer após atualizações do aplicativo ou do Android. Por favor, conceda novamente esta permissão na próxima tela para continuar usando o app.</string>
     <string name="set_up_theme_settings">Configurações de Tema</string>
-    <string name="setup_theme_settings_description">Configure suas preferências de tema para o Azahar.</string>
+    <string name="setup_theme_settings_description">Configure suas preferências de tema para o Azalon3-DS.</string>
     <string name="setup_set_theme">Definir Tema</string>
 
     <!-- Search Strings -->
@@ -164,7 +164,7 @@
     <string name="setup_system_files_preamble"><![CDATA[O Azahar precisa dos dados exclusivos do console e arquivos de firmware de um console real para que seja possível usar alguns de seus recursos. Tais arquivos e dados podem ser configurados através da <a href=https://github.com/azahar-emu/ArticSetupTool>Ferramenta de Configuração Artic do Azahar</a>.<br>Notas:<ul><li><b>Esta operação instalará os dados exclusivos do console para o Azahar, não compartilhe sua pasta de usuário ou nand depois de realizar este processo!</b></li><li>Enquanto estiver realizando o processo de configuração, o Azahar irá vincular-se ao console executando a ferramenta de configuração. Você poderá desvincular o console mais tarde na aba Sistema no menu de configuração do emulador.</li><li>Não entre no online com ambos Azahar e seu console 3DS ao mesmo tempo depois de configurar os arquivos de sistema, já que isso poderá causar problemas.</li><li>A configuração do Antigo 3DS é necessária para a configuração do Novo 3DS funcionar (realizar ambas as configurações é recomendado).</li><li>Ambos os modos de configuração irão funcionar independente do modelo do console executando a ferramenta de configuração.</li></ul>]]></string>
     <string name="setup_system_files_detect">Buscando o status atual dos arquivos do sistema, por favor, aguarde...</string>
     <string name="delete_system_files">Desvincular dados exclusivos do console</string>
-    <string name="delete_system_files_description"><![CDATA[Esta ação irá desvincular seu console real do Azahar, com as seguintes consequências:<br><ul><li>Seu OTP, SecureInfo e LocalFriendCodeSeed serão removidos do Azahar.</li><li>Sua lista de amigos será redefinida e sua sessão será finalizada em sua conta NNID/PNID.</li><li>Arquivos do sistema e títulos da eshop obtidos pelo Azahar se tornarão inacessíveis até que o mesmo console seja vinculado de novo usando a ferramenta de configuração (dados salvos não serão perdidos).</li></ul><br>Deseja continuar?]]></string>
+    <string name="delete_system_files_description"><![CDATA[Esta ação irá desvincular seu console real do Azalon3-DS, com as seguintes consequências:<br><ul><li>Seu OTP, SecureInfo e LocalFriendCodeSeed serão removidos do Azalon3-DS.</li><li>Sua lista de amigos será redefinida e sua sessão será finalizada em sua conta NNID/PNID.</li><li>Arquivos do sistema e títulos da eshop obtidos pelo Azalon3-DS se tornarão inacessíveis até que o mesmo console seja vinculado de novo usando a ferramenta de configuração (dados salvos não serão perdidos).</li></ul><br>Deseja continuar?]]></string>
     <string name="setup_system_files_o3ds">Configuração do Antigo 3DS</string>
     <string name="setup_system_files_n3ds">Configuração do Novo 3DS</string>
     <string name="setup_system_files_possible">É possível configurar.</string>
@@ -355,7 +355,7 @@
     <string name="renderer_debug">Renderizador de Depuração</string>
     <string name="renderer_debug_description">Registre informações adicionais de depuração relacionadas a gráficos. Quando ativado, o desempenho do jogo será significativamente reduzido.</string>
     <string name="instant_debug_log">Limpar a Saída do Log a Cada Mensagem</string>
-    <string name="instant_debug_log_description">Grava imediatamente o log de depuração no arquivo. Use isto se o Azahar travar e a saída do log estiver sendo cortada.</string>
+    <string name="instant_debug_log_description">Grava imediatamente o log de depuração no arquivo. Use isto se o Azalon3-DS travar e a saída do log estiver sendo cortada.</string>
     <string name="delay_start_lle_modules">Atraso na Inicialização com Módulos LLE</string>
     <string name="delay_start_lle_modules_description">Atrasa a inicialização do aplicativo quando os módulos LLE estão ativados.</string>
     <string name="deterministic_async_operations">Operações Assíncronas Determinísticas</string>
@@ -409,7 +409,7 @@
     <string name="setting_not_editable">Você não pode editar isso agora</string>
     <string name="setting_disabled">Configuração desativada</string>
     <string name="setting_disabled_description_incompatible_setting">Esta configuração está desativada no momento porque outra configuração não está com o valor adequado.</string>
-    <string name="setting_disabled_description_angle">Não é possível alterar o renderizador porque o dispositivo está usando ANGLE para OpenGL, que no momento é incompatível com o Azahar. O Vulkan será utilizado.</string>
+    <string name="setting_disabled_description_angle">Não é possível alterar o renderizador porque o dispositivo está usando ANGLE para OpenGL, que no momento é incompatível com o Azalon3-DS. O Vulkan será utilizado.</string>
     <string name="setting_not_editable_description">Esta opção não pode ser alterada enquanto o jogo estiver em execução.</string>
     <string name="auto_select">Seleção Automática</string>
     <string name="start">Iniciar</string>
@@ -496,7 +496,7 @@
     <string name="emulation_switch_screen_layout">Disposição de tela em paisagem</string>
     <string name="emulation_switch_portrait_layout">Disposição da tela em retrato</string>
     <string name="emulation_secondary_display_enable">Ativar Tela Secundária</string>
-    <string name="emulation_secondary_display_enable_description">Se desativado, o Azahar deixará o Android gerenciar as telas conectadas. Se ativado e houver várias telas conectadas, você poderá selecionar qual o Azahar usará no Menu Rápido de Emulação.</string>
+    <string name="emulation_secondary_display_enable_description">Se desativado, o Azalon3-DS deixará o Android gerenciar as telas conectadas. Se ativado e houver várias telas conectadas, você poderá selecionar qual o Azalon3-DS usará no Menu Rápido de Emulação.</string>
     <string name="emulation_switch_secondary_layout">Layout da Tela Secundária</string>
     <string name="emulation_secondary_display_management">Tela Secundária</string>
     <string name="emulation_select_secondary_display">Escolher Tela</string>
@@ -565,7 +565,7 @@
     <string name="write_permission_needed">Você precisa permitir o acesso de escrita no armazenamento externo para que o emulador funcione</string>
     <string name="load_settings">Carregando configurações...</string>
 
-    <string name="external_storage_not_mounted">O armazenamento externo precisa estar disponível para poder usar o Azahar</string>
+    <string name="external_storage_not_mounted">O armazenamento externo precisa estar disponível para poder usar o Azalon3-DS</string>
 
     <string name="select_dir">Selecionar esta pasta</string>
     <string name="empty_gamelist">Nenhum arquivo foi encontrado ou nenhuma pasta de jogos foi selecionada ainda.</string>
@@ -595,11 +595,11 @@
     <!-- Camera -->
     <string name="camera_select_image">Selecionar Imagem</string>
     <string name="camera">Câmera</string>
-    <string name="camera_permission_needed">O Azahar precisa de acesso à sua câmera para emular as câmeras do 3DS.\n\nVocê também tem a opção de definir a \"Origem da imagem\" como \"Imagem estática\" nas configurações de câmera.</string>
+    <string name="camera_permission_needed">O Azalon3-DS precisa de acesso à sua câmera para emular as câmeras do 3DS.\n\nVocê também tem a opção de definir a \"Origem da imagem\" como \"Imagem estática\" nas configurações de câmera.</string>
 
     <!-- Microphone -->
     <string name="microphone">Microfone</string>
-    <string name="microphone_permission_needed">O Azahar precisa acessar seu microfone para emular o microfone do 3DS.\n\nComo alternativa, você também pode alterar o \"Dispositivo de Entrada de Áudio\" nas Configurações de Áudio.</string>
+    <string name="microphone_permission_needed">O Azalon3-DS precisa acessar seu microfone para emular o microfone do 3DS.\n\nComo alternativa, você também pode alterar o \"Dispositivo de Entrada de Áudio\" nas Configurações de Áudio.</string>
 
     <!-- Core Errors -->
     <string name="abort_button">Parar</string>
@@ -614,7 +614,7 @@
     <string name="unsupported_encrypted">Aplicativo criptografado não suportado</string>
     <string name="invalid_system_mode">Modo de sistema inválido</string>
     <string name="invalid_system_mode_message">Novos aplicativos exclusivos do New 3DS não podem ser carregados sem ativar o modo New 3DS.</string>
-    <string name="savestate_build_mismatch_message"><![CDATA[Não foi possível carregar o savestate porque ele foi criado em uma versão diferente do Azahar:<br/><b>Azahar %1$s</b>.<br/><br/>Por favor, leia nossa publicação no blog <br/><br/>Para recuperar seu progresso, faça downgrade para o <b>Azahar %1$s</b>, carregue este savestate e use a função de salvamento integrada do aplicativo.]]></string>
+    <string name="savestate_build_mismatch_message"><![CDATA[Não foi possível carregar o savestate porque ele foi criado em uma versão diferente do Azalon3-DS:<br/><b>Azalon3-DS %1$s</b>.<br/><br/>Por favor, leia nossa publicação no blog <br/><br/>Para recuperar seu progresso, faça downgrade para o <b>Azalon3-DS %1$s</b>, carregue este savestate e use a função de salvamento integrada do aplicativo.]]></string>
 
     <!-- Disk Shader Cache -->
     <string name="preparing_shaders">Preparando Shaders</string>
@@ -696,7 +696,7 @@
         <item quantity="many">instalando %d arquivos. Veja a notificação para mais detalhes.</item>
         <item quantity="other">instalando %d arquivos. Veja a notificação para mais detalhes.</item>
     </plurals>
-    <string name="cia_install_notification_channel_description">Notificações do Azahar durante a instalação do CIA</string>
+    <string name="cia_install_notification_channel_description">Notificações do Azalon3-DS durante a instalação do CIA</string>
     <string name="cia_install_notification_title">Instalando CIA</string>
     <string name="cia_install_notification_installing">Instalando %1$s (%2$d/%3$d)</string>
     <string name="cia_install_notification_success_title">CIA Instalado com sucesso</string>
@@ -704,7 +704,7 @@
     <string name="cia_install_success">\"%s\" foi instalado com sucesso</string>
     <string name="cia_install_error_aborted">A instalação de \"%s\" foi interrompida.\n Por favor, consulte o registro para mais detalhes</string>
     <string name="cia_install_error_invalid">\"%s\" não é um CIA válido</string>
-    <string name="cia_install_error_encrypted">\"%s\" deve ser descriptografado antes de ser usado com o Azahar.\n É necessário um 3DS real</string>
+    <string name="cia_install_error_encrypted">\"%s\" deve ser descriptografado antes de ser usado com o Azalon3-DS.\n É necessário um 3DS real</string>
     <string name="cia_install_error_unknown">Ocorreu um erro desconhecido durante a instalação de \"%s\".\n Consulte o registro para obter mais detalhes</string>
 
     <string name="memory_byte">Byte</string>
@@ -1046,9 +1046,9 @@
     <string name="no_preference">Sem Preferência</string>
 
     <string name="update_available">Atualização disponível</string>
-    <string name="update_available_description">Uma nova versão de Azahar está disponível (versão %1$s).\nVocê gostaria de baixá-la?</string>
+    <string name="update_available_description">Uma nova versão de Azalon3-DS está disponível (versão %1$s).\nVocê gostaria de baixá-la?</string>
     <string name="check_for_updates">Procurar atualizações</string>
-    <string name="check_for_updates_description">Mostrar uma notificação no aplicativo quando uma atualização estiver disponível para Azahar.</string>
+    <string name="check_for_updates_description">Mostrar uma notificação no aplicativo quando uma atualização estiver disponível para Azalon3-DS.</string>
     <string name="update_check_channel">Canal de Atualização</string>
     <string name="update_check_channel_description">Qual canal de atualização utilizar quando procurar atualizações.</string>
     <string name="update_check_channel_stable">Estável</string>

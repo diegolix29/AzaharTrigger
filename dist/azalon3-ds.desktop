@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Azalon3-DS
+GenericName=DS / 3DS Emulator
+GenericName[fr]=Émulateur DS / 3DS
+Comment=Nintendo DS, DSi and 3DS video game console emulator
+Comment[fr]=Émulateur de consoles de jeu Nintendo DS, DSi et 3DS
+Icon=org.azahar_emu.Azahar
+TryExec=azalon3-ds
+Exec=azalon3-ds %f
+Categories=Game;Emulator;
+MimeType=application/x-ctr-3dsx;application/x-ctr-cci;application/x-ctr-cia;application/x-ctr-cxi;
+Keywords=3DS;DS;DSi;Nintendo;
+StartupWMClass=org.azahar_emu.Azahar

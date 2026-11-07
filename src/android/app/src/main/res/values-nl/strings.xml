@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_notification_channel_description">Azahar 3DS emulator notificaties</string>
-    <string name="app_notification_running">Azahar is Actief</string>
+    <string name="app_notification_channel_description">Azalon3-DS 3DS emulator notificaties</string>
+    <string name="app_notification_running">Azalon3-DS is Actief</string>
     <!-- Home Strings -->
     <string name="grid_menu_core_settings">Instellingen</string>
     <string name="home_options">Opties</string>
@@ -10,7 +10,7 @@
     <string name="settings_description">Configureer emulator instellingen</string>
     <string name="install_game_content">Installeer een CIA bestand</string>
     <string name="share_log">Deel log</string>
-    <string name="share_log_description">Deel het logbestand van Azahar om problemen op te lossen</string>
+    <string name="share_log_description">Deel het logbestand van Azalon3-DS om problemen op te lossen</string>
     <string name="gpu_driver_manager">GPU-stuurprogrammabeheer</string>
     <string name="install_gpu_driver">Installeer het GPU-stuurprogramma</string>
     <string name="install_gpu_driver_description">Installeer alternatieve stuurprogramma\'s voor mogelijk betere prestaties of nauwkeurigheid</string>
@@ -38,13 +38,13 @@ Vink deze optie in de toekomst nogmaals aan om te zien of er ondersteuning is to
     <!-- About screen strings -->
     <string name="copied_to_clipboard">Gekopieerd naar klembord</string>
     <string name="contributors">Bijdragers</string>
-    <string name="contributors_description">Bijdragers die Azahar mogelijk hebben gemaakt</string>
-    <string name="licenses_description">Projecten gebruikt door Azahar voor Android</string>
+    <string name="contributors_description">Bijdragers die Azalon3-DS mogelijk hebben gemaakt</string>
+    <string name="licenses_description">Projecten gebruikt door Azalon3-DS voor Android</string>
     <string name="build">Bouw versie</string>
     <string name="licenses">Licenties</string>
     <!-- Setup strings -->
     <string name="welcome">Welkom!</string>
-    <string name="welcome_description">Leer hoe u dit kunt instellen &lt;b>Azahar&lt;/b> en begin met emuleren</string>
+    <string name="welcome_description">Leer hoe u dit kunt instellen &lt;b>Azalon3-DS&lt;/b> en begin met emuleren</string>
     <string name="get_started">Begin met instellen</string>
     <string name="step_complete">Voltooid!</string>
     <string name="done">Klaar!</string>
@@ -53,7 +53,7 @@ Vink deze optie in de toekomst nogmaals aan om te zien of er ondersteuning is to
     <string name="notifications_description">Verleen de meldingsrechten met de onderstaande knop.</string>
     <string name="give_permission">Toestemming geven</string>
     <string name="notification_warning">Het verlenen van toestemming voor meldingen overslaan?</string>
-    <string name="notification_warning_description">Azahar kan je niet op de hoogte stellen van belangrijke informatie.</string>
+    <string name="notification_warning_description">Azalon3-DS kan je niet op de hoogte stellen van belangrijke informatie.</string>
     <string name="camera_permission">Camera</string>
     <string name="camera_permission_description">Geef de onderstaande camera toestemming om de 3DS-camera te emuleren.</string>
     <string name="microphone_permission">Microfoon</string>
@@ -64,7 +64,7 @@ Vink deze optie in de toekomst nogmaals aan om te zien of er ondersteuning is to
     <string name="warning_cancel">Annuleren</string>
     <string name="select_citra_user_folder">Selecteer Gebruiker map</string>
     <string name="select">Selecteer</string>
-    <string name="cannot_skip_directory_description">Deze stap is vereist om Azahar te laten werken. Selecteer een map en u kunt doorgaan</string>
+    <string name="cannot_skip_directory_description">Deze stap is vereist om Azalon3-DS te laten werken. Selecteer een map en u kunt doorgaan</string>
     <string name="set_up_theme_settings">Thema instellingen</string>
     <string name="setup_set_theme">Thema instellen</string>
 
