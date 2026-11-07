@@ -4,6 +4,9 @@
 
 package org.citra.citra_emu.ds
 
+import android.content.Context
+import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.Keep
@@ -107,6 +110,39 @@ object DsLan {
                 .apply()
         }
         return ok
+    }
+
+    private var wifiLock: WifiManager.WifiLock? = null
+
+    /**
+     * DS wireless is lock-step: every frame the host sends a packet and waits a few
+     * milliseconds for each client's reply. With Wi-Fi power saving on (the default
+     * on phones) the radio sleeps between access-point beacons and incoming packets
+     * arrive up to ~100-300 ms late, so the game stalls on every exchange. Azahar's
+     * 3DS multiplayer tolerates that latency; DS wireless does not. A low-latency
+     * lock turns power saving off while a DS game runs in a LAN room.
+     */
+    fun acquireLowLatencyWifi() {
+        if (wifiLock?.isHeld == true) return
+        val wifi = CitraApplication.appContext.applicationContext
+            .getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return
+        @Suppress("DEPRECATION")
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+        } else {
+            WifiManager.WIFI_MODE_FULL_HIGH_PERF
+        }
+        wifiLock = runCatching {
+            wifi.createWifiLock(mode, "azalon-ds-lan").apply {
+                setReferenceCounted(false)
+                acquire()
+            }
+        }.getOrNull()
+    }
+
+    fun releaseLowLatencyWifi() {
+        runCatching { wifiLock?.takeIf { it.isHeld }?.release() }
+        wifiLock = null
     }
 
     /** Keeps the network serviced while browsing or in a room; stops on its own after. */

@@ -80,6 +80,7 @@ class DsEmulationActivity : AppCompatActivity() {
     private fun onGameStarted(gameTitle: String) {
         DsLan.setCurrentGame(gameTitle, true) // a hosted room shows what it plays
         lanHandler.post(lanTask)
+        updateLanWifi()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -495,6 +496,16 @@ class DsEmulationActivity : AppCompatActivity() {
         if (started && !pausedByUser) {
             DsNative.setPaused(false)
         }
+        updateLanWifi()
+    }
+
+    /** Wi-Fi power saving makes DS wireless crawl; hold it off while playing over LAN. */
+    private fun updateLanWifi() {
+        if (started && runCatching { DsLan.isLanMode() }.getOrDefault(false)) {
+            DsLan.acquireLowLatencyWifi()
+        } else {
+            DsLan.releaseLowLatencyWifi()
+        }
     }
 
     override fun onPause() {
@@ -503,6 +514,7 @@ class DsEmulationActivity : AppCompatActivity() {
         if (started) {
             DsNative.setPaused(true)
         }
+        DsLan.releaseLowLatencyWifi()
         super.onPause()
     }
 
