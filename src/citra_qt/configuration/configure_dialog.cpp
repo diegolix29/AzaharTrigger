@@ -4,6 +4,8 @@
 
 #include <map>
 #include <QListWidgetItem>
+#include <QTabBar>
+#include "citra_qt/azalon_ui/azalon_style.h"
 #include "citra_qt/configuration/configure_audio.h"
 #include "citra_qt/configuration/configure_camera.h"
 #include "citra_qt/configuration/configure_debug.h"
@@ -61,6 +63,13 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry_, Cor
     ui->tabWidget->addTab(storage_tab.get(), tr("Storage"));
     ui->tabWidget->addTab(web_tab.get(), tr("Network"));
     ui->tabWidget->addTab(ui_tab.get(), tr("UI"));
+
+    // Azalon look: wider icon sidebar, page title, roomier default size.
+    ui->pageTitle->setObjectName(QStringLiteral("AzalonPageTitle"));
+    ui->selectorList->setIconSize(QSize(20, 20));
+    ui->selectorList->setSpacing(1);
+    ui->tabWidget->setDocumentMode(false);
+    setMinimumSize(960, 640);
 
     hotkeys_tab->Populate(registry);
     hotkeys_controller_tab->Populate(registry);
@@ -136,10 +145,15 @@ void ConfigureDialog::PopulateSelectionList() {
          {tr("Audio"), {audio_tab.get()}},
          {tr("Controls"), {input_tab.get(), hotkeys_controller_tab.get(), hotkeys_tab.get()}}}};
 
-    for (const auto& entry : items) {
+    const std::array<AzalonUI::Glyph, 5> glyphs{AzalonUI::Glyph::Gear, AzalonUI::Glyph::Chip,
+                                                 AzalonUI::Glyph::Monitor,
+                                                 AzalonUI::Glyph::Speaker,
+                                                 AzalonUI::Glyph::Gamepad};
+    for (std::size_t i = 0; i < items.size(); i++) {
+        const auto& entry = items[i];
         auto* const item = new QListWidgetItem(entry.first);
         item->setData(Qt::UserRole, QVariant::fromValue(entry.second));
-
+        item->setIcon(AzalonUI::MakeIcon(glyphs[i], AzalonUI::Colors::Accent, 20));
         ui->selectorList->addItem(item);
     }
 }
@@ -199,9 +213,11 @@ void ConfigureDialog::UpdateVisibleTabs() {
         {ui_tab.get(), tr("UI")}};
 
     ui->tabWidget->clear();
-
     const QList<QWidget*> tabs = qvariant_cast<QList<QWidget*>>(items[0]->data(Qt::UserRole));
-
     for (const auto tab : tabs)
         ui->tabWidget->addTab(tab, widgets.at(tab));
+
+    ui->pageTitle->setText(items[0]->text());
+    ui->tabWidget->tabBar()->setVisible(tabs.size() > 1);
+    AzalonUI::FadeIn(ui->tabWidget, 200);
 }

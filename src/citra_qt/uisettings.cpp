@@ -7,6 +7,7 @@
 namespace UISettings {
 
 const Themes themes{{
+    {"Azalon Dark", "azalon"},
     {"System", "default"},
     {"System With Colorful Icons", "colorful"},
     {"Dark", "qdarkstyle"},

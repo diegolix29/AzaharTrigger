@@ -1,0 +1,30 @@
+<RCC>
+  <qresource prefix="icons/azalon">
+    <file alias="index.theme">icons/index.theme</file>
+  </qresource>
+  <qresource prefix="azalon_rc">
+    <file alias="check.png">rc/check.png</file>
+    <file alias="check_disabled.png">rc/check_disabled.png</file>
+    <file alias="chevron_down.png">rc/chevron_down.png</file>
+    <file alias="chevron_down_disabled.png">rc/chevron_down_disabled.png</file>
+    <file alias="chevron_down_hover.png">rc/chevron_down_hover.png</file>
+    <file alias="chevron_left.png">rc/chevron_left.png</file>
+    <file alias="chevron_left_disabled.png">rc/chevron_left_disabled.png</file>
+    <file alias="chevron_left_hover.png">rc/chevron_left_hover.png</file>
+    <file alias="chevron_right.png">rc/chevron_right.png</file>
+    <file alias="chevron_right_disabled.png">rc/chevron_right_disabled.png</file>
+    <file alias="chevron_right_hover.png">rc/chevron_right_hover.png</file>
+    <file alias="chevron_up.png">rc/chevron_up.png</file>
+    <file alias="chevron_up_disabled.png">rc/chevron_up_disabled.png</file>
+    <file alias="chevron_up_hover.png">rc/chevron_up_hover.png</file>
+    <file alias="close.png">rc/close.png</file>
+    <file alias="close_hover.png">rc/close_hover.png</file>
+    <file alias="dash.png">rc/dash.png</file>
+    <file alias="radio_dot.png">rc/radio_dot.png</file>
+    <file alias="radio_dot_disabled.png">rc/radio_dot_disabled.png</file>
+    <file alias="transparent.png">rc/transparent.png</file>
+  </qresource>
+  <qresource prefix="azalon">
+    <file>style.qss</file>
+  </qresource>
+</RCC>

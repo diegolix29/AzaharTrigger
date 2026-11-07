@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Azalon Teal: dark glass surfaces with a teal -> green accent. Matches the desktop
+     "Azalon Dark" theme (dist/qt_themes/azalon). Always dark, in light and dark mode. -->
+<resources>
+    <color name="azalon_window">#0B1113</color>
+    <color name="azalon_surface">#0F1719</color>
+    <color name="azalon_surface_container">#11191C</color>
+    <color name="azalon_surface_raised">#172225</color>
+    <color name="azalon_surface_hover">#1D2B2F</color>
+    <color name="azalon_border">#22312F</color>
+    <color name="azalon_glass">#CC11191C</color>
+    <color name="azalon_glass_stroke">#1AFFFFFF</color>
+
+    <color name="azalon_text">#E6F1EF</color>
+    <color name="azalon_text_muted">#8AA19C</color>
+    <color name="azalon_text_disabled">#50605D</color>
+
+    <color name="azalon_accent">#14B8A6</color>
+    <color name="azalon_accent_light">#5EEAD4</color>
+    <color name="azalon_accent_hover">#2DD4BF</color>
+    <color name="azalon_accent_pressed">#0D9488</color>
+    <color name="azalon_accent2">#22C55E</color>
+    <color name="azalon_on_accent">#04110F</color>
+    <color name="azalon_accent_container">#0E3B36</color>
+    <color name="azalon_on_accent_container">#B7F5EC</color>
+    <color name="azalon_accent_glow">#4014B8A6</color>
+
+    <color name="azalon_badge_3ds">#14B8A6</color>
+    <color name="azalon_badge_ds">#60A5FA</color>
+    <color name="azalon_badge_dsi">#C084FC</color>
+    <color name="azalon_badge_background">#B80B1113</color>
+
+    <color name="azalon_error">#FFB4AB</color>
+    <color name="azalon_on_error">#690005</color>
+</resources>

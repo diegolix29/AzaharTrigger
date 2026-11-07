@@ -339,62 +339,77 @@ class DsEmulationActivity : AppCompatActivity() {
 
     private fun showMenu() {
         val paused = DsNative.isPaused()
-        val items = arrayOf(
-            getString(if (paused) R.string.ds_menu_resume else R.string.ds_menu_pause),
-            getString(R.string.ds_menu_save_state),
-            getString(R.string.ds_menu_load_state),
-            getString(R.string.ds_menu_layout),
-            getString(R.string.ds_menu_swap_screens),
-            getString(R.string.ds_menu_toggle_overlay),
-            getString(R.string.ds_menu_close_lid),
-            getString(R.string.ds_menu_reset),
-            getString(R.string.ds_menu_lan),
-            getString(R.string.ds_menu_settings),
-            getString(R.string.ds_menu_exit)
-        )
 
         // Pause while the menu is up, unless the game was already paused.
         val resumeAfter = !paused
         if (resumeAfter) DsNative.setPaused(true)
+        val resume = { if (resumeAfter) DsNative.setPaused(false) }
 
-        MaterialAlertDialogBuilder(this)
-            .setTitle(game?.title ?: firmwareTitle() ?: getString(R.string.ds_title))
-            .setItems(items) { _, which ->
-                when (which) {
-                    // `paused` is the state from before the menu opened, so flip it.
-                    0 -> setPaused(!paused)
-                    1 -> saveState(resumeAfter)
-                    2 -> loadState(resumeAfter)
-                    3 -> showLayoutMenu(resumeAfter)
-                    4 -> {
-                        screens.swapped = !screens.swapped
-                        DsSettings.saveLayout(screens.layoutMode, screens.swapped)
-                        if (resumeAfter) DsNative.setPaused(false)
-                    }
-                    5 -> {
-                        val show = !overlay.isVisible()
-                        overlay.visibility = if (show) View.VISIBLE else View.GONE
-                        screens.reserveForControls = show
-                        DsSettings.saveShowOverlay(show)
-                        if (resumeAfter) DsNative.setPaused(false)
-                    }
-                    6 -> closeLid(resumeAfter)
-                    7 -> confirmReset(resumeAfter)
-                    8 -> {
-                        // Azahar's multiplayer screens; they refuse to switch wireless
-                        // modes under a running game.
-                        DsNetPlay.open(this)
-                        if (resumeAfter) DsNative.setPaused(false)
-                    }
-                    9 -> {
-                        startActivity(Intent(this, DsSettingsActivity::class.java))
-                        if (resumeAfter) DsNative.setPaused(false)
-                    }
-                    else -> confirmExit(resumeAfter)
-                }
-            }
-            .setOnCancelListener { if (resumeAfter) DsNative.setPaused(false) }
-            .show()
+        val actions = listOf(
+            // `paused` is the state from before the menu opened, so flip it.
+            DsPauseMenu.Action(
+                if (paused) R.drawable.ic_play else R.drawable.ic_pause,
+                getString(if (paused) R.string.ds_menu_resume else R.string.ds_menu_pause)
+            ) { setPaused(!paused) },
+            DsPauseMenu.Action(R.drawable.ic_save, getString(R.string.ds_menu_save_state)) {
+                saveState(resumeAfter)
+            },
+            DsPauseMenu.Action(R.drawable.ic_restore, getString(R.string.ds_menu_load_state)) {
+                loadState(resumeAfter)
+            },
+            DsPauseMenu.Action(R.drawable.ic_fit_screen, getString(R.string.ds_menu_layout)) {
+                showLayoutMenu(resumeAfter)
+            },
+            DsPauseMenu.Action(
+                R.drawable.ic_splitscreen,
+                getString(R.string.ds_menu_swap_screens)
+            ) {
+                screens.swapped = !screens.swapped
+                DsSettings.saveLayout(screens.layoutMode, screens.swapped)
+                resume()
+            },
+            DsPauseMenu.Action(
+                R.drawable.ic_controller,
+                getString(R.string.ds_menu_toggle_overlay)
+            ) {
+                val show = !overlay.isVisible()
+                overlay.visibility = if (show) View.VISIBLE else View.GONE
+                screens.reserveForControls = show
+                DsSettings.saveShowOverlay(show)
+                resume()
+            },
+            DsPauseMenu.Action(R.drawable.ic_lock, getString(R.string.ds_menu_close_lid)) {
+                closeLid(resumeAfter)
+            },
+            DsPauseMenu.Action(R.drawable.ic_refresh, getString(R.string.ds_menu_reset)) {
+                confirmReset(resumeAfter)
+            },
+            DsPauseMenu.Action(R.drawable.ic_multiplayer, getString(R.string.ds_menu_lan)) {
+                // Azahar's multiplayer screens; they refuse to switch wireless
+                // modes under a running game.
+                DsNetPlay.open(this)
+                resume()
+            },
+            DsPauseMenu.Action(R.drawable.ic_settings, getString(R.string.ds_menu_settings)) {
+                startActivity(Intent(this, DsSettingsActivity::class.java))
+                resume()
+            },
+            DsPauseMenu.Action(
+                R.drawable.ic_exit,
+                getString(R.string.ds_menu_exit),
+                destructive = true
+            ) { confirmExit(resumeAfter) }
+        )
+
+        DsPauseMenu(this).show(
+            title = game?.title ?: firmwareTitle() ?: getString(R.string.ds_title),
+            subtitle = getString(
+                if (paused) R.string.azalon_paused else R.string.azalon_menu_subtitle
+            ),
+            game = game,
+            actions = actions,
+            onCancel = resume
+        )
     }
 
     private fun setPaused(paused: Boolean) {

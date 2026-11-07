@@ -25,6 +25,8 @@ wants a clean core-to-core merge so melonDS's own wireless (LAN/local) and inter
 | `src/citra_qt/ds/` | Qt frontend for DS: `Session` (emu thread, pacing, Azahar input profile + audio sink), `ScreenWidget`, `Config` + `ConfigDialog` (`<config>/azalon_ds.ini`), `ds_lan.*` (DS LAN tab of Azahar's Lobby, host/direct-connect dialogs, room window, status-bar button) |
 | `src/android/app/src/main/jni/ds/` | Android native DS layer: `Session` (emu thread, pacing, two `ANativeWindow`s, audio via `AudioCore::Sink`) + `ds_jni.cpp` (`DsNative`, `DsRomInfo`) |
 | `src/android/.../citra_emu/ds/` | Android Kotlin DS frontend: `DsEmulationActivity`, `DsScreensView`/`DsScreenView`, `DsInputOverlay`, `DsSettings`(+Activity, `res/xml/ds_preferences.xml`), `DsPaths`, `DsRom` |
+| `src/citra_qt/azalon_ui/` | Azalon desktop look: `azalon_style.*` (Fusion + palette, painted icons, fades, rounded menus), `game_grid.*` (cover-grid library, All/3DS/DS pills, header bar). Stylesheet: `dist/qt_themes/azalon/` (theme id `azalon`, default) |
+| `src/android/.../res/values/azalon_*.xml` | Android "Azalon Teal" theme (index 0 of Theme Color, forces dark; `ThemeUtil` migrates old indices), home header/chips in `fragment_games.xml`, cover `card_game.xml`, DS pause sheet `ds/DsPauseMenu.kt` |
 | `tools/build-windows-msvc.bat` | configure + build with vcvars (`x64-release` / `x64-debug`) |
 
 Hooks in Azahar code are all under `#ifdef ENABLE_DS` (CMake option `ENABLE_DS`, default ON):

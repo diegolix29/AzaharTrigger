@@ -346,7 +346,8 @@
     </integer-array>
 
     <string-array name="staticThemeNames">
-        <item>Blue (Default)</item>
+        <item>Azalon Teal (Default)</item>
+        <item>Blue</item>
         <item>Cyan</item>
         <item>Red</item>
         <item>Green</item>
@@ -366,6 +367,7 @@
         <item>6</item>
         <item>7</item>
         <item>8</item>
+        <item>9</item>
     </integer-array>
 
     <string-array name="themeModeEntries">

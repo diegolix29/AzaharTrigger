@@ -112,7 +112,7 @@ class SearchFragment : Fragment() {
         binding.gridGamesSearch.apply {
             layoutManager = GridLayoutManager(
                 requireContext(),
-                resources.getInteger(R.integer.game_grid_columns)
+                resources.getInteger(R.integer.azalon_game_grid_columns)
             )
             adapter = this@SearchFragment.gameAdapter
         }

@@ -1,0 +1,909 @@
+/*
+ * Azalon3-DS "Azalon Dark" theme: dark glass surfaces, teal -> green accent.
+ * Used together with the Fusion style and the palette set in citra_qt/azalon_ui/azalon_style.cpp.
+ *
+ * Palette
+ *   window      #0b1113    surface  #11191c    raised  #172225    hover  #1d2b2f
+ *   border      #22312f    text     #e6f1ef    muted   #8aa19c    disabled #50605d
+ *   accent      #14b8a6 -> #22c55e  (hover #2dd4bf, pressed #0d9488)
+ */
+
+/* ---------------------------------------------------------------- base */
+
+QWidget {
+    color: #e6f1ef;
+    background-color: transparent;
+    selection-background-color: #14b8a6;
+    selection-color: #04110f;
+    outline: none;
+}
+
+QMainWindow,
+QDialog,
+QStackedWidget#AzalonRoot {
+    background-color: #0b1113;
+}
+
+QWidget:disabled {
+    color: #50605d;
+}
+
+QToolTip {
+    color: #e6f1ef;
+    background-color: #172225;
+    border: 1px solid #2a3d3a;
+    border-radius: 8px;
+    padding: 6px 8px;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLabel[muted="true"] {
+    color: #8aa19c;
+}
+
+/* ---------------------------------------------------------------- menus */
+
+QMenuBar {
+    background-color: #0b1113;
+    border-bottom: 1px solid #172225;
+    padding: 2px 6px;
+}
+
+QMenuBar::item {
+    background: transparent;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: #c4d6d2;
+}
+
+QMenuBar::item:selected {
+    background-color: #172225;
+    color: #e6f1ef;
+}
+
+QMenuBar::item:pressed {
+    background-color: #14b8a6;
+    color: #04110f;
+}
+
+QMenu {
+    background-color: #121b1e;
+    border: 1px solid #22312f;
+    border-radius: 12px;
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 7px 28px 7px 28px;
+    border-radius: 8px;
+    background: transparent;
+}
+
+QMenu::item:selected {
+    background-color: rgba(20, 184, 166, 0.18);
+    color: #ffffff;
+}
+
+QMenu::item:disabled {
+    color: #50605d;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #22312f;
+    margin: 6px 10px;
+}
+
+QMenu::icon {
+    padding-left: 8px;
+}
+
+QMenu::indicator {
+    width: 16px;
+    height: 16px;
+    left: 6px;
+}
+
+QMenu::indicator:non-exclusive:checked,
+QMenu::indicator:exclusive:checked {
+    image: url(:/azalon_rc/check.png);
+    background-color: #14b8a6;
+    border-radius: 5px;
+}
+
+QMenu::right-arrow {
+    image: url(:/azalon_rc/chevron_right.png);
+    width: 14px;
+    height: 14px;
+    right: 8px;
+}
+
+/* ---------------------------------------------------------------- status bar */
+
+QStatusBar {
+    background-color: #0b1113;
+    border-top: 1px solid #172225;
+    color: #8aa19c;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+QStatusBar QLabel {
+    color: #8aa19c;
+    padding: 0 6px;
+}
+
+QStatusBar QPushButton {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 2px 8px;
+    min-height: 18px;
+    color: #c4d6d2;
+}
+
+QStatusBar QPushButton:hover {
+    background-color: #172225;
+}
+
+/* ---------------------------------------------------------------- buttons */
+
+QPushButton {
+    background-color: #172225;
+    border: 1px solid #22312f;
+    border-radius: 10px;
+    padding: 7px 16px;
+    min-height: 20px;
+    color: #e6f1ef;
+}
+
+QPushButton:hover {
+    background-color: #1d2b2f;
+    border-color: #2f4542;
+}
+
+QPushButton:pressed {
+    background-color: #0f1719;
+}
+
+QPushButton:checked {
+    background-color: rgba(20, 184, 166, 0.22);
+    border-color: #14b8a6;
+}
+
+QPushButton:disabled {
+    background-color: #11191c;
+    border-color: #172225;
+    color: #50605d;
+}
+
+QPushButton:default,
+QPushButton[accent="true"] {
+    color: #04110f;
+    font-weight: 600;
+    border: none;
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #14b8a6, stop:1 #22c55e);
+}
+
+QPushButton:default:hover,
+QPushButton[accent="true"]:hover {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2dd4bf, stop:1 #4ade80);
+}
+
+QPushButton:default:pressed,
+QPushButton[accent="true"]:pressed {
+    background-color: #0d9488;
+}
+
+QPushButton:default:disabled,
+QPushButton[accent="true"]:disabled {
+    background-color: #172225;
+    color: #50605d;
+}
+
+QToolButton {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+QToolButton:hover {
+    background-color: #172225;
+    border-color: #22312f;
+}
+
+QToolButton:pressed,
+QToolButton:checked {
+    background-color: rgba(20, 184, 166, 0.20);
+    border-color: rgba(20, 184, 166, 0.55);
+}
+
+QToolButton::menu-indicator {
+    image: url(:/azalon_rc/chevron_down.png);
+    width: 10px;
+    height: 10px;
+    subcontrol-position: right bottom;
+    subcontrol-origin: padding;
+}
+
+QDialogButtonBox QPushButton {
+    min-width: 84px;
+}
+
+/* ---------------------------------------------------------------- inputs */
+
+QLineEdit,
+QPlainTextEdit,
+QTextEdit,
+QTextBrowser,
+QAbstractSpinBox,
+QDateTimeEdit,
+QKeySequenceEdit {
+    background-color: #0f1719;
+    border: 1px solid #22312f;
+    border-radius: 10px;
+    padding: 6px 10px;
+    selection-background-color: #14b8a6;
+    selection-color: #04110f;
+}
+
+QLineEdit:hover,
+QAbstractSpinBox:hover,
+QPlainTextEdit:hover,
+QTextEdit:hover {
+    border-color: #2f4542;
+}
+
+QLineEdit:focus,
+QAbstractSpinBox:focus,
+QPlainTextEdit:focus,
+QTextEdit:focus {
+    border: 1px solid #14b8a6;
+    background-color: #0d1517;
+}
+
+QLineEdit:disabled,
+QAbstractSpinBox:disabled {
+    background-color: #0d1416;
+    color: #50605d;
+}
+
+QLineEdit[search="true"] {
+    border-radius: 16px;
+    padding: 6px 14px;
+    background-color: #11191c;
+}
+
+QAbstractSpinBox::up-button,
+QAbstractSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 18px;
+    border: none;
+    background: transparent;
+}
+
+QAbstractSpinBox::up-button { subcontrol-position: top right; margin: 3px 4px 0 0; }
+QAbstractSpinBox::down-button { subcontrol-position: bottom right; margin: 0 4px 3px 0; }
+
+QAbstractSpinBox::up-arrow {
+    image: url(:/azalon_rc/chevron_up.png);
+    width: 10px;
+    height: 10px;
+}
+
+QAbstractSpinBox::up-arrow:hover { image: url(:/azalon_rc/chevron_up_hover.png); }
+QAbstractSpinBox::up-arrow:disabled { image: url(:/azalon_rc/chevron_up_disabled.png); }
+
+QAbstractSpinBox::down-arrow {
+    image: url(:/azalon_rc/chevron_down.png);
+    width: 10px;
+    height: 10px;
+}
+
+QAbstractSpinBox::down-arrow:hover { image: url(:/azalon_rc/chevron_down_hover.png); }
+QAbstractSpinBox::down-arrow:disabled { image: url(:/azalon_rc/chevron_down_disabled.png); }
+
+QComboBox {
+    background-color: #172225;
+    border: 1px solid #22312f;
+    border-radius: 10px;
+    padding: 6px 30px 6px 12px;
+    min-height: 20px;
+}
+
+QComboBox:hover {
+    background-color: #1d2b2f;
+    border-color: #2f4542;
+}
+
+QComboBox:focus,
+QComboBox:on {
+    border-color: #14b8a6;
+}
+
+QComboBox:editable {
+    background-color: #0f1719;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    width: 26px;
+    border: none;
+}
+
+QComboBox::down-arrow {
+    image: url(:/azalon_rc/chevron_down.png);
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox::down-arrow:hover,
+QComboBox::down-arrow:on {
+    image: url(:/azalon_rc/chevron_down_hover.png);
+}
+
+QComboBox::down-arrow:disabled {
+    image: url(:/azalon_rc/chevron_down_disabled.png);
+}
+
+QComboBox QAbstractItemView {
+    background-color: #121b1e;
+    border: 1px solid #22312f;
+    border-radius: 10px;
+    padding: 4px;
+    outline: none;
+    selection-background-color: rgba(20, 184, 166, 0.22);
+    selection-color: #ffffff;
+}
+
+QComboBox QAbstractItemView::item {
+    min-height: 26px;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- check / radio */
+
+QCheckBox,
+QRadioButton,
+QGroupBox::title {
+    spacing: 9px;
+    background: transparent;
+}
+
+QCheckBox::indicator,
+QGroupBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    border: 1px solid #3a504c;
+    background-color: #0f1719;
+}
+
+QCheckBox::indicator:hover,
+QGroupBox::indicator:hover {
+    border-color: #14b8a6;
+}
+
+QCheckBox::indicator:checked,
+QGroupBox::indicator:checked {
+    border: 1px solid #14b8a6;
+    background-color: #14b8a6;
+    image: url(:/azalon_rc/check.png);
+}
+
+QCheckBox::indicator:indeterminate {
+    border: 1px solid #14b8a6;
+    background-color: #14b8a6;
+    image: url(:/azalon_rc/dash.png);
+}
+
+QCheckBox::indicator:disabled,
+QGroupBox::indicator:disabled {
+    border-color: #22312f;
+    background-color: #0d1416;
+}
+
+QCheckBox::indicator:checked:disabled {
+    image: url(:/azalon_rc/check_disabled.png);
+    background-color: #172225;
+}
+
+QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 9px;
+    border: 1px solid #3a504c;
+    background-color: #0f1719;
+}
+
+QRadioButton::indicator:hover {
+    border-color: #14b8a6;
+}
+
+QRadioButton::indicator:checked {
+    border: 1px solid #14b8a6;
+    background-color: #14b8a6;
+    image: url(:/azalon_rc/radio_dot.png);
+}
+
+QRadioButton::indicator:checked:disabled {
+    background-color: #172225;
+    border-color: #22312f;
+    image: url(:/azalon_rc/radio_dot_disabled.png);
+}
+
+/* ---------------------------------------------------------------- group boxes (cards) */
+
+QGroupBox {
+    background-color: rgba(255, 255, 255, 0.025);
+    border: 1px solid #1d2a2c;
+    border-radius: 14px;
+    margin-top: 22px;
+    padding: 14px 12px 10px 12px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 12px;
+    top: 2px;
+    padding: 0 4px;
+    color: #5eead4;
+    font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- sliders / progress */
+
+QSlider::groove:horizontal {
+    height: 6px;
+    border-radius: 3px;
+    background: #1d2b2f;
+}
+
+QSlider::sub-page:horizontal {
+    border-radius: 3px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #22c55e);
+}
+
+QSlider::handle:horizontal {
+    width: 16px;
+    height: 16px;
+    margin: -6px 0;
+    border-radius: 8px;
+    background: #e6f1ef;
+    border: 2px solid #14b8a6;
+}
+
+QSlider::handle:horizontal:hover {
+    background: #ffffff;
+    border-color: #2dd4bf;
+}
+
+QSlider::groove:vertical {
+    width: 6px;
+    border-radius: 3px;
+    background: #1d2b2f;
+}
+
+QSlider::add-page:vertical {
+    border-radius: 3px;
+    background: qlineargradient(x1:0, y1:1, x2:0, y2:0, stop:0 #14b8a6, stop:1 #22c55e);
+}
+
+QSlider::handle:vertical {
+    width: 16px;
+    height: 16px;
+    margin: 0 -6px;
+    border-radius: 8px;
+    background: #e6f1ef;
+    border: 2px solid #14b8a6;
+}
+
+QSlider:disabled::sub-page:horizontal,
+QSlider:disabled::add-page:vertical {
+    background: #22312f;
+}
+
+QProgressBar {
+    background-color: #11191c;
+    border: 1px solid #1d2a2c;
+    border-radius: 7px;
+    text-align: center;
+    color: #e6f1ef;
+    min-height: 14px;
+}
+
+QProgressBar::chunk {
+    border-radius: 6px;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #14b8a6, stop:1 #22c55e);
+}
+
+/* ---------------------------------------------------------------- tabs (segmented) */
+
+QTabWidget::pane {
+    border: 1px solid #1d2a2c;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.02);
+    top: -1px;
+    padding: 8px;
+}
+
+QTabWidget::tab-bar {
+    left: 4px;
+}
+
+QTabBar {
+    qproperty-drawBase: 0;
+    background: transparent;
+}
+
+QTabBar::tab {
+    background: transparent;
+    color: #8aa19c;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 7px 16px;
+    margin: 0 4px 8px 0;
+    min-width: 60px;
+}
+
+QTabBar::tab:hover {
+    color: #e6f1ef;
+    background-color: #172225;
+}
+
+QTabBar::tab:selected {
+    color: #04110f;
+    font-weight: 600;
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #14b8a6, stop:1 #22c55e);
+}
+
+QTabBar::tab:disabled {
+    color: #50605d;
+}
+
+QTabBar::close-button {
+    image: url(:/azalon_rc/close.png);
+    subcontrol-position: right;
+}
+
+QTabBar::close-button:hover {
+    image: url(:/azalon_rc/close_hover.png);
+}
+
+QTabBar QToolButton {
+    background-color: #172225;
+    border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- item views */
+
+QAbstractItemView {
+    background-color: #0f1719;
+    alternate-background-color: #111b1e;
+    border: 1px solid #1d2a2c;
+    border-radius: 12px;
+    selection-background-color: rgba(20, 184, 166, 0.22);
+    selection-color: #ffffff;
+    show-decoration-selected: 1;
+}
+
+QAbstractItemView::item {
+    padding: 3px 4px;
+    border: none;
+}
+
+QAbstractItemView::item:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+QAbstractItemView::item:selected {
+    background-color: rgba(20, 184, 166, 0.22);
+    color: #ffffff;
+}
+
+QTreeView::branch {
+    background: transparent;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    image: url(:/azalon_rc/chevron_right.png);
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings {
+    image: url(:/azalon_rc/chevron_down.png);
+}
+
+QHeaderView {
+    background: transparent;
+    border: none;
+}
+
+QHeaderView::section {
+    background-color: #0f1719;
+    color: #8aa19c;
+    border: none;
+    border-bottom: 1px solid #1d2a2c;
+    padding: 8px 10px;
+    font-weight: 600;
+}
+
+QHeaderView::section:hover {
+    color: #e6f1ef;
+}
+
+QHeaderView::down-arrow {
+    image: url(:/azalon_rc/chevron_down.png);
+    width: 10px;
+    height: 10px;
+}
+
+QHeaderView::up-arrow {
+    image: url(:/azalon_rc/chevron_up.png);
+    width: 10px;
+    height: 10px;
+}
+
+QTableCornerButton::section {
+    background-color: #0f1719;
+    border: none;
+}
+
+/* ---------------------------------------------------------------- scrollbars */
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 12px;
+    margin: 2px;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 12px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: #22312f;
+    border-radius: 4px;
+    min-height: 36px;
+    margin: 0 2px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #22312f;
+    border-radius: 4px;
+    min-width: 36px;
+    margin: 2px 0;
+}
+
+QScrollBar::handle:hover {
+    background: #14b8a6;
+}
+
+QScrollBar::add-line,
+QScrollBar::sub-line {
+    width: 0;
+    height: 0;
+    border: none;
+    background: none;
+}
+
+QScrollBar::add-page,
+QScrollBar::sub-page {
+    background: none;
+}
+
+QAbstractScrollArea::corner {
+    background: transparent;
+}
+
+QScrollArea {
+    border: none;
+}
+
+QScrollArea > QWidget > QWidget {
+    background: transparent;
+}
+
+/* ---------------------------------------------------------------- misc */
+
+QSplitter::handle {
+    background: #172225;
+}
+
+QSplitter::handle:hover {
+    background: #14b8a6;
+}
+
+QDockWidget {
+    titlebar-close-icon: url(:/azalon_rc/close.png);
+}
+
+QDockWidget::title {
+    background-color: #11191c;
+    padding: 6px 10px;
+    border-bottom: 1px solid #1d2a2c;
+}
+
+QMessageBox,
+QInputDialog,
+QProgressDialog {
+    background-color: #0f1719;
+}
+
+/* ---------------------------------------------------------------- Azalon widgets */
+
+/* Header bar above the game library */
+QWidget#AzalonLibraryHeader {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 rgba(20, 184, 166, 0.10),
+                                      stop:0.5 rgba(255, 255, 255, 0.015),
+                                      stop:1 rgba(34, 197, 94, 0.06));
+    border-bottom: 1px solid #172225;
+}
+
+QLabel#AzalonBrand {
+    font-size: 17px;
+    font-weight: 700;
+    color: #e6f1ef;
+}
+
+QLabel#AzalonBrandAccent {
+    font-size: 17px;
+    font-weight: 700;
+    color: #2dd4bf;
+}
+
+QLabel#AzalonCount {
+    color: #8aa19c;
+    padding: 0 6px;
+}
+
+/* Pill tabs: All / 3DS / DS */
+QWidget#AzalonPills {
+    background-color: #0f1719;
+    border: 1px solid #1d2a2c;
+    border-radius: 17px;
+}
+
+QPushButton[pill="true"] {
+    background: transparent;
+    border: none;
+    border-radius: 13px;
+    padding: 5px 16px;
+    min-height: 16px;
+    color: #8aa19c;
+    font-weight: 600;
+}
+
+QPushButton[pill="true"]:hover {
+    color: #e6f1ef;
+}
+
+/* The sliding highlight behind the checked pill is painted by AzalonUI::PillBar. */
+QPushButton[pill="true"]:checked {
+    color: #04110f;
+    background: transparent;
+}
+
+QWidget#AzalonPills QToolButton {
+    border-radius: 13px;
+    padding: 5px;
+    border: none;
+}
+
+QWidget#AzalonPills QToolButton:checked {
+    background-color: rgba(20, 184, 166, 0.25);
+}
+
+QToolButton[headerAction="true"] {
+    border-radius: 17px;
+    padding: 7px;
+    background-color: #11191c;
+    border: 1px solid #1d2a2c;
+}
+
+QToolButton[headerAction="true"]:hover {
+    background-color: #172225;
+    border-color: #14b8a6;
+}
+
+QToolButton[headerAction="true"]:checked {
+    background-color: rgba(20, 184, 166, 0.22);
+    border-color: #14b8a6;
+}
+
+/* Grid of game cards: the cards are painted by GameGridDelegate */
+QListView#AzalonGameGrid {
+    background-color: #0b1113;
+    border: none;
+    border-radius: 0;
+    padding: 12px;
+}
+
+QListView#AzalonGameGrid::item,
+QListView#AzalonGameGrid::item:hover,
+QListView#AzalonGameGrid::item:selected {
+    background: transparent;
+    border: none;
+}
+
+QTreeView#AzalonGameTree {
+    background-color: #0b1113;
+    alternate-background-color: #0e1517;
+    border: none;
+    border-radius: 0;
+}
+
+/* Game list placeholder (no folders yet) */
+GameListPlaceholder {
+    background-color: #0b1113;
+}
+
+GameListPlaceholder QLabel {
+    color: #8aa19c;
+    font-size: 14px;
+}
+
+/* Bottom filter bar of the list view */
+GameListSearchField {
+    background-color: #0b1113;
+    border-top: 1px solid #172225;
+}
+
+GameListSearchField QToolButton {
+    color: #8aa19c;
+}
+
+/* Settings dialog */
+QListWidget#selectorList {
+    background-color: transparent;
+    border: none;
+    border-right: 1px solid #172225;
+    border-radius: 0;
+    padding: 6px 8px 6px 0;
+    font-size: 13px;
+}
+
+QListWidget#selectorList::item {
+    padding: 10px 12px;
+    margin: 2px 0;
+    border-radius: 10px;
+    color: #a9bfba;
+}
+
+QListWidget#selectorList::item:hover {
+    background-color: #172225;
+    color: #e6f1ef;
+}
+
+QListWidget#selectorList::item:selected {
+    color: #ffffff;
+    font-weight: 600;
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 rgba(20, 184, 166, 0.35),
+                                      stop:1 rgba(34, 197, 94, 0.10));
+}
+
+QLabel#AzalonPageTitle {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e6f1ef;
+    padding: 2px 4px 6px 4px;
+}
+
+/* Loading screen */
+LoadingScreen {
+    background-color: #0b1113;
+}

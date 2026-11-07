@@ -43,6 +43,7 @@
 #endif
 #include "citra_meta/common_strings.h"
 #include "citra_qt/aboutdialog.h"
+#include "citra_qt/azalon_ui/azalon_style.h"
 #include "citra_qt/applets/mii_selector.h"
 #include "citra_qt/applets/swkbd.h"
 #include "citra_qt/bootmanager.h"
@@ -5745,6 +5746,9 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list_placeholder, &GameListPlaceholder::AddDirectory, this,
             &GMainWindow::OnGameListAddDirectory);
     connect(game_list, &GameList::ShowList, this, &GMainWindow::OnGameListShowList);
+    connect(game_list, &GameList::OpenFileRequested, ui->action_Load_File, &QAction::trigger);
+    connect(game_list, &GameList::SettingsRequested, ui->action_Configure, &QAction::trigger);
+    connect(game_list, &GameList::LobbyRequested, ui->action_View_Lobby, &QAction::trigger);
     connect(game_list, &GameList::PopulatingCompleted, this,
             [this] { multiplayer_state->UpdateGameList(game_list->GetModel()); });
 #ifdef ENABLE_DEVELOPER_OPTIONS
@@ -9473,6 +9477,9 @@ void GMainWindow::UpdateUITheme() {
     const QString& current_theme = UISettings::values.theme;
     const bool is_default_theme = (current_theme == default_system_theme);
     QStringList theme_paths(default_theme_paths);
+
+    // Azalon Dark draws on Fusion with its own palette; other themes use the platform style.
+    AzalonUI::ApplyApplicationStyle(AzalonUI::IsActive());
 
     if (is_default_theme || current_theme.isEmpty()) {
         const QString theme_uri(QStringLiteral(":default/style.qss"));

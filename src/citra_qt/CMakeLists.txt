@@ -19,6 +19,10 @@ add_library(citra_qt STATIC EXCLUDE_FROM_ALL
     bootmanager.h
     compatibility_list.cpp
     compatibility_list.h
+    azalon_ui/azalon_style.cpp
+    azalon_ui/azalon_style.h
+    azalon_ui/game_grid.cpp
+    azalon_ui/game_grid.h
     camera/camera_util.cpp
     camera/camera_util.h
     camera/still_image_camera.cpp

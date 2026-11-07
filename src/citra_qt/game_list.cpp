@@ -2,6 +2,7 @@
 // Licensed under GPLv3 or any later version
 // Refer to the LICENSE.txt file included.
 
+#include <algorithm>
 #include <QActionGroup>
 #include <QApplication>
 #include <QDir>
@@ -19,14 +20,18 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QModelIndex>
+#include <QPushButton>
 #include <QPainter>
 #include <QStandardItem>
+#include <QStackedWidget>
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QThreadPool>
 #include <QToolButton>
 #include <QTreeView>
 #include <fmt/format.h>
+#include "citra_qt/azalon_ui/azalon_style.h"
+#include "citra_qt/azalon_ui/game_grid.h"
 #include "citra_qt/citra_qt.h"
 #include "citra_qt/compatibility_list.h"
 #include "citra_qt/game_list.h"
@@ -200,36 +205,41 @@ void GameList::OnItemExpanded(const QModelIndex& item) {
 
 // Event in order to filter the gamelist after editing the searchfield
 void GameList::OnTextChanged(const QString& new_text) {
-    const int folder_count = tree_view->model()->rowCount();
-    QString edit_filter_text = new_text.toLower();
-    QStandardItem* folder;
-    int children_total = 0;
+    filter_text = new_text;
+    ApplyFilter();
+}
 
-    // If the searchfield is empty every item is visible
-    // Otherwise the filter gets applied
-    if (edit_filter_text.isEmpty()) {
-        tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(),
+void GameList::ApplyFilter() {
+    const int folder_count = tree_view->model()->rowCount();
+    const QString edit_filter_text = filter_text.toLower();
+    const auto platform = static_cast<AzalonUI::PlatformFilter>(platform_filter);
+    const bool all_platforms = platform == AzalonUI::PlatformFilter::All;
+    int children_total = 0;
+    int result_count = 0;
+
+    // Favorites duplicate rows of the other folders, so they are hidden while filtering.
+    tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(),
+                            !edit_filter_text.isEmpty() || !all_platforms ||
                                 UISettings::values.favorited_ids.size() == 0);
-        for (int i = 1; i < folder_count; ++i) {
-            folder = item_model->item(i, 0);
-            const QModelIndex folder_index = folder->index();
-            const int children_count = folder->rowCount();
-            for (int j = 0; j < children_count; ++j) {
-                ++children_total;
-                tree_view->setRowHidden(j, folder_index, false);
+    for (int i = 1; i < folder_count; ++i) {
+        QStandardItem* folder = item_model->item(i, 0);
+        const QModelIndex folder_index = folder->index();
+        const int children_count = folder->rowCount();
+        for (int j = 0; j < children_count; ++j) {
+            ++children_total;
+            const QStandardItem* child = folder->child(j, 0);
+            bool visible = true;
+
+            if (!all_platforms) {
+                const QStandardItem* type_item = folder->child(j, COLUMN_FILE_TYPE);
+                visible = AzalonUI::MatchesPlatform(
+                    platform,
+                    AzalonUI::PlatformOf(
+                        child->data(GameListItemPath::ProgramIdRole).toULongLong(),
+                        type_item ? type_item->text() : QString{}));
             }
-        }
-        search_field->setFilterResult(children_total, children_total);
-    } else {
-        tree_view->setRowHidden(0, item_model->invisibleRootItem()->index(), true);
-        int result_count = 0;
-        for (int i = 1; i < folder_count; ++i) {
-            folder = item_model->item(i, 0);
-            const QModelIndex folder_index = folder->index();
-            const int children_count = folder->rowCount();
-            for (int j = 0; j < children_count; ++j) {
-                ++children_total;
-                const QStandardItem* child = folder->child(j, 0);
+
+            if (visible && !edit_filter_text.isEmpty()) {
                 const QString file_path =
                     child->data(GameListItemPath::FullPathRole).toString().toLower();
                 const QString file_title =
@@ -240,22 +250,59 @@ void GameList::OnTextChanged(const QString& new_text) {
                 // Only items which filename in combination with its title contains all words
                 // that are in the searchfield will be visible in the gamelist
                 // The search is case insensitive because of toLower()
-                // I decided not to use Qt::CaseInsensitive in containsAllWords to prevent
-                // multiple conversions of edit_filter_text for each game in the gamelist
                 const QString file_name =
                     file_path.mid(file_path.lastIndexOf(QLatin1Char{'/'}) + 1) + QLatin1Char{' '} +
                     file_title;
-                if (ContainsAllWords(file_name, edit_filter_text) ||
-                    (file_program_id.length() == 16 &&
-                     edit_filter_text.contains(file_program_id))) {
-                    tree_view->setRowHidden(j, folder_index, false);
-                    ++result_count;
-                } else {
-                    tree_view->setRowHidden(j, folder_index, true);
-                }
-                search_field->setFilterResult(result_count, children_total);
+                visible = ContainsAllWords(file_name, edit_filter_text) ||
+                          (file_program_id.length() == 16 &&
+                           edit_filter_text.contains(file_program_id));
+            }
+
+            tree_view->setRowHidden(j, folder_index, !visible);
+            if (visible) {
+                ++result_count;
             }
         }
+    }
+    search_field->setFilterResult(result_count, children_total);
+
+    if (grid_filter) {
+        grid_filter->SetFilter(platform, edit_filter_text);
+    }
+}
+
+void GameList::SetPlatformFilter(AzalonUI::PlatformFilter platform) {
+    platform_filter = static_cast<int>(platform);
+    UISettings::values.game_list_platform = platform_filter;
+    ApplyFilter();
+}
+
+void GameList::SetViewMode(int mode) {
+    mode = mode == 1 ? 1 : 0;
+    UISettings::values.game_list_view_mode = mode;
+    header->SetViewMode(mode);
+    QWidget* target = mode == 0 ? static_cast<QWidget*>(grid_view) : tree_view;
+    if (views->currentWidget() != target) {
+        views->setCurrentWidget(target);
+        AzalonUI::FadeIn(target);
+    }
+}
+
+void GameList::OnGridActivated(const QModelIndex& index) {
+    const QModelIndex source = grid_model->SourceIndex(grid_filter->mapToSource(index));
+    if (source.isValid()) {
+        ValidateEntry(source);
+    }
+}
+
+void GameList::OnGridContextMenu(const QPoint& menu_location) {
+    const QModelIndex index = grid_view->indexAt(menu_location);
+    if (!index.isValid()) {
+        return;
+    }
+    const QModelIndex source = grid_model->SourceIndex(grid_filter->mapToSource(index));
+    if (source.isValid()) {
+        PopupContextMenuFor(source, grid_view->viewport()->mapToGlobal(menu_location));
     }
 }
 
@@ -360,6 +407,7 @@ GameList::GameList(PlayTime::PlayTimeManager& play_time_manager_, GMainWindow* p
     tree_view->setSortingEnabled(true);
     tree_view->setEditTriggers(QHeaderView::NoEditTriggers);
     tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
+    tree_view->setObjectName(QStringLiteral("AzalonGameTree"));
     tree_view->setStyleSheet(QStringLiteral("QTreeView{ border: none; }"));
     tree_view->setItemDelegateForColumn(0, new CartridgeIconDelegate(tree_view));
     tree_view->header()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -384,12 +432,53 @@ GameList::GameList(PlayTime::PlayTimeManager& play_time_manager_, GMainWindow* p
     // it with signals/slots. In this case, QList falls under the umbrells of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
+    // Library header (brand, platform pills, search, view toggle, quick actions) on top of
+    // either the cover grid or the classic tree.
+    header = new AzalonUI::LibraryHeader(this);
+    search_field->SetCompact(true);
+    header->SetSearchWidget(search_field);
+
+    grid_model = new AzalonUI::GameGridModel(item_model, this);
+    grid_filter = new AzalonUI::GameGridFilter(this);
+    grid_filter->setSourceModel(grid_model);
+    grid_filter->setDynamicSortFilter(true);
+    grid_filter->sort(0);
+    grid_view = new AzalonUI::GameGridView(this);
+    grid_view->setModel(grid_filter);
+
+    views = new QStackedWidget(this);
+    views->addWidget(grid_view);
+    views->addWidget(tree_view);
+
+    connect(grid_view, &QListView::activated, this, &GameList::OnGridActivated);
+    connect(grid_view, &AzalonUI::GameGridView::PlayRequested, this, &GameList::OnGridActivated);
+    connect(grid_view, &QListView::customContextMenuRequested, this, &GameList::OnGridContextMenu);
+    connect(header, &AzalonUI::LibraryHeader::PlatformChanged, this, &GameList::SetPlatformFilter);
+    connect(header, &AzalonUI::LibraryHeader::ViewModeChanged, this, &GameList::SetViewMode);
+    connect(header, &AzalonUI::LibraryHeader::AddFolderRequested, this, &GameList::AddDirectory);
+    connect(header, &AzalonUI::LibraryHeader::OpenFileRequested, this,
+            &GameList::OpenFileRequested);
+    connect(header, &AzalonUI::LibraryHeader::LobbyRequested, this, &GameList::LobbyRequested);
+    connect(header, &AzalonUI::LibraryHeader::SettingsRequested, this,
+            &GameList::SettingsRequested);
+    const auto update_count = [this] {
+        header->SetCount(grid_filter->rowCount(), grid_model->rowCount());
+    };
+    connect(grid_filter, &QAbstractItemModel::rowsInserted, this, update_count);
+    connect(grid_filter, &QAbstractItemModel::rowsRemoved, this, update_count);
+    connect(grid_filter, &QAbstractItemModel::modelReset, this, update_count);
+    connect(grid_filter, &QAbstractItemModel::layoutChanged, this, update_count);
+
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
-    layout->addWidget(tree_view);
-    layout->addWidget(search_field);
+    layout->addWidget(header);
+    layout->addWidget(views, 1);
     setLayout(layout);
+
+    platform_filter = std::clamp(UISettings::values.game_list_platform, 0, 2);
+    header->SetPlatform(static_cast<AzalonUI::PlatformFilter>(platform_filter));
+    SetViewMode(UISettings::values.game_list_view_mode);
 }
 
 GameList::~GameList() {
@@ -507,7 +596,11 @@ void GameList::DonePopulating(const QStringList& watch_list) {
     }
     search_field->setFilterResult(children_total, children_total);
     if (children_total > 0) {
-        search_field->setFocus();
+        if (views->currentWidget() == grid_view) {
+            grid_view->setFocus();
+        } else {
+            search_field->setFocus();
+        }
     }
     item_model->sort(tree_view->header()->sortIndicatorSection(),
                      tree_view->header()->sortIndicatorOrder());
@@ -517,6 +610,7 @@ void GameList::DonePopulating(const QStringList& watch_list) {
         tree_view->resizeColumnToContents(i);
     }
     tree_view->header()->setStretchLastSection(true);
+    ApplyFilter();
 
     emit PopulatingCompleted();
 }
@@ -526,7 +620,11 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     if (!item.isValid())
         return;
 
-    const auto selected = item.sibling(item.row(), 0);
+    PopupContextMenuFor(item.sibling(item.row(), 0),
+                        tree_view->viewport()->mapToGlobal(menu_location));
+}
+
+void GameList::PopupContextMenuFor(const QModelIndex& selected, const QPoint& global_location) {
     QMenu context_menu;
     switch (selected.data(GameListItem::TypeRole).value<GameListItemType>()) {
     case GameListItemType::Game:
@@ -553,7 +651,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
         break;
     }
 
-    context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));
+    context_menu.exec(global_location);
 }
 
 void GameList::PopupHeaderContextMenu(const QPoint& menu_location) {
@@ -1048,6 +1146,11 @@ void GameList::changeEvent(QEvent* event) {
     QWidget::changeEvent(event);
 }
 
+void GameList::showEvent(QShowEvent* event) {
+    QWidget::showEvent(event);
+    AzalonUI::FadeIn(views, 280);
+}
+
 void GameList::RetranslateUI() {
     item_model->setHeaderData(COLUMN_NAME, Qt::Horizontal, tr("Name"));
     item_model->setHeaderData(COLUMN_COMPATIBILITY, Qt::Horizontal, tr("Compatibility"));
@@ -1067,7 +1170,26 @@ void GameListSearchField::changeEvent(QEvent* event) {
 
 void GameListSearchField::RetranslateUI() {
     label_filter->setText(tr("Filter:"));
-    edit_filter->setPlaceholderText(tr("Enter pattern to filter"));
+    edit_filter->setPlaceholderText(compact ? tr("Search games") : tr("Enter pattern to filter"));
+}
+
+void GameListSearchField::SetCompact(bool compact_) {
+    compact = compact_;
+    label_filter->setVisible(!compact);
+    label_filter_result->setVisible(!compact);
+    button_filter_close->setVisible(!compact);
+    layout_filter->setContentsMargins(compact ? QMargins() : QMargins(8, 8, 8, 8));
+    edit_filter->setProperty("search", compact);
+    edit_filter->setMinimumWidth(compact ? 240 : 0);
+    if (compact && !edit_filter->property("azalon_search_icon").toBool()) {
+        edit_filter->setProperty("azalon_search_icon", true);
+        edit_filter->addAction(
+            AzalonUI::MakeIcon(AzalonUI::Glyph::Search, AzalonUI::Colors::Muted, 16),
+            QLineEdit::LeadingPosition);
+    }
+    edit_filter->style()->unpolish(edit_filter);
+    edit_filter->style()->polish(edit_filter);
+    RetranslateUI();
 }
 
 QStandardItemModel* GameList::GetModel() const {
@@ -1224,24 +1346,42 @@ GameListPlaceholder::GameListPlaceholder(GMainWindow* parent) : QWidget{parent} 
     image = new QLabel;
     text = new QLabel;
     layout->setAlignment(Qt::AlignCenter);
-    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
+    layout->setSpacing(14);
+    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(160));
 
-    text->setText(tr("Double-click to add a new folder to the application list"));
+    auto* title = new QLabel(tr("Your library is empty"));
+    QFont title_font = title->font();
+    title_font.setPointSize(22);
+    title_font.setBold(true);
+    title->setFont(title_font);
+    title->setAlignment(Qt::AlignHCenter);
+
+    text->setText(tr("Add a folder with your 3DS and DS games to get started."));
     QFont font = text->font();
-    font.setPointSize(20);
+    font.setPointSize(12);
     text->setFont(font);
     text->setAlignment(Qt::AlignHCenter);
     image->setAlignment(Qt::AlignHCenter);
 
+    auto* add_button = new QPushButton(tr("Add game folder"));
+    add_button->setProperty("accent", true);
+    add_button->setCursor(Qt::PointingHandCursor);
+    add_button->setMinimumWidth(200);
+    add_button->setIcon(AzalonUI::MakeIcon(AzalonUI::Glyph::Folder, AzalonUI::Colors::OnAccent));
+    connect(add_button, &QPushButton::clicked, this, &GameListPlaceholder::AddDirectory);
+
     layout->addWidget(image);
+    layout->addWidget(title);
     layout->addWidget(text);
+    layout->addSpacing(8);
+    layout->addWidget(add_button, 0, Qt::AlignHCenter);
     setLayout(layout);
 }
 
 GameListPlaceholder::~GameListPlaceholder() = default;
 
 void GameListPlaceholder::onUpdateThemedIcons() {
-    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(200));
+    image->setPixmap(QIcon::fromTheme(QStringLiteral("plus_folder")).pixmap(160));
 }
 
 void GameListPlaceholder::mouseDoubleClickEvent([[maybe_unused]] QMouseEvent* event) {

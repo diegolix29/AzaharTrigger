@@ -11,9 +11,13 @@ import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.Icon
 import android.net.Uri
+import android.os.Build
 import android.os.SystemClock
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -25,6 +29,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.scale
 import androidx.core.net.toUri
@@ -40,7 +45,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -219,6 +223,30 @@ class GameAdapter(
             binding.imageGameScreen.scaleType = ImageView.ScaleType.CENTER_CROP
             GameIconUtils.loadGameIcon(activity, game, binding.imageGameScreen)
 
+            // Blurred copy of the icon behind it: the card's "glass" color wash.
+            GameIconUtils.loadGameIcon(activity, game, binding.imageGameBackdrop, rounded = false)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                binding.imageGameBackdrop.setRenderEffect(
+                    RenderEffect.createBlurEffect(36f, 36f, Shader.TileMode.CLAMP)
+                )
+            } else {
+                binding.imageGameBackdrop.alpha = 0.3f
+            }
+
+            val (badgeText, badgeColor) = when {
+                game.isDs && game.fileType == "DSi" ->
+                    R.string.azalon_platform_dsi to R.color.azalon_badge_dsi
+                game.isDs -> R.string.azalon_platform_ds to R.color.azalon_badge_ds
+                else -> R.string.azalon_platform_3ds to R.color.azalon_badge_3ds
+            }
+            val badgeColorInt = ContextCompat.getColor(binding.root.context, badgeColor)
+            binding.textPlatformBadge.setText(badgeText)
+            binding.textPlatformBadge.setTextColor(badgeColorInt)
+            (binding.textPlatformBadge.background.mutate() as? GradientDrawable)?.setStroke(
+                binding.root.resources.displayMetrics.density.toInt().coerceAtLeast(1),
+                badgeColorInt
+            )
+
             binding.textCompany.visibility = if (game.company.isEmpty()) {
                 View.GONE
             } else {
@@ -244,18 +272,11 @@ class GameAdapter(
                     View.VISIBLE
                 }
 
-            binding.cardContents.setBackgroundColor(
-                MaterialColors.getColor(
-                    binding.cardContents,
-                    R.attr.colorSurface
-                )
-            )
+            // The card itself draws the glass background.
+            binding.cardContents.background = null
 
             binding.textGameTitle.postDelayed(
                 {
-                    binding.textGameTitle.ellipsize = TextUtils.TruncateAt.MARQUEE
-                    binding.textGameTitle.isSelected = true
-
                     binding.textCompany.ellipsize = TextUtils.TruncateAt.MARQUEE
                     binding.textCompany.isSelected = true
 

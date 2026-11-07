@@ -197,6 +197,8 @@ public:
     static constexpr int LongTitleRole = SortRole + 5;
     static constexpr int MediaTypeRole = SortRole + 6;
     static constexpr int CanInsertRole = SortRole + 7;
+    /// Always the large icon (for the grid view), whatever the list's icon size setting is.
+    static constexpr int LargeIconRole = SortRole + 8;
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, std::span<const u8> smdh_data, u64 program_id,
@@ -235,9 +237,11 @@ public:
         std::memcpy(&smdh, smdh_data.data(), sizeof(Loader::SMDH));
 
         // Get icon from SMDH
+        const QPixmap large_icon = GetQPixmapFromSMDH(smdh, true);
+        setData(large_icon, LargeIconRole);
         if (UISettings::values.game_list_icon_size.GetValue() !=
             UISettings::GameListIconSize::NoIcon) {
-            setData(GetQPixmapFromSMDH(smdh, large), Qt::DecorationRole);
+            setData(large ? large_icon : GetQPixmapFromSMDH(smdh, false), Qt::DecorationRole);
         }
 
         // Get title from SMDH
@@ -558,9 +562,14 @@ public:
     void clear();
     void setFocus();
 
+    /// Search-box look for the library header: no label, counter or close button.
+    void SetCompact(bool compact);
+
 private:
     void changeEvent(QEvent*) override;
     void RetranslateUI();
+
+    bool compact = false;
 
     class KeyReleaseEater : public QObject {
     public:

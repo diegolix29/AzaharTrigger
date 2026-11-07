@@ -111,6 +111,14 @@ void GameListWorker::AddFstEntriesToGameList(const std::string& dir_path, unsign
             path_item->setData(QString(title).replace(QLatin1Char('\n'), QLatin1Char(' ')),
                                GameListItemPath::LongTitleRole);
             const auto icon_size = UISettings::values.game_list_icon_size.GetValue();
+            if (info.has_icon) {
+                // Deep copy: the QImage would otherwise point into `info`.
+                path_item->setData(
+                    QPixmap::fromImage(QImage(reinterpret_cast<const uchar*>(info.icon), 32, 32,
+                                              QImage::Format_ARGB32)
+                                           .copy()),
+                    GameListItemPath::LargeIconRole);
+            }
             if (info.has_icon && icon_size != UISettings::GameListIconSize::NoIcon) {
                 const int size = icon_size == UISettings::GameListIconSize::LargeIcon ? 48 : 24;
                 const QImage icon(reinterpret_cast<const uchar*>(info.icon), 32, 32,

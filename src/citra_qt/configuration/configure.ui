@@ -11,19 +11,32 @@
      <item>
       <widget class="QListWidget" name="selectorList">
        <property name="minimumWidth">
-        <number>150</number>
+        <number>190</number>
        </property>
        <property name="maximumWidth">
-        <number>150</number>
+        <number>190</number>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="currentIndex">
-        <number>-1</number>
+      <layout class="QVBoxLayout" name="pageLayout">
+       <property name="spacing">
+        <number>4</number>
        </property>
-      </widget>
+       <property name="leftMargin">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="pageTitle"/>
+       </item>
+       <item>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="currentIndex">
+          <number>-1</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

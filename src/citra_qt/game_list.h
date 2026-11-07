@@ -24,6 +24,7 @@ class GameListSearchField;
 class GMainWindow;
 class QFileSystemWatcher;
 class QHBoxLayout;
+class QStackedWidget;
 class QLabel;
 class QLineEdit;
 template <typename>
@@ -34,6 +35,14 @@ class QStandardItemModel;
 class QTreeView;
 class QToolButton;
 class QVBoxLayout;
+
+namespace AzalonUI {
+class GameGridFilter;
+class GameGridModel;
+class GameGridView;
+class LibraryHeader;
+enum class PlatformFilter;
+} // namespace AzalonUI
 
 enum class GameListOpenTarget {
     SAVE_DATA = 0,
@@ -107,6 +116,10 @@ signals:
     void AddDirectory();
     void ShowList(bool show);
     void PopulatingCompleted();
+    /// Quick actions of the library header bar.
+    void OpenFileRequested();
+    void SettingsRequested();
+    void LobbyRequested();
 #ifdef ENABLE_DEVELOPER_OPTIONS
     void StartingLaunchStressTest(const QString& game_path);
 #endif
@@ -116,6 +129,8 @@ private slots:
     void OnTextChanged(const QString& new_text);
     void OnFilterCloseClicked();
     void OnUpdateThemedIcons();
+    void OnGridActivated(const QModelIndex& index);
+    void OnGridContextMenu(const QPoint& menu_location);
 
 private:
     void AddDirEntry(GameListDir* entry_items);
@@ -124,6 +139,12 @@ private:
     void DonePopulating(const QStringList& watch_list);
 
     void PopupContextMenu(const QPoint& menu_location);
+    /// `selected` is column 0 of a row of `item_model`.
+    void PopupContextMenuFor(const QModelIndex& selected, const QPoint& global_location);
+    /// Applies the search text and the platform pills to both views.
+    void ApplyFilter();
+    void SetViewMode(int mode);
+    void SetPlatformFilter(AzalonUI::PlatformFilter platform);
     void PopupHeaderContextMenu(const QPoint& menu_location);
     void AddGamePopup(QMenu& context_menu, const QString& path, const QString& name, u64 program_id,
                       u64 extdata_id, Service::FS::MediaType media_type, bool can_insert);
@@ -135,6 +156,7 @@ private:
     QString FindGameByProgramID(QStandardItem* current_item, u64 program_id, int role);
 
     void changeEvent(QEvent*) override;
+    void showEvent(QShowEvent* event) override;
     void RetranslateUI();
 
     GameListSearchField* search_field;
@@ -142,6 +164,13 @@ private:
     QVBoxLayout* layout = nullptr;
     QTreeView* tree_view = nullptr;
     QStandardItemModel* item_model = nullptr;
+    AzalonUI::LibraryHeader* header = nullptr;
+    QStackedWidget* views = nullptr;
+    AzalonUI::GameGridView* grid_view = nullptr;
+    AzalonUI::GameGridModel* grid_model = nullptr;
+    AzalonUI::GameGridFilter* grid_filter = nullptr;
+    QString filter_text;
+    int platform_filter = 0;
     GameListWorker* current_worker = nullptr;
     QFileSystemWatcher* watcher = nullptr;
     CompatibilityList compatibility_list;

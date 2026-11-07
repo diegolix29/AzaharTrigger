@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -62,7 +63,16 @@ class GamesFragment : Fragment() {
     private var shouldCompress: Boolean = true
     private var pendingCompressInvocation: String? = null
 
+    /** Platform chip of the library header: 0 = all, 1 = 3DS, 2 = DS/DSi. */
+    private var platformFilter = PLATFORM_ALL
+    private var shownCount = 0
+
     companion object {
+        private const val PREF_PLATFORM_FILTER = "AzalonHomePlatformFilter"
+        private const val PLATFORM_ALL = 0
+        private const val PLATFORM_3DS = 1
+        private const val PLATFORM_DS = 2
+
         fun doCompression(
             fragment: Fragment,
             gamesViewModel: GamesViewModel,
@@ -146,6 +156,7 @@ class GamesFragment : Fragment() {
 
         val inflater = LayoutInflater.from(requireContext())
 
+        shownCount = 0
         gameAdapter = GameAdapter(
             requireActivity() as AppCompatActivity,
             inflater,
@@ -158,11 +169,38 @@ class GamesFragment : Fragment() {
         )
 
         binding.gridGames.apply {
-            layoutManager = GridLayoutManager(
-                requireContext(),
-                resources.getInteger(R.integer.game_grid_columns)
+            // About one 170dp cover card per column, at least the resource default.
+            val columns = maxOf(
+                resources.getInteger(R.integer.azalon_game_grid_columns),
+                resources.configuration.screenWidthDp / 170
             )
+            layoutManager = GridLayoutManager(requireContext(), columns)
             adapter = this@GamesFragment.gameAdapter
+        }
+
+        val preferences = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
+        platformFilter = preferences.getInt(PREF_PLATFORM_FILTER, PLATFORM_ALL)
+        binding.chipGroupPlatform.check(
+            when (platformFilter) {
+                PLATFORM_3DS -> R.id.chip_platform_3ds
+                PLATFORM_DS -> R.id.chip_platform_ds
+                else -> R.id.chip_platform_all
+            }
+        )
+        binding.chipGroupPlatform.setOnCheckedStateChangeListener { _, checkedIds ->
+            val selected = when (checkedIds.firstOrNull()) {
+                R.id.chip_platform_3ds -> PLATFORM_3DS
+                R.id.chip_platform_ds -> PLATFORM_DS
+                else -> PLATFORM_ALL
+            }
+            if (selected == platformFilter) {
+                return@setOnCheckedStateChangeListener
+            }
+            platformFilter = selected
+            preferences.edit { putInt(PREF_PLATFORM_FILTER, selected) }
+            setAdapter(gamesViewModel.games.value)
+            binding.gridGames.scrollToPosition(0)
+            binding.gridGames.scheduleLayoutAnimation()
         }
 
         binding.swipeRefresh.apply {
@@ -199,11 +237,7 @@ class GamesFragment : Fragment() {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
                     gamesViewModel.isReloading.collect { isReloading ->
                         binding.swipeRefresh.isRefreshing = isReloading
-                        if (gamesViewModel.games.value.isEmpty() && !isReloading) {
-                            binding.noticeText.visibility = View.VISIBLE
-                        } else {
-                            binding.noticeText.visibility = View.INVISIBLE
-                        }
+                        updateNotice()
                     }
                 }
             }
@@ -288,16 +322,49 @@ class GamesFragment : Fragment() {
 
     private fun setAdapter(games: List<Game>) {
         val preferences = PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
-        if (preferences.getBoolean(CitraSettings.PREF_SHOW_HOME_APPS, false)) {
-            (binding.gridGames.adapter as GameAdapter).submitList(games)
+        val library = if (preferences.getBoolean(CitraSettings.PREF_SHOW_HOME_APPS, false)) {
+            games
         } else {
-            val filteredList = games.filter { !it.isSystemTitle }
-            (binding.gridGames.adapter as GameAdapter).submitList(filteredList)
+            games.filter { !it.isSystemTitle }
+        }
+        val shown = when (platformFilter) {
+            PLATFORM_3DS -> library.filter { !it.isDs }
+            PLATFORM_DS -> library.filter { it.isDs }
+            else -> library
+        }
+        val firstLoad = shownCount == 0 && shown.isNotEmpty()
+        shownCount = shown.size
+        gameAdapter.submitList(shown)
+        if (firstLoad) {
+            binding.gridGames.scheduleLayoutAnimation()
+        }
+
+        binding.textGameCount.text =
+            resources.getQuantityString(R.plurals.azalon_game_count, shown.size, shown.size)
+        updateNotice()
+    }
+
+    private fun updateNotice() {
+        if (_binding == null) {
+            return
+        }
+        if (shownCount == 0 && !gamesViewModel.isReloading.value) {
+            binding.noticeText.setText(
+                if (gamesViewModel.games.value.isNotEmpty()) {
+                    R.string.azalon_no_games_for_platform
+                } else {
+                    R.string.empty_gamelist
+                }
+            )
+            binding.noticeText.visibility = View.VISIBLE
+        } else {
+            binding.noticeText.visibility = View.INVISIBLE
         }
     }
 
     private fun scrollToTop() {
         if (_binding != null) {
+            binding.appBarGames.setExpanded(true, true)
             binding.gridGames.smoothScrollToPosition(0)
         }
     }
@@ -312,8 +379,11 @@ class GamesFragment : Fragment() {
         val spacingNavigationRail =
             resources.getDimensionPixelSize(R.dimen.spacing_navigation_rail)
 
+        // The header sits under the status bar; the grid starts right below it.
+        val headerPadding = resources.getDimensionPixelSize(R.dimen.spacing_med)
+        binding.headerGames.updatePadding(top = barInsets.top + headerPadding)
         binding.gridGames.updatePadding(
-            top = barInsets.top + extraListSpacing,
+            top = headerPadding,
             bottom = barInsets.bottom + spacingNavigation + extraListSpacing
         )
 
@@ -333,6 +403,11 @@ class GamesFragment : Fragment() {
             mlpSwipe.rightMargin = rightInsets + spacingNavigationRail
         }
         binding.swipeRefresh.layoutParams = mlpSwipe
+
+        val mlpHeader = binding.appBarGames.layoutParams as MarginLayoutParams
+        mlpHeader.leftMargin = mlpSwipe.leftMargin
+        mlpHeader.rightMargin = mlpSwipe.rightMargin
+        binding.appBarGames.layoutParams = mlpHeader
 
         binding.noticeText.updatePadding(bottom = spacingNavigation)
 

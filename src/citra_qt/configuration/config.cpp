@@ -895,6 +895,10 @@ void QtConfig::ReadUIGameListValues() {
     ReadBasicSetting(UISettings::values.game_list_row_2);
     ReadBasicSetting(UISettings::values.game_list_hide_no_icon);
     ReadBasicSetting(UISettings::values.game_list_single_line_mode);
+    UISettings::values.game_list_view_mode =
+        ReadSetting(QStringLiteral("azalon_view_mode"), 0).toInt();
+    UISettings::values.game_list_platform =
+        ReadSetting(QStringLiteral("azalon_platform_filter"), 0).toInt();
 
     ReadBasicSetting(UISettings::values.show_compat_column);
     ReadBasicSetting(UISettings::values.show_region_column);
@@ -1436,6 +1440,9 @@ void QtConfig::SaveUIGameListValues() {
     WriteBasicSetting(UISettings::values.game_list_row_2);
     WriteBasicSetting(UISettings::values.game_list_hide_no_icon);
     WriteBasicSetting(UISettings::values.game_list_single_line_mode);
+    WriteSetting(QStringLiteral("azalon_view_mode"), UISettings::values.game_list_view_mode, 0);
+    WriteSetting(QStringLiteral("azalon_platform_filter"), UISettings::values.game_list_platform,
+                 0);
 
     WriteBasicSetting(UISettings::values.show_compat_column);
     WriteBasicSetting(UISettings::values.show_region_column);

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="game_grid_columns">1</integer>
+    <!-- Cover cards in the game library and search results -->
+    <integer name="azalon_game_grid_columns">2</integer>
 
     <!-- Default N3DS landscape layout -->
     <integer name="N3DS_BUTTON_A_X">930</integer>

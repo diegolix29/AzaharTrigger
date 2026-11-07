@@ -30,7 +30,7 @@ struct Shortcut {
     ContextualShortcut shortcut;
 };
 
-using Themes = std::array<std::pair<const char*, const char*>, 6>;
+using Themes = std::array<std::pair<const char*, const char*>, 7>;
 extern const Themes themes;
 
 struct GameDir {
@@ -115,6 +115,9 @@ struct Values {
     Settings::Setting<GameListText> game_list_row_2{GameListText::FileName, Settings::Keys::row2};
     Settings::Setting<bool> game_list_hide_no_icon{false, Settings::Keys::hideNoIcon};
     Settings::Setting<bool> game_list_single_line_mode{false, Settings::Keys::singleLineMode};
+    /// Azalon library: 0 = cover grid, 1 = list. Platform pill: 0 = all, 1 = 3DS, 2 = DS.
+    int game_list_view_mode = 0;
+    int game_list_platform = 0;
 
     // Compatibility List
     Settings::Setting<bool> show_compat_column{true, Settings::Keys::show_compat_column};

@@ -25,9 +25,38 @@ object ThemeUtil {
     private val preferences: SharedPreferences get() =
         PreferenceManager.getDefaultSharedPreferences(CitraApplication.appContext)
 
+    /** Index of Azalon Teal in the "Theme Color" list; it is the default. */
+    const val AZALON_THEME_INDEX = 0
+    private const val PREF_AZALON_THEME_MIGRATED = "AzalonThemeMigrated"
+
+    /**
+     * Azalon Teal was inserted at the start of the theme list. Shift a color the user picked
+     * before that, once, so they keep it; users who never picked one get Azalon Teal.
+     */
+    private fun migrateStaticThemeIndex() {
+        if (preferences.getBoolean(PREF_AZALON_THEME_MIGRATED, false)) {
+            return
+        }
+        val editor = preferences.edit()
+        if (preferences.contains(CitraSettings.PREF_STATIC_THEME_COLOR)) {
+            val old = preferences.getInt(CitraSettings.PREF_STATIC_THEME_COLOR, 0)
+            editor.putInt(CitraSettings.PREF_STATIC_THEME_COLOR, old + 1)
+        }
+        editor.putBoolean(PREF_AZALON_THEME_MIGRATED, true).apply()
+    }
+
+    /** True when the app uses the Azalon Teal theme (always dark). */
+    fun isAzalonTheme(): Boolean {
+        migrateStaticThemeIndex()
+        return !preferences.getBoolean(CitraSettings.PREF_MATERIAL_YOU, false) &&
+            preferences.getInt(CitraSettings.PREF_STATIC_THEME_COLOR, AZALON_THEME_INDEX) ==
+            AZALON_THEME_INDEX
+    }
+
     private fun getSelectedStaticThemeColor(): Int {
-        val themeIndex = preferences.getInt(CitraSettings.PREF_STATIC_THEME_COLOR, 0)
+        migrateStaticThemeIndex()
         val themes = arrayOf(
+            R.style.Theme_Citra_Azalon,
             R.style.Theme_Citra_Blue,
             R.style.Theme_Citra_Cyan,
             R.style.Theme_Citra_Red,
@@ -38,7 +67,8 @@ object ThemeUtil {
             R.style.Theme_Citra_Pink,
             R.style.Theme_Citra_Gray
         )
-        return themes[themeIndex]
+        val themeIndex = preferences.getInt(CitraSettings.PREF_STATIC_THEME_COLOR, 0)
+        return themes.getOrElse(themeIndex) { themes[AZALON_THEME_INDEX] }
     }
 
     fun setTheme(activity: AppCompatActivity) {
@@ -60,8 +90,13 @@ object ThemeUtil {
     }
 
     fun setThemeMode(activity: AppCompatActivity) {
-        val themeMode = PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
-            .getInt(CitraSettings.PREF_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        // Azalon Teal is a dark-only design.
+        val themeMode = if (isAzalonTheme()) {
+            AppCompatDelegate.MODE_NIGHT_YES
+        } else {
+            PreferenceManager.getDefaultSharedPreferences(activity.applicationContext)
+                .getInt(CitraSettings.PREF_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
         activity.delegate.localNightMode = themeMode
         val windowController = WindowCompat.getInsetsController(
             activity.window,

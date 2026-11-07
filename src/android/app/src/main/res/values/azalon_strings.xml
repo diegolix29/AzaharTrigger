@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="azalon_brand_name" translatable="false">Azalon</string>
+    <string name="azalon_brand_suffix" translatable="false">3-DS</string>
+    <string name="azalon_platform_all">All</string>
+    <string name="azalon_platform_3ds" translatable="false">3DS</string>
+    <string name="azalon_platform_ds" translatable="false">DS</string>
+    <string name="azalon_platform_dsi" translatable="false">DSi</string>
+    <plurals name="azalon_game_count">
+        <item quantity="one">%d game</item>
+        <item quantity="other">%d games</item>
+    </plurals>
+    <string name="azalon_no_games_for_platform">No games for this console yet.</string>
+    <string name="azalon_paused">Paused</string>
+    <string name="azalon_menu_subtitle">Game menu</string>
+</resources>

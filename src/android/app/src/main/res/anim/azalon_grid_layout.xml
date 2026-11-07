@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Staggered fade-in of the game grid. A plain layoutAnimation (not gridLayoutAnimation):
+     RecyclerView's layout params don't support the grid variant. -->
+<layoutAnimation xmlns:android="http://schemas.android.com/apk/res/android"
+    android:animation="@anim/azalon_card_enter"
+    android:animationOrder="normal"
+    android:delay="6%" />
